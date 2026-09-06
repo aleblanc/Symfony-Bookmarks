@@ -72,7 +72,7 @@ Cron (simple-cron-scheduler)     │       ▼                                  
 
 ```
 src/
-├── Command/                    # 4 CLI commands (archive-pending, ai-tag-pending [--retry-failed], create-vault, generate-secrets)
+├── Command/                    # 5 CLI commands (archive-pending [--rearchive], ai-tag-pending [--retry-failed], ai-summarize-pending [--retry-failed], create-vault, generate-secrets)
 ├── Controller/
 │   ├── Api/                    # /api/v1/* — envelope {"response": ...}, matches Linkwarden extension
 │   └── Web/                    # Twig UI controllers

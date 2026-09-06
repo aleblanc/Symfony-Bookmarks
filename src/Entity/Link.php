@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(columns: ['collection_id'])]
 #[ORM\Index(columns: ['status'])]
 #[ORM\Index(columns: ['ai_status'])]
+#[ORM\Index(columns: ['summary_status'])]
 class Link
 {
     public const STATUS_PENDING = 'pending';
@@ -25,6 +26,11 @@ class Link
     public const AI_DONE = 'done';
     public const AI_FAILED = 'failed';
     public const AI_SKIP = 'skip';
+
+    public const SUMMARY_PENDING = 'pending';
+    public const SUMMARY_DONE = 'done';
+    public const SUMMARY_FAILED = 'failed';
+    public const SUMMARY_SKIP = 'skip';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -64,6 +70,12 @@ class Link
 
     #[ORM\Column(length: 16)]
     private string $aiStatus = self::AI_PENDING;
+
+    #[ORM\Column(length: 16)]
+    private string $summaryStatus = self::SUMMARY_PENDING;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $aiSummary = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $lastError = null;
@@ -196,6 +208,26 @@ class Link
     public function setAiStatus(string $aiStatus): void
     {
         $this->aiStatus = $aiStatus;
+    }
+
+    public function getSummaryStatus(): string
+    {
+        return $this->summaryStatus;
+    }
+
+    public function setSummaryStatus(string $summaryStatus): void
+    {
+        $this->summaryStatus = $summaryStatus;
+    }
+
+    public function getAiSummary(): ?string
+    {
+        return $this->aiSummary;
+    }
+
+    public function setAiSummary(?string $aiSummary): void
+    {
+        $this->aiSummary = $aiSummary;
     }
 
     public function getLastError(): ?string

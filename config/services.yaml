@@ -58,9 +58,18 @@ services:
             $enabled: '%env(bool:APP_AI_ENABLED)%'
             $aiLogger: '@monolog.logger.ai'
 
+    App\Command\AppAiSummarizePendingCommand:
+        arguments:
+            $enabled: '%env(bool:APP_AI_ENABLED)%'
+            $aiLogger: '@monolog.logger.ai'
+
     App\Service\Ai\AutoTagger:
         arguments:
             $taggerAgent: '@ai.agent.tagger'
+
+    App\Service\Ai\AutoSummarizer:
+        arguments:
+            $summarizerAgent: '@ai.agent.summarizer'
 
     _instanceof:
         App\Service\Archiver\AssetArchiverInterface:

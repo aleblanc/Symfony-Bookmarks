@@ -78,6 +78,7 @@ link:
     collection_label: 'Collection'
     created_label: 'Créé le'
     description: 'Description'
+    ai_summary: 'Résumé IA'
     readable: 'Contenu lisible'
     last_error: 'Dernière erreur'
     rearchive_now: 'Ré-archiver maintenant'

@@ -85,6 +85,34 @@ final class LinkRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return list<Link> archived links still awaiting an AI summary */
+    public function findPendingSummary(int $limit = 20): array
+    {
+        return $this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('l.summaryStatus = :s AND l.status = :done')
+            ->setParameter('s', Link::SUMMARY_PENDING)
+            ->setParameter('done', Link::STATUS_DONE)
+            ->orderBy('l.id', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** Requeues links whose AI summarization failed. Returns the count reset. */
+    public function resetFailedSummaryStatus(): int
+    {
+        return (int) $this->createQueryBuilder('l')
+            ->update()
+            ->set('l.summaryStatus', ':pending')
+            ->set('l.lastError', 'NULL')
+            ->where('l.summaryStatus = :failed')
+            ->setParameter('pending', Link::SUMMARY_PENDING)
+            ->setParameter('failed', Link::SUMMARY_FAILED)
+            ->getQuery()
+            ->execute();
+    }
+
     /**
      * @param 'ASC'|'DESC' $order 'DESC' for the "recent links" widget (newest first),
      *                            'ASC' to preserve insertion/import order (Firefox order)
