@@ -3,11 +3,6 @@ doctrine:
         url: '%env(resolve:DATABASE_URL)%'
         driver: 'pdo_sqlite'
         charset: utf8
-        options:
-            # Enable foreign keys (SQLite disables them by default)
-            1002: 'PRAGMA foreign_keys = ON'
-            # Better write concurrency
-            1003: 'PRAGMA journal_mode = WAL'
 
         profiling_collect_backtrace: '%kernel.debug%'
     orm:
