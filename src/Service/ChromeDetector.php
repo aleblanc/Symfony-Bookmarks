@@ -20,12 +20,17 @@ final class ChromeDetector
     ) {
         $this->candidates = $extraCandidates ?? [
             $this->overridePath,
+            // Linux (target: Raspberry Pi)
             '/usr/bin/chromium-browser',
             '/usr/bin/chromium',
             '/usr/bin/google-chrome',
             '/usr/bin/google-chrome-stable',
             '/usr/local/bin/chromium',
             '/snap/bin/chromium',
+            // macOS (local dev)
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+            '/Applications/Chromium.app/Contents/MacOS/Chromium',
+            '/opt/homebrew/bin/chromium',
         ];
     }
 

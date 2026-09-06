@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Web;
 
 use App\Entity\Link;
+use App\Repository\ArchiveAssetRepository;
 use App\Repository\CollectionRepository;
 use App\Repository\LinkRepository;
 use App\Repository\TagRepository;
@@ -26,6 +27,7 @@ final class LinkController extends AbstractController
         private readonly CurrentDashboard $current,
         private readonly LinkSearch $search,
         private readonly EntityManagerInterface $em,
+        private readonly ArchiveAssetRepository $assets,
     ) {
     }
 
@@ -47,7 +49,7 @@ final class LinkController extends AbstractController
             $tag = $this->tags->find((int) $tagId);
             $links = null === $tag ? [] : $this->links->findForTag($tag);
         } else {
-            $links = $this->links->findForDashboard($dashboard, 50);
+            $links = $this->links->findForDashboard($dashboard, 50, null, 'ASC');
         }
 
         return $this->render('links/index.html.twig', [
@@ -91,7 +93,10 @@ final class LinkController extends AbstractController
     {
         $link = $this->links->find($id) ?? throw $this->createNotFoundException();
 
-        return $this->render('links/show.html.twig', ['link' => $link]);
+        return $this->render('links/show.html.twig', [
+            'link' => $link,
+            'assets' => $this->assets->findForLink($link),
+        ]);
     }
 
     #[Route('/links/{id}/delete', name: 'links_delete', methods: ['POST'])]

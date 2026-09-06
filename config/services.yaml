@@ -26,6 +26,11 @@ services:
         arguments:
             $expectedToken: '%env(APP_API_TOKEN)%'
 
+    # Enforce SQLite foreign keys (ON DELETE CASCADE) on every connection
+    App\Doctrine\SqliteForeignKeysMiddleware:
+        tags:
+            - { name: doctrine.middleware }
+
     App\Service\ChromeDetector:
         arguments:
             $overridePath: '%env(APP_CHROME_PATH)%'
@@ -39,6 +44,10 @@ services:
     App\Service\Favicon\FaviconFetcher:
         arguments:
             $publicDir: '%kernel.project_dir%/public'
+
+    App\Service\Archiver\PreviewImageFetcher:
+        arguments:
+            $archiveDir: '%env(resolve:APP_ARCHIVE_DIR)%'
 
     App\Command\AppAiTagPendingCommand:
         arguments:

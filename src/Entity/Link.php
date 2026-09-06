@@ -46,6 +46,10 @@ class Link
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $iconPath = null;
 
+    /** Archive-relative path to the downloaded preview image, e.g. "12/preview.jpg". */
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $previewImage = null;
+
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Collection $collection;
@@ -134,6 +138,16 @@ class Link
     public function setIconPath(?string $iconPath): void
     {
         $this->iconPath = $iconPath;
+    }
+
+    public function getPreviewImage(): ?string
+    {
+        return $this->previewImage;
+    }
+
+    public function setPreviewImage(?string $previewImage): void
+    {
+        $this->previewImage = $previewImage;
     }
 
     public function getCollection(): Collection

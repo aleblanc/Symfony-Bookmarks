@@ -25,6 +25,7 @@ final class ArchiveRunner
         private readonly EntityManagerInterface $em,
         private readonly LoggerInterface $logger,
         private readonly FaviconFetcher $favicon,
+        private readonly PreviewImageFetcher $preview,
         private readonly string $archiveDir,
         ?HttpClientInterface $http = null,
     ) {
@@ -57,7 +58,12 @@ final class ArchiveRunner
                 $link->setIconPath($iconPath);
             }
 
-            $baseDir = sprintf('%s/%d', $this->archiveDir, (int) $link->getId());
+            $preview = $this->preview->fetch($html, $link->getUrl(), (int) $link->getId());
+            if (null !== $preview) {
+                $link->setPreviewImage($preview);
+            }
+
+            $baseDir = \sprintf('%s/%d', $this->archiveDir, (int) $link->getId());
             if (!is_dir($baseDir)) {
                 @mkdir($baseDir, 0o755, true);
             }
@@ -74,10 +80,10 @@ final class ArchiveRunner
                         ArchiveAsset::KIND_PDF => 'pdf',
                         default => 'bin',
                     };
-                    $out = sprintf('%s/%s.%s', $baseDir, $archiver->kind(), $ext);
+                    $out = \sprintf('%s/%s.%s', $baseDir, $archiver->kind(), $ext);
                     $archiver->archive($link->getUrl(), $out);
                     $size = filesize($out);
-                    $relative = sprintf('%d/%s.%s', (int) $link->getId(), $archiver->kind(), $ext);
+                    $relative = \sprintf('%d/%s.%s', (int) $link->getId(), $archiver->kind(), $ext);
                     $this->em->persist(new ArchiveAsset($link, $archiver->kind(), $relative, false === $size ? 0 : $size));
                 } catch (\Throwable $e) {
                     $this->logger->warning('archiver failed', ['kind' => $archiver->kind(), 'link' => $link->getId(), 'err' => $e->getMessage()]);
