@@ -1,0 +1,112 @@
+app:
+    name: 'Marque-pages'
+
+nav:
+    section: 'Navigation'
+    home: 'Accueil'
+    all_links: 'Tous les liens'
+    new_link: 'Nouveau lien'
+    collections: 'Collections'
+    import: 'Importer'
+
+sidebar:
+    dashboard: 'Tableau de bord'
+    search: 'Recherche'
+    search_placeholder: 'Rechercher un lien…'
+    manage: 'Gérer les collections'
+    features: 'Fonctionnalités'
+    feature:
+        readable: 'Texte lisible'
+        singlefile: 'Page complète'
+        screenshot: 'Capture'
+        pdf: 'PDF'
+    'yes': 'oui'
+    'no': 'non'
+
+common:
+    details: 'Détails'
+    rearchive: 'Ré-archiver'
+    delete: 'Supprimer'
+    create: 'Créer'
+    search: 'Rechercher'
+    optional: 'facultatif'
+    confirm_delete_link: 'Supprimer ce lien ?'
+    confirm_delete: 'Supprimer ?'
+
+status:
+    label: 'statut'
+    ai_label: 'IA'
+    value:
+        pending: 'en attente'
+        archiving: 'archivage…'
+        done: 'terminé'
+        failed: 'échec'
+        skip: 'ignoré'
+
+dashboard:
+    title: 'Tableau de bord'
+    recent_links: 'Liens récents'
+    empty: 'Aucun lien pour l''instant. Ajoutez-en un avec le bouton ci-dessus ou via l''extension navigateur.'
+    collections_count: 'Collections (%count%)'
+    create_first_collection: 'Créer une première collection'
+    tags_count: 'Étiquettes (%count%)'
+    no_tags: 'Aucune étiquette pour l''instant.'
+
+link:
+    title_plural: 'Liens'
+    search_for: 'recherche « %query% »'
+    new: 'Nouveau lien'
+    fulltext_placeholder: 'Recherche plein texte…'
+    none_match: 'Aucun lien ne correspond.'
+    untitled: 'Sans titre'
+    need_collection: 'Vous devez d''abord créer une collection.'
+    create_one: 'En créer une'
+    field_url: 'URL'
+    field_name: 'Nom (facultatif, complété par l''archiveur)'
+    field_collection: 'Collection'
+    archiving_legend: 'Archivage'
+    archiving_intro: 'Le texte lisible est toujours extrait. Les options suivantes dépendent des outils installés :'
+    feature_singlefile_on: 'Page complète HTML : activé'
+    feature_singlefile_off: 'Page complète HTML : désactivé (installer chromium + single-file-cli)'
+    feature_screenshot_on: 'Capture d''écran : activé'
+    feature_screenshot_off: 'Capture d''écran : désactivé (installer chromium)'
+    feature_pdf_on: 'PDF : activé'
+    feature_pdf_off: 'PDF : désactivé (installer chromium)'
+    submit: 'Ajouter le lien (archivage asynchrone)'
+    collection_label: 'Collection'
+    created_label: 'Créé le'
+    description: 'Description'
+    readable: 'Contenu lisible'
+    last_error: 'Dernière erreur'
+    rearchive_now: 'Ré-archiver maintenant'
+    archives: 'Archives'
+    no_archives: 'Aucune archive pour ce lien (lance l''archivage, ou installe Chrome pour la capture/PDF).'
+    kb: 'Ko'
+    asset:
+        pdf: 'PDF'
+        screenshot: 'Capture'
+        singlefile: 'Page complète'
+        raw_html: 'HTML brut'
+
+collection:
+    title_plural: 'Collections'
+    new: 'Nouvelle collection'
+    none: 'Aucune collection pour l''instant.'
+    view_links: 'Voir les liens'
+    confirm_delete: 'Supprimer cette collection et tous ses liens ?'
+    field_name: 'Nom'
+    field_description: 'Description (facultatif)'
+    field_color: 'Couleur (hex)'
+
+import:
+    title: 'Importer des marque-pages'
+    result: 'Importé : %links% liens dans %collections% collections.'
+    field_file: 'Export HTML Netscape (Firefox / Chrome / Linkwarden)'
+    submit: 'Importer dans le tableau de bord actuel'
+    firefox_help_title: 'Depuis Firefox'
+    firefox_help: 'Ctrl+Maj+O → Importer et sauvegarder → Exporter les marque-pages au format HTML, puis chargez le fichier ici.'
+
+vault:
+    unlock_title: 'Déverrouiller le coffre « %name% »'
+    password: 'Mot de passe'
+    unlock: 'Déverrouiller (15 min)'

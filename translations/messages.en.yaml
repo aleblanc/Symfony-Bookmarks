@@ -1,0 +1,112 @@
+app:
+    name: 'Bookmarks'
+
+nav:
+    section: 'Navigation'
+    home: 'Home'
+    all_links: 'All links'
+    new_link: 'New link'
+    collections: 'Collections'
+    import: 'Import'
+
+sidebar:
+    dashboard: 'Dashboard'
+    search: 'Search'
+    search_placeholder: 'Search links…'
+    manage: 'Manage collections'
+    features: 'Features'
+    feature:
+        readable: 'Readable text'
+        singlefile: 'Single-file'
+        screenshot: 'Screenshot'
+        pdf: 'PDF'
+    'yes': 'yes'
+    'no': 'no'
+
+common:
+    details: 'Details'
+    rearchive: 'Re-archive'
+    delete: 'Delete'
+    create: 'Create'
+    search: 'Search'
+    optional: 'optional'
+    confirm_delete_link: 'Delete this link?'
+    confirm_delete: 'Delete?'
+
+status:
+    label: 'status'
+    ai_label: 'AI'
+    value:
+        pending: 'pending'
+        archiving: 'archiving…'
+        done: 'done'
+        failed: 'failed'
+        skip: 'skipped'
+
+dashboard:
+    title: 'Dashboard'
+    recent_links: 'Recent links'
+    empty: 'No links yet. Add your first via the button above or via the browser extension.'
+    collections_count: 'Collections (%count%)'
+    create_first_collection: 'Create first collection'
+    tags_count: 'Tags (%count%)'
+    no_tags: 'No tags yet.'
+
+link:
+    title_plural: 'Links'
+    search_for: 'search "%query%"'
+    new: 'New link'
+    fulltext_placeholder: 'Full-text search…'
+    none_match: 'No links match.'
+    untitled: 'Untitled'
+    need_collection: 'You need a collection first.'
+    create_one: 'Create one'
+    field_url: 'URL'
+    field_name: 'Name (optional, will be filled by archiver)'
+    field_collection: 'Collection'
+    archiving_legend: 'Archiving'
+    archiving_intro: 'Readable text is always extracted. Additional features depend on installed tooling:'
+    feature_singlefile_on: 'Single-file HTML: enabled'
+    feature_singlefile_off: 'Single-file HTML: disabled (install chromium + single-file-cli)'
+    feature_screenshot_on: 'Screenshot: enabled'
+    feature_screenshot_off: 'Screenshot: disabled (install chromium)'
+    feature_pdf_on: 'PDF: enabled'
+    feature_pdf_off: 'PDF: disabled (install chromium)'
+    submit: 'Add link (async archive)'
+    collection_label: 'Collection'
+    created_label: 'Created'
+    description: 'Description'
+    readable: 'Readable'
+    last_error: 'Last error'
+    rearchive_now: 'Re-archive now'
+    archives: 'Archives'
+    no_archives: 'No archive for this link yet (run archiving, or install Chrome for screenshot/PDF).'
+    kb: 'KB'
+    asset:
+        pdf: 'PDF'
+        screenshot: 'Screenshot'
+        singlefile: 'Single-file'
+        raw_html: 'Raw HTML'
+
+collection:
+    title_plural: 'Collections'
+    new: 'New collection'
+    none: 'No collections yet.'
+    view_links: 'View links'
+    confirm_delete: 'Delete this collection and all its links?'
+    field_name: 'Name'
+    field_description: 'Description (optional)'
+    field_color: 'Color (hex)'
+
+import:
+    title: 'Import bookmarks'
+    result: 'Imported %links% links into %collections% collections.'
+    field_file: 'Netscape HTML export (Firefox / Chrome / Linkwarden)'
+    submit: 'Import into current dashboard'
+    firefox_help_title: 'From Firefox'
+    firefox_help: 'Ctrl+Shift+O → Import and Backup → Export Bookmarks to HTML, then upload the file here.'
+
+vault:
+    unlock_title: 'Unlock vault "%name%"'
+    password: 'Password'
+    unlock: 'Unlock (15 min)'
