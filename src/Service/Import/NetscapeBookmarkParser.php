@@ -20,13 +20,16 @@ final class NetscapeBookmarkParser
     private const TOKEN = '/(?P<dl_open><dl\b[^>]*>)|(?P<dl_close><\/dl\s*>)|<h3\b[^>]*>(?P<h3>.*?)<\/h3>|<a\b[^>]*\bhref\s*=\s*(?P<q>["\'])(?P<href>.*?)(?P=q)[^>]*>(?P<atext>.*?)<\/a>/is';
 
     /**
-     * @return list<array{url: string, title: string, folder: string}>
+     * @return list<array{url: string, title: string, folders: list<string>}>
+     *                                                  folders = ancestor folder names from
+     *                                                  top-level down to the containing folder
+     *                                                  (empty for a document-root bookmark)
      */
     public function parse(string $html, string $rootFolder): array
     {
         preg_match_all(self::TOKEN, $html, $matches, \PREG_SET_ORDER);
 
-        /** @var list<string> $stack folder names, deepest last */
+        /** @var list<string> $stack folder names, deepest last; index 0 is the root sentinel */
         $stack = [];
         $pending = $rootFolder; // folder name the next <DL> will open
         $entries = [];
@@ -57,7 +60,8 @@ final class NetscapeBookmarkParser
             $entries[] = [
                 'url' => $href,
                 'title' => $this->text($m['atext'] ?? ''),
-                'folder' => $stack[\count($stack) - 1] ?? $rootFolder,
+                // Drop the root sentinel (stack[0]) to get the real folder path.
+                'folders' => array_values(\array_slice($stack, 1)),
             ];
         }
 

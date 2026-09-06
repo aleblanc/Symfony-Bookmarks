@@ -85,6 +85,7 @@ final class LinkController extends AbstractController
         return $this->render('links/new.html.twig', [
             'dashboard' => $dashboard,
             'collections' => $collections,
+            'preselect' => null !== $request->query->get('collection') ? (int) $request->query->get('collection') : null,
         ]);
     }
 

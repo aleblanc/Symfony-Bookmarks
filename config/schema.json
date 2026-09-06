@@ -5418,7 +5418,7 @@
                                         ],
                                         "default": {
                                             "default": [
-                                                "semaphore"
+                                                "flock"
                                             ]
                                         }
                                     }
@@ -5436,7 +5436,7 @@
                             "enabled": true,
                             "resources": {
                                 "default": [
-                                    "semaphore"
+                                    "flock"
                                 ]
                             }
                         },

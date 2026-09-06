@@ -14,6 +14,7 @@ sidebar:
     search: 'Recherche'
     search_placeholder: 'Rechercher un lien…'
     manage: 'Gérer les collections'
+    tags: 'Étiquettes'
     features: 'Fonctionnalités'
     feature:
         readable: 'Texte lisible'
@@ -29,6 +30,7 @@ common:
     delete: 'Supprimer'
     create: 'Créer'
     search: 'Rechercher'
+    open: 'Ouvrir'
     optional: 'facultatif'
     confirm_delete_link: 'Supprimer ce lien ?'
     confirm_delete: 'Supprimer ?'
@@ -91,12 +93,19 @@ link:
 collection:
     title_plural: 'Collections'
     new: 'Nouvelle collection'
+    new_subfolder: 'Nouveau sous-dossier'
     none: 'Aucune collection pour l''instant.'
     view_links: 'Voir les liens'
-    confirm_delete: 'Supprimer cette collection et tous ses liens ?'
+    confirm_delete: 'Supprimer ce dossier, ses sous-dossiers et tous leurs liens ?'
     field_name: 'Nom'
+    field_parent: 'Dossier parent'
+    no_parent: 'Racine (aucun parent)'
     field_description: 'Description (facultatif)'
     field_color: 'Couleur (hex)'
+    subfolders: 'Sous-dossiers'
+    links_in: 'Liens'
+    link_count: '%count% lien(s)'
+    subfolder_count: '%count% sous-dossier(s)'
 
 import:
     title: 'Importer des marque-pages'

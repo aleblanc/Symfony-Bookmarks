@@ -32,6 +32,11 @@ class Collection
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Dashboard $dashboard;
 
+    /** Parent collection for nesting (null = top-level folder). */
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(name: 'parent_id', nullable: true, onDelete: 'CASCADE')]
+    private ?Collection $parent = null;
+
     #[ORM\ManyToOne(targetEntity: Vault::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Vault $vault = null;
@@ -94,6 +99,31 @@ class Collection
     public function getDashboard(): Dashboard
     {
         return $this->dashboard;
+    }
+
+    public function getParent(): ?self
+    {
+        return $this->parent;
+    }
+
+    public function setParent(?self $parent): void
+    {
+        $this->parent = $parent;
+    }
+
+    /**
+     * Ancestor chain from the top-level folder down to (but excluding) this one.
+     *
+     * @return list<Collection>
+     */
+    public function getAncestors(): array
+    {
+        $chain = [];
+        for ($p = $this->parent; null !== $p; $p = $p->getParent()) {
+            $chain[] = $p;
+        }
+
+        return array_reverse($chain);
     }
 
     public function getVault(): ?Vault

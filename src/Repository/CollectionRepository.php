@@ -31,12 +31,23 @@ final class CollectionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return list<Collection> direct children of a collection */
+    public function findChildren(Collection $parent): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.parent = :p')
+            ->setParameter('p', $parent)
+            ->orderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
-     * Collections of a dashboard, each with its link count — for the sidebar.
+     * Full nested folder tree of a dashboard, each node carrying its direct link count.
      *
-     * @return list<array{collection: Collection, count: int}>
+     * @return list<array{collection: Collection, count: int, children: array<int, mixed>}>
      */
-    public function findForDashboardWithCounts(Dashboard $dashboard): array
+    public function findTreeForDashboard(Dashboard $dashboard): array
     {
         /** @var list<array{collection: Collection, cnt: int|string}> $rows */
         $rows = $this->createQueryBuilder('c')
@@ -49,9 +60,26 @@ final class CollectionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_map(
-            static fn (array $row): array => ['collection' => $row['collection'], 'count' => (int) $row['cnt']],
-            $rows,
-        );
+        // Accessing getParent() only reads the proxy id (no extra query).
+        $childrenOf = [];
+        foreach ($rows as $row) {
+            $parentId = $row['collection']->getParent()?->getId() ?? 0;
+            $childrenOf[$parentId][] = $row;
+        }
+
+        $build = static function (int $parentId) use (&$build, $childrenOf): array {
+            $nodes = [];
+            foreach ($childrenOf[$parentId] ?? [] as $row) {
+                $nodes[] = [
+                    'collection' => $row['collection'],
+                    'count' => (int) $row['cnt'],
+                    'children' => $build((int) $row['collection']->getId()),
+                ];
+            }
+
+            return $nodes;
+        };
+
+        return $build(0);
     }
 }

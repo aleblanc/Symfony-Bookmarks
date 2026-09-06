@@ -21,21 +21,35 @@
         <li><a href="{{ path('import_index') }}"><span class="ico">📥</span> {{ 'nav.import'|trans }}</a></li>
     </ul>
 
+    {% import 'layout/_collection_tree.html.twig' as tree %}
     <details class="collapse" id="col-collections" open>
         <summary>
             <span class="chevron">▸</span>
             <span class="ico">📁</span> {{ 'nav.collections'|trans }}
             <a class="manage" href="{{ path('collections_index') }}" title="{{ 'sidebar.manage'|trans }}">⚙</a>
         </summary>
+        {% set nodes = sidebar_collections() %}
+        {% if nodes is empty %}
+            <ul class="nav nav-sub"><li><a href="{{ path('collections_new') }}">➕ {{ 'dashboard.create_first_collection'|trans }}</a></li></ul>
+        {% else %}
+            {{ tree.render(nodes) }}
+        {% endif %}
+    </details>
+
+    <details class="collapse" id="col-tags" open>
+        <summary>
+            <span class="chevron">▸</span>
+            <span class="ico">🏷️</span> {{ 'sidebar.tags'|trans }}
+        </summary>
         <ul class="nav nav-sub">
-            {% for row in sidebar_collections() %}
-                <li><a href="{{ path('links_index', {collection: row.collection.id}) }}">
-                    <span class="swatch" style="background:{{ row.collection.color }};"></span>
-                    <span class="label">{{ row.collection.name }}</span>
+            {% for row in sidebar_tags() %}
+                <li><a href="{{ path('links_index', {tag: row.tag.id}) }}">
+                    <span class="chevron-spacer"></span>
+                    <span class="label">#{{ row.tag.name }}</span>
                     <span class="count">{{ row.count }}</span>
                 </a></li>
             {% else %}
-                <li><a href="{{ path('collections_new') }}">➕ {{ 'dashboard.create_first_collection'|trans }}</a></li>
+                <li><span class="muted" style="padding:6px 10px;display:block;">{{ 'dashboard.no_tags'|trans }}</span></li>
             {% endfor %}
         </ul>
     </details>

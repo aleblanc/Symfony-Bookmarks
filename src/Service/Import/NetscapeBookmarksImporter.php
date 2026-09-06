@@ -12,6 +12,8 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final class NetscapeBookmarksImporter
 {
+    private const ROOT_FOLDER = 'Imported';
+
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly CollectionRepository $collections,
@@ -20,9 +22,9 @@ final class NetscapeBookmarksImporter
     }
 
     /**
-     * Imports a Netscape-format bookmarks HTML export into $dashboard.
-     * Each <H3> folder becomes a Collection; each <A HREF> becomes a Link,
-     * placed in the collection matching the folder it was nested under.
+     * Imports a Netscape-format bookmarks HTML export into $dashboard, rebuilding
+     * the folder hierarchy: each nested <H3> folder becomes a Collection whose
+     * parent is the enclosing folder; each <A HREF> becomes a Link in its folder.
      *
      * @return array{collections: int, links: int}
      */
@@ -30,11 +32,16 @@ final class NetscapeBookmarksImporter
     {
         $stats = ['collections' => 0, 'links' => 0];
 
-        /** @var array<string, Collection> $byName resolved collections for this run */
-        $byName = [];
+        /** @var array<string, Collection> $cache "<parentId>/<name>" => Collection */
+        $cache = [];
 
-        foreach ($this->parser->parse($html, 'Imported') as $entry) {
-            $collection = $this->resolveCollection($entry['folder'], $dashboard, $byName, $stats);
+        foreach ($this->parser->parse($html, self::ROOT_FOLDER) as $entry) {
+            $path = [] === $entry['folders'] ? [self::ROOT_FOLDER] : $entry['folders'];
+
+            $collection = null;
+            foreach ($path as $name) {
+                $collection = $this->resolveCollection($name, $collection, $dashboard, $cache, $stats);
+            }
 
             $link = new Link($entry['url'], $collection);
             if ('' !== $entry['title']) {
@@ -50,22 +57,25 @@ final class NetscapeBookmarksImporter
     }
 
     /**
-     * @param array<string, Collection>            $byName
+     * @param array<string, Collection>          $cache
      * @param array{collections: int, links: int} $stats
      */
-    private function resolveCollection(string $name, Dashboard $dashboard, array &$byName, array &$stats): Collection
+    private function resolveCollection(string $name, ?Collection $parent, Dashboard $dashboard, array &$cache, array &$stats): Collection
     {
-        if (isset($byName[$name])) {
-            return $byName[$name];
+        $key = ($parent?->getId() ?? 0).'/'.$name;
+        if (isset($cache[$key])) {
+            return $cache[$key];
         }
 
-        $existing = $this->collections->findOneBy(['name' => $name, 'dashboard' => $dashboard]);
+        $existing = $this->collections->findOneBy(['name' => $name, 'parent' => $parent, 'dashboard' => $dashboard]);
         if (null === $existing) {
             $existing = new Collection($name, $dashboard);
+            $existing->setParent($parent);
             $this->em->persist($existing);
+            $this->em->flush(); // assign an id so nested children can reference it
             ++$stats['collections'];
         }
 
-        return $byName[$name] = $existing;
+        return $cache[$key] = $existing;
     }
 }

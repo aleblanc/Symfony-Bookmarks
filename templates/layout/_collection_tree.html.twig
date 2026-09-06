@@ -1,0 +1,28 @@
+{% macro render(nodes) %}
+    <ul class="nav nav-sub">
+        {% for node in nodes %}
+            <li>
+                {% if node.children is not empty %}
+                    <details class="collapse tree-node" id="col-node-{{ node.collection.id }}" open>
+                        <summary>
+                            <span class="chevron">▸</span>
+                            <a class="tree-link" href="{{ path('collections_show', {id: node.collection.id}) }}">
+                                <span class="swatch" style="background:{{ node.collection.color }};"></span>
+                                <span class="label">{{ node.collection.name }}</span>
+                            </a>
+                            <span class="count">{{ node.count }}</span>
+                        </summary>
+                        {{ _self.render(node.children) }}
+                    </details>
+                {% else %}
+                    <a class="tree-leaf" href="{{ path('collections_show', {id: node.collection.id}) }}">
+                        <span class="chevron-spacer"></span>
+                        <span class="swatch" style="background:{{ node.collection.color }};"></span>
+                        <span class="label">{{ node.collection.name }}</span>
+                        <span class="count">{{ node.count }}</span>
+                    </a>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endmacro %}

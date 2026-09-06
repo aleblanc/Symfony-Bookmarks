@@ -6,6 +6,7 @@ namespace App\Twig;
 
 use App\Repository\CollectionRepository;
 use App\Repository\DashboardRepository;
+use App\Repository\TagRepository;
 use App\Service\ChromeDetector;
 use App\Service\CurrentDashboard;
 use Twig\Extension\AbstractExtension;
@@ -18,6 +19,7 @@ final class FeaturesExtension extends AbstractExtension
         private readonly DashboardRepository $dashboards,
         private readonly CurrentDashboard $current,
         private readonly CollectionRepository $collections,
+        private readonly TagRepository $tags,
     ) {
     }
 
@@ -30,7 +32,12 @@ final class FeaturesExtension extends AbstractExtension
             new TwigFunction('sidebar_collections', function (): array {
                 $dashboard = $this->current->tryGet();
 
-                return null === $dashboard ? [] : $this->collections->findForDashboardWithCounts($dashboard);
+                return null === $dashboard ? [] : $this->collections->findTreeForDashboard($dashboard);
+            }),
+            new TwigFunction('sidebar_tags', function (): array {
+                $dashboard = $this->current->tryGet();
+
+                return null === $dashboard ? [] : $this->tags->findForDashboardWithCounts($dashboard);
             }),
         ];
     }

@@ -14,6 +14,7 @@ sidebar:
     search: 'Search'
     search_placeholder: 'Search links…'
     manage: 'Manage collections'
+    tags: 'Tags'
     features: 'Features'
     feature:
         readable: 'Readable text'
@@ -29,6 +30,7 @@ common:
     delete: 'Delete'
     create: 'Create'
     search: 'Search'
+    open: 'Open'
     optional: 'optional'
     confirm_delete_link: 'Delete this link?'
     confirm_delete: 'Delete?'
@@ -91,12 +93,19 @@ link:
 collection:
     title_plural: 'Collections'
     new: 'New collection'
+    new_subfolder: 'New sub-folder'
     none: 'No collections yet.'
     view_links: 'View links'
-    confirm_delete: 'Delete this collection and all its links?'
+    confirm_delete: 'Delete this folder, its sub-folders and all their links?'
     field_name: 'Name'
+    field_parent: 'Parent folder'
+    no_parent: 'Top level (no parent)'
     field_description: 'Description (optional)'
     field_color: 'Color (hex)'
+    subfolders: 'Sub-folders'
+    links_in: 'Links'
+    link_count: '%count% link(s)'
+    subfolder_count: '%count% sub-folder(s)'
 
 import:
     title: 'Import bookmarks'

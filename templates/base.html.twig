@@ -146,10 +146,23 @@
         details.collapse[open] > summary .chevron { transform: rotate(90deg); }
         details.collapse > summary .manage { margin-left: auto; color: var(--muted); text-decoration: none; }
         .nav-sub { margin: 2px 0 6px; }
-        .nav-sub a { padding: 6px 10px 6px 14px; }
-        .nav-sub .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .nav-sub a { padding: 6px 10px 6px 12px; }
+        .nav-sub .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
         .nav-sub .count { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--muted);
             background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0 7px; }
+        /* Nested collection tree */
+        .nav-sub .nav-sub { margin: 0 0 0 10px; border-left: 1px solid var(--border); padding-left: 2px; }
+        details.tree-node { margin: 0; }
+        details.tree-node > summary { display: flex; align-items: center; gap: 6px; padding: 6px 10px 6px 4px;
+            border-radius: var(--radius-sm); cursor: pointer; list-style: none; text-transform: none;
+            letter-spacing: normal; font-weight: 500; font-size: 13.5px; color: var(--fg); }
+        details.tree-node > summary::-webkit-details-marker { display: none; }
+        details.tree-node > summary:hover { background: var(--primary-soft); }
+        details.tree-node > summary .tree-link { display: flex; align-items: center; gap: 8px; flex: 1;
+            color: var(--fg); overflow: hidden; }
+        details.tree-node > summary .tree-link:hover { text-decoration: none; }
+        .tree-leaf { display: flex; align-items: center; gap: 8px; color: var(--fg); }
+        .chevron-spacer { width: 10px; flex: none; }
 
         @media (max-width: 780px) {
             .layout { grid-template-columns: 1fr; }

@@ -14,7 +14,7 @@
                 <input class="input" type="text" name="name"></label>
             <label class="field"><span>{{ 'link.field_collection'|trans }}</span>
                 <select class="input" name="collection" required>
-                    {% for c in collections %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+                    {% for c in collections %}<option value="{{ c.id }}" {{ preselect is defined and preselect == c.id ? 'selected' : '' }}>{% for a in c.ancestors %}{{ a.name }} / {% endfor %}{{ c.name }}</option>{% endfor %}
                 </select>
             </label>
             {% set feat = archive_features() %}

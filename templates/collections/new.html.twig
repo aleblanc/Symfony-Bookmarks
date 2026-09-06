@@ -1,10 +1,20 @@
 {% extends 'base.html.twig' %}
-{% block title %}{{ 'collection.new'|trans }}{% endblock %}
+{% block title %}{{ parent ? 'collection.new_subfolder'|trans : 'collection.new'|trans }}{% endblock %}
 {% block body %}
-    <header class="top"><h1>{{ 'collection.new'|trans }}</h1></header>
+    <header class="top"><h1>{{ parent ? 'collection.new_subfolder'|trans : 'collection.new'|trans }}</h1></header>
     <form method="post" class="card card-form">
         <label class="field"><span>{{ 'collection.field_name'|trans }}</span>
             <input class="input" type="text" name="name" required autofocus></label>
+        <label class="field"><span>{{ 'collection.field_parent'|trans }}</span>
+            <select class="input" name="parent">
+                <option value="">— {{ 'collection.no_parent'|trans }} —</option>
+                {% for c in collections %}
+                    <option value="{{ c.id }}" {{ parent and parent.id == c.id ? 'selected' : '' }}>
+                        {% for a in c.ancestors %}{{ a.name }} / {% endfor %}{{ c.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
         <label class="field"><span>{{ 'collection.field_description'|trans }}</span>
             <textarea class="input" name="description" rows="3"></textarea></label>
         <label class="field"><span>{{ 'collection.field_color'|trans }}</span>

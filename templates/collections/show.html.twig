@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ collection.name }}{% endblock %}
+{% block body %}
+    <nav class="breadcrumb muted">
+        <a href="{{ path('collections_index') }}">{{ 'collection.title_plural'|trans }}</a>
+        {% for ancestor in collection.ancestors %}
+            <span>/</span> <a href="{{ path('collections_show', {id: ancestor.id}) }}">{{ ancestor.name }}</a>
+        {% endfor %}
+        <span>/</span> <strong>{{ collection.name }}</strong>
+    </nav>
+
+    <header class="top">
+        <h1><span class="swatch" style="background:{{ collection.color }};"></span> {{ collection.name }}</h1>
+        <div class="row">
+            <a href="{{ path('collections_new', {parent: collection.id}) }}" class="btn">➕ {{ 'collection.new_subfolder'|trans }}</a>
+            <a href="{{ path('links_new', {collection: collection.id}) }}" class="btn btn-primary">➕ {{ 'link.new'|trans }}</a>
+        </div>
+    </header>
+    {% if collection.description %}<p class="muted">{{ collection.description }}</p>{% endif %}
+
+    {% if children is not empty %}
+        <section>
+            <h2>{{ 'collection.subfolders'|trans }}</h2>
+            <div class="cards">
+                {% for child in children %}
+                    <article class="card">
+                        <h3 style="margin:0;">
+                            <a href="{{ path('collections_show', {id: child.id}) }}">
+                                <span class="swatch" style="background:{{ child.color }};"></span> {{ child.name }}
+                            </a>
+                        </h3>
+                        {% if child.description %}<p class="muted" style="margin:6px 0 0;">{{ child.description }}</p>{% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    <section>
+        <h2>{{ 'collection.links_in'|trans }}</h2>
+        {% if links is empty %}
+            <p class="muted">{{ 'link.none_match'|trans }}</p>
+        {% else %}
+            <div class="cards">
+                {% for link in links %}{% include 'links/_card.html.twig' %}{% endfor %}
+            </div>
+        {% endif %}
+    </section>
+
+    <div class="row" style="margin-top:24px;">
+        <form class="inline" method="post" action="{{ path('collections_delete', {id: collection.id}) }}" onsubmit="return confirm('{{ 'collection.confirm_delete'|trans }}');">
+            <button class="btn btn-sm btn-danger" type="submit">{{ 'common.delete'|trans }}</button>
+        </form>
+    </div>
+{% endblock %}

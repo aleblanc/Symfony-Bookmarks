@@ -33,26 +33,24 @@ final class NetscapeBookmarkParserTest extends TestCase
         </DL><p>
         HTML;
 
-    public function testRootLinkStaysAtRoot(): void
+    public function testRootLinkHasEmptyPath(): void
     {
-        $folders = $this->folderByUrl();
-        self::assertSame('Imported', $folders['https://root.com']);
+        self::assertSame([], $this->pathByUrl()['https://root.com']);
     }
 
     public function testLinkAfterSubfolderReturnsToParentFolder(): void
     {
         // The regression: "Lien C" comes after a subfolder but belongs to "Barre personnelle".
-        $folders = $this->folderByUrl();
-        self::assertSame('Barre personnelle', $folders['https://c.com']);
+        self::assertSame(['Barre personnelle'], $this->pathByUrl()['https://c.com']);
     }
 
-    public function testNestedFoldersResolveCorrectly(): void
+    public function testNestedFoldersProduceFullPaths(): void
     {
-        $folders = $this->folderByUrl();
-        self::assertSame('Barre personnelle', $folders['https://a.com']);
-        self::assertSame('Sous-dossier Dev', $folders['https://b.com']);
-        self::assertSame('Sous-sous Foo', $folders['https://e.com']);
-        self::assertSame('Autre dossier', $folders['https://d.com']);
+        $paths = $this->pathByUrl();
+        self::assertSame(['Barre personnelle'], $paths['https://a.com']);
+        self::assertSame(['Barre personnelle', 'Sous-dossier Dev'], $paths['https://b.com']);
+        self::assertSame(['Barre personnelle', 'Sous-dossier Dev', 'Sous-sous Foo'], $paths['https://e.com']);
+        self::assertSame(['Autre dossier'], $paths['https://d.com']);
     }
 
     public function testTitlesArePreserved(): void
@@ -76,14 +74,13 @@ final class NetscapeBookmarkParserTest extends TestCase
     }
 
     /**
-     * @return array<string, string> url => folder name
+     * @return array<string, list<string>> url => folder path
      */
-    private function folderByUrl(): array
+    private function pathByUrl(): array
     {
-        $entries = (new NetscapeBookmarkParser())->parse(self::HTML, 'Imported');
         $out = [];
-        foreach ($entries as $e) {
-            $out[$e['url']] = $e['folder'];
+        foreach ((new NetscapeBookmarkParser())->parse(self::HTML, 'Imported') as $e) {
+            $out[$e['url']] = $e['folders'];
         }
 
         return $out;

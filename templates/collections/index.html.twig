@@ -5,19 +5,25 @@
         <h1>{{ 'collection.title_plural'|trans }}</h1>
         <a href="{{ path('collections_new') }}" class="btn btn-primary">➕ {{ 'collection.new'|trans }}</a>
     </header>
-    {% if collections is empty %}
+    {% if tree is empty %}
         <p class="muted">{{ 'collection.none'|trans }}</p>
     {% else %}
         <div class="cards">
-            {% for c in collections %}
+            {% for node in tree %}
                 <article class="card">
-                    <h3 style="margin: 0 0 6px;"><span class="swatch" style="background:{{ c.color }};"></span> {{ c.name }}</h3>
-                    {% if c.description %}<p class="muted">{{ c.description }}</p>{% endif %}
+                    <h3 style="margin: 0 0 6px;">
+                        <a href="{{ path('collections_show', {id: node.collection.id}) }}">
+                            <span class="swatch" style="background:{{ node.collection.color }};"></span> {{ node.collection.name }}
+                        </a>
+                    </h3>
+                    {% if node.collection.description %}<p class="muted">{{ node.collection.description }}</p>{% endif %}
+                    <p class="muted" style="margin:6px 0 0;">
+                        {{ 'collection.link_count'|trans({'%count%': node.count}) }}
+                        {% if node.children is not empty %} · {{ 'collection.subfolder_count'|trans({'%count%': node.children|length}) }}{% endif %}
+                    </p>
                     <div class="row" style="margin-top: 12px;">
-                        <a class="btn btn-sm" href="{{ path('links_index', {collection: c.id}) }}">{{ 'collection.view_links'|trans }}</a>
-                        <form class="inline" method="post" action="{{ path('collections_delete', {id: c.id}) }}" onsubmit="return confirm('{{ 'collection.confirm_delete'|trans }}');">
-                            <button class="btn btn-sm btn-danger" type="submit">{{ 'common.delete'|trans }}</button>
-                        </form>
+                        <a class="btn btn-sm" href="{{ path('collections_show', {id: node.collection.id}) }}">{{ 'common.open'|trans }}</a>
+                        <a class="btn btn-sm" href="{{ path('collections_new', {parent: node.collection.id}) }}">➕ {{ 'collection.new_subfolder'|trans }}</a>
                     </div>
                 </article>
             {% endfor %}

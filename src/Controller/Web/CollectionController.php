@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Controller\Web;
 
 use App\Entity\Collection;
+use App\Entity\Dashboard;
 use App\Repository\CollectionRepository;
+use App\Repository\LinkRepository;
 use App\Service\CurrentDashboard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,6 +20,7 @@ final class CollectionController extends AbstractController
 {
     public function __construct(
         private readonly CollectionRepository $collections,
+        private readonly LinkRepository $links,
         private readonly CurrentDashboard $current,
         private readonly EntityManagerInterface $em,
     ) {
@@ -30,7 +33,19 @@ final class CollectionController extends AbstractController
 
         return $this->render('collections/index.html.twig', [
             'dashboard' => $dashboard,
-            'collections' => $this->collections->findForDashboard($dashboard),
+            'tree' => $this->collections->findTreeForDashboard($dashboard),
+        ]);
+    }
+
+    #[Route('/collections/{id}', name: 'collections_show', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function show(int $id): Response
+    {
+        $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
+
+        return $this->render('collections/show.html.twig', [
+            'collection' => $collection,
+            'children' => $this->collections->findChildren($collection),
+            'links' => $this->links->findForCollection($collection),
         ]);
     }
 
@@ -38,6 +53,7 @@ final class CollectionController extends AbstractController
     public function new(Request $request): Response
     {
         $dashboard = $this->current->get();
+
         if ($request->isMethod('POST')) {
             $name = trim((string) $request->request->get('name', ''));
             if ('' !== $name) {
@@ -50,23 +66,55 @@ final class CollectionController extends AbstractController
                 if ('' !== $color) {
                     $collection->setColor($color);
                 }
+                $parent = $this->resolveParent($request->request->get('parent'), $dashboard);
+                $collection->setParent($parent);
                 $this->em->persist($collection);
                 $this->em->flush();
 
-                return $this->redirectToRoute('collections_index');
+                return $this->redirectToRoute(
+                    null !== $parent ? 'collections_show' : 'collections_index',
+                    null !== $parent ? ['id' => $parent->getId()] : [],
+                );
             }
         }
 
-        return $this->render('collections/new.html.twig', ['dashboard' => $dashboard]);
+        return $this->render('collections/new.html.twig', [
+            'dashboard' => $dashboard,
+            'collections' => $this->collections->findForDashboard($dashboard),
+            'parent' => $this->resolveParent($request->query->get('parent'), $dashboard),
+        ]);
     }
 
     #[Route('/collections/{id}/delete', name: 'collections_delete', methods: ['POST'])]
     public function delete(int $id): RedirectResponse
     {
         $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
-        $this->em->remove($collection);
+        $parent = $collection->getParent();
+        // parent_id has no DB-level FK (SQLite ALTER limit), so remove descendants
+        // ourselves; each collection's links cascade via their enforced FK.
+        $this->deleteRecursively($collection);
         $this->em->flush();
 
-        return $this->redirectToRoute('collections_index');
+        return null !== $parent
+            ? $this->redirectToRoute('collections_show', ['id' => $parent->getId()])
+            : $this->redirectToRoute('collections_index');
+    }
+
+    private function deleteRecursively(Collection $collection): void
+    {
+        foreach ($this->collections->findChildren($collection) as $child) {
+            $this->deleteRecursively($child);
+        }
+        $this->em->remove($collection);
+    }
+
+    private function resolveParent(mixed $rawId, Dashboard $dashboard): ?Collection
+    {
+        if (null === $rawId || '' === $rawId) {
+            return null;
+        }
+        $parent = $this->collections->find((int) $rawId);
+
+        return null !== $parent && $parent->getDashboard() === $dashboard ? $parent : null;
     }
 }
