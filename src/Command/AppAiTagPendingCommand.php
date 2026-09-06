@@ -33,6 +33,7 @@ final class AppAiTagPendingCommand extends Command
     protected function configure(): void
     {
         $this->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Max links per run', '20');
+        $this->addOption('retry-failed', null, InputOption::VALUE_NONE, 'Requeue links whose AI tagging previously failed, then process them');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -41,6 +42,10 @@ final class AppAiTagPendingCommand extends Command
             $output->writeln('AI disabled (APP_AI_ENABLED=false)');
 
             return Command::SUCCESS;
+        }
+        if ($input->getOption('retry-failed')) {
+            $reset = $this->links->resetFailedAiStatus();
+            $output->writeln(\sprintf('%d failed link(s) requeued', $reset));
         }
         $links = $this->links->findPendingAiEnrichment((int) $input->getOption('limit'));
         foreach ($links as $link) {
@@ -51,7 +56,7 @@ final class AppAiTagPendingCommand extends Command
                     $link->addTag($tag);
                 }
                 $link->setAiStatus(Link::AI_DONE);
-                $output->writeln(sprintf('#%d tagged: %s', (int) $link->getId(), implode(',', $suggested)));
+                $output->writeln(\sprintf('#%d tagged: %s', (int) $link->getId(), implode(',', $suggested)));
             } catch (\Throwable $e) {
                 $link->setAiStatus(Link::AI_FAILED);
                 $link->setLastError('ai: '.$e->getMessage());
@@ -59,7 +64,7 @@ final class AppAiTagPendingCommand extends Command
             }
             $this->em->flush();
         }
-        $output->writeln(sprintf('%d links processed', \count($links)));
+        $output->writeln(\sprintf('%d links processed', \count($links)));
 
         return Command::SUCCESS;
     }

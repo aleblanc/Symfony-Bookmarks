@@ -3,6 +3,20 @@ ai:
         lmstudio:
             host_url: '%env(LM_STUDIO_HOST_URL)%'
 
+    # Each model referenced by an agent MUST be registered here under the EXACT
+    # name sent to LM Studio (the value of APP_AI_TAG_MODEL / APP_AI_SUMMARY_MODEL).
+    # The catalog does an exact key match — a quantization suffix like "@q4_k_m"
+    # would NOT match a request for the base name and yields
+    # "No provider found for model ...". If you switch models, add the new name here.
+    model:
+        lmstudio:
+            'qwen3-vl-8b-instruct':
+                class: 'Symfony\AI\Platform\Bridge\Generic\CompletionsModel'
+                capabilities:
+                    - input-messages
+                    - input-image
+                    - output-text
+                    - output-streaming
     agent:
         tagger:
             platform: 'ai.platform.lmstudio'
