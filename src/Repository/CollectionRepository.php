@@ -31,6 +31,25 @@ final class CollectionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * All descendants (children, grandchildren, …) of a collection. Used to
+     * forbid moving a folder into its own subtree (which would create a cycle).
+     *
+     * @return list<Collection>
+     */
+    public function findDescendants(Collection $collection): array
+    {
+        $descendants = [];
+        foreach ($this->findChildren($collection) as $child) {
+            $descendants[] = $child;
+            foreach ($this->findDescendants($child) as $deeper) {
+                $descendants[] = $deeper;
+            }
+        }
+
+        return $descendants;
+    }
+
     /** @return list<Collection> direct children of a collection */
     public function findChildren(Collection $parent): array
     {

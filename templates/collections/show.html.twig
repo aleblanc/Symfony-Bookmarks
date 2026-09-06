@@ -12,6 +12,7 @@
     <header class="top">
         <h1><span class="swatch" style="background:{{ collection.color }};"></span> {{ collection.name }}</h1>
         <div class="row">
+            <a href="{{ path('collections_edit', {id: collection.id}) }}" class="btn">✏️ {{ 'collection.edit'|trans }}</a>
             <a href="{{ path('collections_new', {parent: collection.id}) }}" class="btn">➕ {{ 'collection.new_subfolder'|trans }}</a>
             <a href="{{ path('links_new', {collection: collection.id}) }}" class="btn btn-primary">➕ {{ 'link.new'|trans }}</a>
         </div>

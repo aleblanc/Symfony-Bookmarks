@@ -56,10 +56,79 @@ final class CollectionsController extends AbstractApiController
         if (!empty($body['color'])) {
             $collection->setColor((string) $body['color']);
         }
+        if (!empty($body['parentId'])) {
+            $parent = $this->collections->find((int) $body['parentId']);
+            if (null !== $parent && $parent->getDashboard() === $dashboard) {
+                $collection->setParent($parent);
+            }
+        }
         $this->em->persist($collection);
         $this->em->flush();
 
         return $this->ok($this->serialize($collection), 201);
+    }
+
+    #[Route('/api/v1/collections/{id}', name: 'api_collections_update', requirements: ['id' => '\d+'], methods: ['PUT'])]
+    public function update(int $id, Request $request): JsonResponse
+    {
+        $collection = $this->collections->find($id);
+        if (null === $collection) {
+            return $this->fail('not found', 404);
+        }
+        $body = json_decode((string) $request->getContent(), true);
+        if (!\is_array($body)) {
+            return $this->fail('invalid json');
+        }
+
+        if (isset($body['name']) && '' !== trim((string) $body['name'])) {
+            $collection->setName(trim((string) $body['name']));
+        }
+        if (\array_key_exists('description', $body)) {
+            $collection->setDescription('' === (string) $body['description'] ? null : (string) $body['description']);
+        }
+        if (!empty($body['color'])) {
+            $collection->setColor((string) $body['color']);
+        }
+        if (\array_key_exists('parentId', $body)) {
+            $parent = empty($body['parentId']) ? null : $this->collections->find((int) $body['parentId']);
+            if (null !== $parent && !$this->isValidParent($collection, $parent)) {
+                return $this->fail('invalid parent (cycle or other dashboard)');
+            }
+            $collection->setParent($parent);
+        }
+        $this->em->flush();
+
+        return $this->ok($this->serialize($collection));
+    }
+
+    #[Route('/api/v1/collections/{id}', name: 'api_collections_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function delete(int $id): JsonResponse
+    {
+        $collection = $this->collections->find($id);
+        if (null === $collection) {
+            return $this->fail('not found', 404);
+        }
+        foreach ($this->collections->findDescendants($collection) as $descendant) {
+            $this->em->remove($descendant);
+        }
+        $this->em->remove($collection);
+        $this->em->flush();
+
+        return $this->ok(['id' => $id]);
+    }
+
+    private function isValidParent(Collection $collection, Collection $parent): bool
+    {
+        if ($parent === $collection || $parent->getDashboard() !== $collection->getDashboard()) {
+            return false;
+        }
+        foreach ($this->collections->findDescendants($collection) as $descendant) {
+            if ($descendant === $parent) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -73,6 +142,7 @@ final class CollectionsController extends AbstractApiController
             'description' => $c->getDescription(),
             'color' => $c->getColor(),
             'icon' => $c->getIcon(),
+            'parentId' => $c->getParent()?->getId(),
             'ownerId' => 1,
             'isPublic' => false,
             'members' => [],

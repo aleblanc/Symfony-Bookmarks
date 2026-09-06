@@ -85,6 +85,49 @@ final class CollectionController extends AbstractController
         ]);
     }
 
+    #[Route('/collections/{id}/edit', name: 'collections_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function edit(int $id, Request $request): Response
+    {
+        $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
+        $dashboard = $collection->getDashboard();
+
+        // A folder cannot be moved under itself or one of its descendants.
+        $forbidden = [$collection->getId()];
+        foreach ($this->collections->findDescendants($collection) as $descendant) {
+            $forbidden[] = $descendant->getId();
+        }
+        $parentChoices = array_values(array_filter(
+            $this->collections->findForDashboard($dashboard),
+            static fn (Collection $c): bool => !\in_array($c->getId(), $forbidden, true),
+        ));
+
+        if ($request->isMethod('POST')) {
+            $name = trim((string) $request->request->get('name', ''));
+            if ('' !== $name) {
+                $collection->setName($name);
+                $collection->setDescription(trim((string) $request->request->get('description', '')) ?: null);
+                $color = trim((string) $request->request->get('color', ''));
+                if ('' !== $color) {
+                    $collection->setColor($color);
+                }
+                $parent = $this->resolveParent($request->request->get('parent'), $dashboard);
+                // Ignore an illegal move (into self/descendant): keep the current parent.
+                if (null !== $parent && \in_array($parent->getId(), $forbidden, true)) {
+                    $parent = $collection->getParent();
+                }
+                $collection->setParent($parent);
+                $this->em->flush();
+
+                return $this->redirectToRoute('collections_show', ['id' => $collection->getId()]);
+            }
+        }
+
+        return $this->render('collections/edit.html.twig', [
+            'collection' => $collection,
+            'collections' => $parentChoices,
+        ]);
+    }
+
     #[Route('/collections/{id}/delete', name: 'collections_delete', methods: ['POST'])]
     public function delete(int $id): RedirectResponse
     {

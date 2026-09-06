@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'collection.edit'|trans }} — {{ collection.name }}{% endblock %}
+{% block body %}
+    <header class="top"><h1>{{ 'collection.edit'|trans }}</h1></header>
+    <form method="post" class="card card-form">
+        <label class="field"><span>{{ 'collection.field_name'|trans }}</span>
+            <input class="input" type="text" name="name" value="{{ collection.name }}" required autofocus></label>
+        <label class="field"><span>{{ 'collection.field_parent'|trans }}</span>
+            <select class="input" name="parent">
+                <option value="">— {{ 'collection.no_parent'|trans }} —</option>
+                {% for c in collections %}
+                    <option value="{{ c.id }}" {{ collection.parent and collection.parent.id == c.id ? 'selected' : '' }}>
+                        {% for a in c.ancestors %}{{ a.name }} / {% endfor %}{{ c.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="field"><span>{{ 'collection.field_description'|trans }}</span>
+            <textarea class="input" name="description" rows="3">{{ collection.description }}</textarea></label>
+        <label class="field"><span>{{ 'collection.field_color'|trans }}</span>
+            <input class="input" type="text" name="color" value="{{ collection.color }}"></label>
+        <div class="row">
+            <button class="btn btn-primary" type="submit">{{ 'common.save'|trans }}</button>
+            <a class="btn" href="{{ path('collections_show', {id: collection.id}) }}">{{ 'common.cancel'|trans }}</a>
+        </div>
+    </form>
+{% endblock %}
