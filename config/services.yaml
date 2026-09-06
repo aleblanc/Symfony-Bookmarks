@@ -49,6 +49,10 @@ services:
         arguments:
             $archiveDir: '%env(resolve:APP_ARCHIVE_DIR)%'
 
+    App\Service\Archiver\PdfImageRenderer:
+        arguments:
+            $overridePath: '%env(APP_CONVERT_PATH)%'
+
     App\Command\AppAiTagPendingCommand:
         arguments:
             $enabled: '%env(bool:APP_AI_ENABLED)%'

@@ -26,6 +26,7 @@ final class ArchiveRunner
         private readonly LoggerInterface $logger,
         private readonly FaviconFetcher $favicon,
         private readonly PreviewImageFetcher $preview,
+        private readonly PdfImageRenderer $pdfRenderer,
         private readonly string $archiveDir,
         ?HttpClientInterface $http = null,
     ) {
@@ -58,16 +59,12 @@ final class ArchiveRunner
                 $link->setIconPath($iconPath);
             }
 
-            $preview = $this->preview->fetch($html, $link->getUrl(), (int) $link->getId());
-            if (null !== $preview) {
-                $link->setPreviewImage($preview);
-            }
-
             $baseDir = \sprintf('%s/%d', $this->archiveDir, (int) $link->getId());
             if (!is_dir($baseDir)) {
                 @mkdir($baseDir, 0o755, true);
             }
 
+            $pdfPath = null;
             foreach ($this->archivers as $archiver) {
                 if (!$archiver->isEnabled()) {
                     $this->logger->info('archiver skipped', ['kind' => $archiver->kind(), 'link' => $link->getId()]);
@@ -85,10 +82,15 @@ final class ArchiveRunner
                     $size = filesize($out);
                     $relative = \sprintf('%d/%s.%s', (int) $link->getId(), $archiver->kind(), $ext);
                     $this->em->persist(new ArchiveAsset($link, $archiver->kind(), $relative, false === $size ? 0 : $size));
+                    if (ArchiveAsset::KIND_PDF === $archiver->kind()) {
+                        $pdfPath = $out;
+                    }
                 } catch (\Throwable $e) {
                     $this->logger->warning('archiver failed', ['kind' => $archiver->kind(), 'link' => $link->getId(), 'err' => $e->getMessage()]);
                 }
             }
+
+            $this->applyPreviewImages($link, $baseDir, $pdfPath, $html);
 
             $link->setStatus(Link::STATUS_DONE);
             $link->setArchivedAt(new \DateTimeImmutable());
@@ -98,6 +100,41 @@ final class ArchiveRunner
             $this->logger->error('archive failed', ['link' => $link->getId(), 'err' => $e->getMessage()]);
         } finally {
             $this->em->flush();
+        }
+    }
+
+    /**
+     * Produces the card thumbnail (and, when possible, the screenshot asset)
+     * without an extra network round-trip: if a PDF was captured and ImageMagick
+     * can rasterise it, both images are derived from the PDF's first page.
+     * Otherwise we fall back to downloading the page's og:image.
+     */
+    private function applyPreviewImages(Link $link, string $baseDir, ?string $pdfPath, string $html): void
+    {
+        if (null !== $pdfPath && $this->pdfRenderer->canRender()) {
+            $id = (int) $link->getId();
+            $shotOut = \sprintf('%s/%s.png', $baseDir, ArchiveAsset::KIND_SCREENSHOT);
+            if ($this->pdfRenderer->renderPage($pdfPath, $shotOut, 1280)) {
+                $size = filesize($shotOut);
+                $this->em->persist(new ArchiveAsset(
+                    $link,
+                    ArchiveAsset::KIND_SCREENSHOT,
+                    \sprintf('%d/%s.png', $id, ArchiveAsset::KIND_SCREENSHOT),
+                    false === $size ? 0 : $size,
+                ));
+
+                $thumbOut = \sprintf('%s/preview.jpg', $baseDir);
+                if ($this->pdfRenderer->renderPage($pdfPath, $thumbOut, 600)) {
+                    $link->setPreviewImage(\sprintf('%d/preview.jpg', $id));
+                }
+
+                return;
+            }
+        }
+
+        $preview = $this->preview->fetch($html, $link->getUrl(), (int) $link->getId());
+        if (null !== $preview) {
+            $link->setPreviewImage($preview);
         }
     }
 }
