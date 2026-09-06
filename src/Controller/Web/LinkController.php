@@ -1,0 +1,118 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controller\Web;
+
+use App\Entity\Link;
+use App\Repository\CollectionRepository;
+use App\Repository\LinkRepository;
+use App\Repository\TagRepository;
+use App\Service\CurrentDashboard;
+use App\Service\Search\LinkSearch;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+final class LinkController extends AbstractController
+{
+    public function __construct(
+        private readonly LinkRepository $links,
+        private readonly CollectionRepository $collections,
+        private readonly TagRepository $tags,
+        private readonly CurrentDashboard $current,
+        private readonly LinkSearch $search,
+        private readonly EntityManagerInterface $em,
+    ) {
+    }
+
+    #[Route('/links', name: 'links_index', methods: ['GET'])]
+    public function index(Request $request): Response
+    {
+        $dashboard = $this->current->get();
+        $collectionId = $request->query->get('collection');
+        $tagId = $request->query->get('tag');
+        $q = trim((string) $request->query->get('q', ''));
+
+        if ('' !== $q) {
+            $ids = $this->search->ftsIds($q);
+            $links = $this->links->findByIds($ids);
+        } elseif (null !== $collectionId) {
+            $collection = $this->collections->find((int) $collectionId);
+            $links = null === $collection ? [] : $this->links->findForCollection($collection);
+        } elseif (null !== $tagId) {
+            $tag = $this->tags->find((int) $tagId);
+            $links = null === $tag ? [] : $this->links->findForTag($tag);
+        } else {
+            $links = $this->links->findForDashboard($dashboard, 50);
+        }
+
+        return $this->render('links/index.html.twig', [
+            'dashboard' => $dashboard,
+            'links' => $links,
+            'collections' => $this->collections->findForDashboard($dashboard),
+            'query' => $q,
+        ]);
+    }
+
+    #[Route('/links/new', name: 'links_new', methods: ['GET', 'POST'])]
+    public function new(Request $request): Response
+    {
+        $dashboard = $this->current->get();
+        $collections = $this->collections->findForDashboard($dashboard);
+        if ($request->isMethod('POST')) {
+            $url = trim((string) $request->request->get('url', ''));
+            $collectionId = (int) $request->request->get('collection', 0);
+            $collection = 0 === $collectionId ? null : $this->collections->find($collectionId);
+            if ('' !== $url && null !== $collection && false !== filter_var($url, \FILTER_VALIDATE_URL)) {
+                $link = new Link($url, $collection);
+                $name = trim((string) $request->request->get('name', ''));
+                if ('' !== $name) {
+                    $link->setName($name);
+                }
+                $this->em->persist($link);
+                $this->em->flush();
+
+                return $this->redirectToRoute('links_index');
+            }
+        }
+
+        return $this->render('links/new.html.twig', [
+            'dashboard' => $dashboard,
+            'collections' => $collections,
+        ]);
+    }
+
+    #[Route('/links/{id}', name: 'links_show', methods: ['GET'])]
+    public function show(int $id): Response
+    {
+        $link = $this->links->find($id) ?? throw $this->createNotFoundException();
+
+        return $this->render('links/show.html.twig', ['link' => $link]);
+    }
+
+    #[Route('/links/{id}/delete', name: 'links_delete', methods: ['POST'])]
+    public function delete(int $id): RedirectResponse
+    {
+        $link = $this->links->find($id) ?? throw $this->createNotFoundException();
+        $this->em->remove($link);
+        $this->em->flush();
+
+        return $this->redirectToRoute('links_index');
+    }
+
+    #[Route('/links/{id}/rearchive', name: 'links_rearchive', methods: ['POST'])]
+    public function reArchive(int $id): RedirectResponse
+    {
+        $link = $this->links->find($id) ?? throw $this->createNotFoundException();
+        $link->setStatus(Link::STATUS_PENDING);
+        $link->setAiStatus(Link::AI_PENDING);
+        $link->setLastError(null);
+        $this->em->flush();
+
+        return $this->redirectToRoute('links_show', ['id' => $id]);
+    }
+}

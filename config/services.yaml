@@ -21,3 +21,34 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\EventSubscriber\ApiTokenSubscriber:
+        arguments:
+            $expectedToken: '%env(APP_API_TOKEN)%'
+
+    App\Service\ChromeDetector:
+        arguments:
+            $overridePath: '%env(APP_CHROME_PATH)%'
+
+    App\Service\Archiver\ArchiveRunner:
+        arguments:
+            $archiveDir: '%env(resolve:APP_ARCHIVE_DIR)%'
+            $archivers: !tagged_iterator app.archiver
+            $logger: '@monolog.logger.archive'
+
+    App\Service\Favicon\FaviconFetcher:
+        arguments:
+            $publicDir: '%kernel.project_dir%/public'
+
+    App\Command\AppAiTagPendingCommand:
+        arguments:
+            $enabled: '%env(bool:APP_AI_ENABLED)%'
+            $aiLogger: '@monolog.logger.ai'
+
+    App\Service\Ai\AutoTagger:
+        arguments:
+            $taggerAgent: '@ai.agent.tagger'
+
+    _instanceof:
+        App\Service\Archiver\AssetArchiverInterface:
+            tags: ['app.archiver']

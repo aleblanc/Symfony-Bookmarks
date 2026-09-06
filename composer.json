@@ -14,6 +14,7 @@
         "doctrine/orm": "^3.6.7",
         "fivefilters/readability.php": "^4.1",
         "paragonie/halite": "^5.1",
+        "symfony/ai-agent": ">=0.10",
         "symfony/ai-bundle": ">=0.10",
         "symfony/ai-lm-studio-platform": ">=0.10",
         "symfony/asset": "8.2.x-dev",

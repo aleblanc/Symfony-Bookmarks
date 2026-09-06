@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ link.name ?: link.url }}{% endblock %}
+{% block body %}
+    <h1>{{ link.name ?: 'Untitled' }}</h1>
+    <p><a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.url }}</a></p>
+    <p class="muted">Collection: {{ link.collection.name }} · Status: {{ link.status }} · AI: {{ link.aiStatus }} · Created: {{ link.createdAt|date('Y-m-d H:i') }}</p>
+    {% if link.tags|length > 0 %}
+        <div>{% for t in link.tags %}<span class="tag">#{{ t.name }}</span>{% endfor %}</div>
+    {% endif %}
+    {% if link.description %}<div class="card"><h3>Description</h3><p>{{ link.description }}</p></div>{% endif %}
+    {% if link.textContent %}
+        <div class="card"><h3>Readable</h3><div style="white-space:pre-wrap; max-height:600px; overflow:auto;">{{ link.textContent }}</div></div>
+    {% endif %}
+    {% if link.lastError %}<div class="card" style="border-color: var(--danger);"><h3>Last error</h3><pre>{{ link.lastError }}</pre></div>{% endif %}
+    <div style="display: flex; gap: 8px; margin-top: 20px;">
+        <form class="inline" method="post" action="{{ path('links_rearchive', {id: link.id}) }}">
+            <button class="btn" type="submit">Re-archive now</button>
+        </form>
+        <form class="inline" method="post" action="{{ path('links_delete', {id: link.id}) }}" onsubmit="return confirm('Delete?');">
+            <button class="btn btn-danger" type="submit">Delete</button>
+        </form>
+    </div>
+{% endblock %}

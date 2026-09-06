@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+{% block title %}Collections{% endblock %}
+{% block body %}
+    <header class="top">
+        <h1>Collections</h1>
+        <a href="{{ path('collections_new') }}" class="btn btn-primary">+ New collection</a>
+    </header>
+    {% if collections is empty %}
+        <p class="muted">No collections yet.</p>
+    {% else %}
+        <div class="cards">
+            {% for c in collections %}
+                <article class="card">
+                    <h3 style="margin: 0 0 6px;"><span style="color:{{ c.color }};">■</span> {{ c.name }}</h3>
+                    {% if c.description %}<p class="muted">{{ c.description }}</p>{% endif %}
+                    <div style="margin-top: 8px; display: flex; gap: 6px;">
+                        <a class="btn btn-sm" href="{{ path('links_index', {collection: c.id}) }}">View links</a>
+                        <form class="inline" method="post" action="{{ path('collections_delete', {id: c.id}) }}" onsubmit="return confirm('Delete this collection and all its links?');">
+                            <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                        </form>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}

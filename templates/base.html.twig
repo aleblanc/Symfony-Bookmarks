@@ -1,23 +1,53 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
-
-        {% block javascripts %}
-        {% endblock %}
-
-        {% set frankenphp_hot_reload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
-        {% if frankenphp_hot_reload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphp_hot_reload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
-        {% endif %}
-    </head>
-    <body>
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{% block title %}Bookmarks{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #f8fafc; --fg: #0f172a; --muted: #64748b; --border: #e2e8f0;
+            --card: #ffffff; --primary: #3b82f6; --danger: #ef4444;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root { --bg: #0f172a; --fg: #f1f5f9; --muted: #94a3b8; --border: #1e293b; --card: #1e293b; }
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font: 14px/1.5 -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+        a { color: var(--primary); text-decoration: none; } a:hover { text-decoration: underline; }
+        .layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+        .sidebar { background: var(--card); border-right: 1px solid var(--border); padding: 16px; }
+        .main { padding: 20px 32px; max-width: 1200px; }
+        .sidebar h2 { font-size: 12px; text-transform: uppercase; color: var(--muted); margin: 16px 0 8px; }
+        .sidebar ul { list-style: none; padding: 0; margin: 0 0 12px; }
+        .sidebar li a { display: block; padding: 6px 8px; border-radius: 6px; color: var(--fg); }
+        .sidebar li a:hover { background: var(--bg); text-decoration: none; }
+        .dash-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; color: white; font-size: 12px; }
+        .btn { display: inline-block; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--fg); cursor: pointer; font-size: 14px; }
+        .btn:hover { background: var(--bg); }
+        .btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-danger { background: var(--danger); color: white; border-color: var(--danger); }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        .input, textarea, select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--fg); font: inherit; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+        .cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+        .muted { color: var(--muted); font-size: 12px; }
+        h1 { margin-top: 0; }
+        form.inline { display: inline; }
+        .tag { display: inline-block; padding: 2px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; font-size: 11px; margin-right: 4px; }
+        .switch-form { margin-bottom: 12px; }
+        header.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .search-bar { display: flex; gap: 8px; }
+        .search-bar input { flex: 1; }
+        .favicon { width: 16px; height: 16px; vertical-align: middle; margin-right: 6px; }
+    </style>
+</head>
+<body>
+<div class="layout">
+    {% include 'layout/_sidebar.html.twig' %}
+    <main class="main">
         {% block body %}{% endblock %}
-    </body>
+    </main>
+</div>
+</body>
 </html>

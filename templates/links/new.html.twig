@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+{% block title %}New link{% endblock %}
+{% block body %}
+    <h1>New link</h1>
+    {% if collections is empty %}
+        <div class="card">
+            <p>You need a collection first. <a href="{{ path('collections_new') }}">Create one</a>.</p>
+        </div>
+    {% else %}
+        <form method="post" class="card" style="max-width: 640px;">
+            <label>URL<br><input class="input" type="url" name="url" required autofocus></label><br><br>
+            <label>Name (optional, will be filled by archiver)<br><input class="input" type="text" name="name"></label><br><br>
+            <label>Collection<br>
+                <select class="input" name="collection" required>
+                    {% for c in collections %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+                </select>
+            </label>
+            <br><br>
+            {% set feat = archive_features() %}
+            <fieldset style="border:1px solid var(--border); border-radius:6px; padding:10px;">
+                <legend>Archiving</legend>
+                <p class="muted" style="margin:4px 0;">Readable text is always extracted. Additional features depend on installed tooling:</p>
+                <ul style="margin:4px 0;">
+                    <li>Single-file HTML: {{ feat.singlefile ? 'enabled' : 'disabled (install chromium + single-file-cli)' }}</li>
+                    <li>Screenshot: {{ feat.screenshot ? 'enabled' : 'disabled (install chromium)' }}</li>
+                    <li>PDF: {{ feat.pdf ? 'enabled' : 'disabled (install chromium)' }}</li>
+                </ul>
+            </fieldset>
+            <br>
+            <button class="btn btn-primary" type="submit">Add link (async archive)</button>
+        </form>
+    {% endif %}
+{% endblock %}

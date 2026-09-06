@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+{% block title %}Dashboard — {{ dashboard.name }}{% endblock %}
+{% block body %}
+    <header class="top">
+        <h1>{{ dashboard.name }}</h1>
+        <a href="{{ path('links_new') }}" class="btn btn-primary">+ New link</a>
+    </header>
+
+    <section>
+        <h2>Recent links</h2>
+        {% if recent_links is empty %}
+            <p class="muted">No links yet. Add your first via the button above or via the browser extension.</p>
+        {% else %}
+            <div class="cards">
+                {% for link in recent_links %}{% include 'links/_card.html.twig' %}{% endfor %}
+            </div>
+        {% endif %}
+    </section>
+
+    <section style="margin-top:32px">
+        <h2>Collections ({{ collections|length }})</h2>
+        <ul>
+            {% for c in collections %}
+                <li><a href="{{ path('links_index', {collection: c.id}) }}"><span style="color:{{ c.color }};">■</span> {{ c.name }}</a></li>
+            {% else %}
+                <li class="muted"><a href="{{ path('collections_new') }}">+ Create first collection</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section style="margin-top:24px">
+        <h2>Tags ({{ tags|length }})</h2>
+        {% for t in tags %}
+            <a href="{{ path('links_index', {tag: t.id}) }}"><span class="tag">#{{ t.name }}</span></a>
+        {% else %}
+            <p class="muted">No tags yet.</p>
+        {% endfor %}
+    </section>
+{% endblock %}

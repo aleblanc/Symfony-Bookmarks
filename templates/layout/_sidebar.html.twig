@@ -1,0 +1,37 @@
+<aside class="sidebar">
+    <h2 style="margin-top:0">Dashboard</h2>
+    {% set current = current_dashboard() %}
+    <form class="switch-form" method="post" action="#" onsubmit="event.preventDefault(); const id=this.elements.dashboard.value; fetch('/dashboard/switch/'+id, {method:'POST'}).then(()=>location.reload());">
+        <select name="dashboard" class="input">
+            {% for d in all_dashboards() %}
+                <option value="{{ d.id }}" {{ current and current.id == d.id ? 'selected' : '' }}>{{ d.name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    {% if current %}
+        <span class="dash-badge" style="background: {{ current.color }};">{{ current.name }}</span>
+    {% endif %}
+
+    <h2>Navigation</h2>
+    <ul>
+        <li><a href="{{ path('dashboard') }}">Home</a></li>
+        <li><a href="{{ path('links_index') }}">All links</a></li>
+        <li><a href="{{ path('links_new') }}">+ New link</a></li>
+        <li><a href="{{ path('collections_index') }}">Collections</a></li>
+        <li><a href="{{ path('import_index') }}">Import bookmarks</a></li>
+    </ul>
+
+    <h2>Search</h2>
+    <form action="{{ path('links_index') }}" method="get" class="switch-form">
+        <input class="input" type="search" name="q" placeholder="Search links...">
+    </form>
+
+    <h2>Features</h2>
+    {% set feat = archive_features() %}
+    <ul style="font-size:12px;color:var(--muted)">
+        <li>Readable: {{ feat.readable ? 'yes' : 'no' }}</li>
+        <li>Single-file: {{ feat.singlefile ? 'yes' : 'no' }}</li>
+        <li>Screenshot: {{ feat.screenshot ? 'yes' : 'no' }}</li>
+        <li>PDF: {{ feat.pdf ? 'yes' : 'no' }}</li>
+    </ul>
+</aside>

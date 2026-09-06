@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+{% block title %}Import bookmarks{% endblock %}
+{% block body %}
+    <h1>Import bookmarks</h1>
+    {% if stats %}
+        <div class="card">Imported {{ stats.links }} links into {{ stats.collections }} collections.</div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" class="card" style="max-width: 640px;">
+        <label>Netscape HTML export (Firefox / Chrome / Linkwarden)<br>
+            <input type="file" name="bookmarks" accept=".html,.htm" required></label><br><br>
+        <button class="btn btn-primary" type="submit">Import into current dashboard</button>
+    </form>
+{% endblock %}

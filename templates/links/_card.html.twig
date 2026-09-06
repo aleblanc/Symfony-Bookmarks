@@ -1,0 +1,24 @@
+<article class="card">
+    <a href="{{ link.url }}" target="_blank" rel="noopener">
+        {% if link.iconPath %}<img class="favicon" src="{{ link.iconPath }}" alt="">{% endif %}
+        <strong>{{ link.name ?: link.url }}</strong>
+    </a>
+    <div class="muted">{{ link.url|slice(0, 80) }}{% if link.url|length > 80 %}…{% endif %}</div>
+    {% if link.description %}<p style="margin: 6px 0;">{{ link.description|slice(0, 200) }}</p>{% endif %}
+    <div style="margin-top: 6px;">
+        {% for tag in link.tags %}<span class="tag">#{{ tag.name }}</span>{% endfor %}
+    </div>
+    <div class="muted" style="margin-top: 8px;">
+        <span style="color: {{ link.collection.color }};">■</span>
+        {{ link.collection.name }} · status: {{ link.status }} · ai: {{ link.aiStatus }}
+    </div>
+    <div style="margin-top: 8px; display: flex; gap: 6px;">
+        <a class="btn btn-sm" href="{{ path('links_show', {id: link.id}) }}">Details</a>
+        <form class="inline" method="post" action="{{ path('links_rearchive', {id: link.id}) }}">
+            <button class="btn btn-sm" type="submit">Re-archive</button>
+        </form>
+        <form class="inline" method="post" action="{{ path('links_delete', {id: link.id}) }}" onsubmit="return confirm('Delete this link?');">
+            <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+        </form>
+    </div>
+</article>

@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+{% block title %}Links{% endblock %}
+{% block body %}
+    <header class="top">
+        <h1>Links {% if query %}<small class="muted">— search "{{ query }}"</small>{% endif %}</h1>
+        <a href="{{ path('links_new') }}" class="btn btn-primary">+ New link</a>
+    </header>
+    <form class="search-bar" action="{{ path('links_index') }}" method="get" style="margin-bottom: 20px;">
+        <input class="input" type="search" name="q" placeholder="Full-text search…" value="{{ query }}">
+        <button class="btn" type="submit">Search</button>
+    </form>
+    {% if links is empty %}
+        <p class="muted">No links match.</p>
+    {% else %}
+        <div class="cards">
+            {% for link in links %}{% include 'links/_card.html.twig' %}{% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}
