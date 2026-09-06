@@ -68,7 +68,29 @@
         <li>{{ 'sidebar.feature.pdf'|trans }}        <span class="pill {{ feat.pdf ? 'on' : 'off' }}">{{ (feat.pdf ? 'sidebar.yes' : 'sidebar.no')|trans }}</span></li>
     </ul>
 
+    <h2>{{ 'sidebar.theme'|trans }}</h2>
+    <div class="theme-switch" role="group">
+        <button type="button" data-theme-set="light" title="{{ 'theme.day'|trans }}">☀️</button>
+        <button type="button" data-theme-set="sepia" title="{{ 'theme.sepia'|trans }}">📜</button>
+        <button type="button" data-theme-set="dark" title="{{ 'theme.night'|trans }}">🌙</button>
+    </div>
+
     <script>
+        (function () {
+            var buttons = document.querySelectorAll('[data-theme-set]');
+            function markActive() {
+                var cur = document.documentElement.dataset.theme;
+                buttons.forEach(function (b) { b.classList.toggle('active', b.dataset.themeSet === cur); });
+            }
+            buttons.forEach(function (b) {
+                b.addEventListener('click', function () {
+                    document.documentElement.dataset.theme = b.dataset.themeSet;
+                    localStorage.setItem('theme', b.dataset.themeSet);
+                    markActive();
+                });
+            });
+            markActive();
+        })();
         document.querySelectorAll('details.collapse').forEach(function (d) {
             var key = 'collapse:' + d.id;
             if (localStorage.getItem(key) === 'closed') { d.open = false; }

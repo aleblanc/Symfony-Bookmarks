@@ -1,33 +1,47 @@
 <!doctype html>
-<html lang="{{ app.request.locale|default('fr') }}">
+<html lang="{{ app.request.locale|default('fr') }}" data-theme="sepia">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>{% block title %}{{ 'app.name'|trans }}{% endblock %}</title>
+    <script>(function(){var t=localStorage.getItem('theme');if(t){document.documentElement.dataset.theme=t;}})();</script>
     <style>
         :root {
+            --radius: 12px; --radius-sm: 8px; --radius-pill: 999px;
+            --space: 20px;
+        }
+        /* Day */
+        [data-theme="light"] {
             --bg: #f5f7fb; --fg: #0f172a; --muted: #64748b; --border: #e6eaf1;
             --card: #ffffff; --card-2: #fbfcfe;
             --primary: #4f46e5; --primary-fg: #ffffff; --primary-soft: #eef2ff;
             --danger: #e11d48; --danger-soft: #fff1f3;
             --ok: #059669; --ok-soft: #ecfdf5;
             --warn: #d97706; --warn-soft: #fffbeb;
-            --radius: 12px; --radius-sm: 8px; --radius-pill: 999px;
             --shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 16px rgba(15,23,42,.06);
             --shadow-hover: 0 2px 4px rgba(15,23,42,.06), 0 12px 28px rgba(15,23,42,.10);
-            --space: 20px;
         }
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #0b1120; --fg: #e8edf6; --muted: #94a3b8; --border: #1e293b;
-                --card: #131c2e; --card-2: #0f1728;
-                --primary: #6366f1; --primary-soft: #1e2249;
-                --danger: #fb7185; --danger-soft: #3a1622;
-                --ok: #34d399; --ok-soft: #0d2b22;
-                --warn: #fbbf24; --warn-soft: #2e2410;
-                --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.35);
-                --shadow-hover: 0 2px 6px rgba(0,0,0,.4), 0 16px 36px rgba(0,0,0,.5);
-            }
+        /* Sepia (default) */
+        [data-theme="sepia"] {
+            --bg: #f1e7d0; --fg: #4a3a29; --muted: #8a7355; --border: #e0d0ac;
+            --card: #faf2df; --card-2: #f3e8cd;
+            --primary: #9a5a2b; --primary-fg: #fdf6ea; --primary-soft: #ecdcbf;
+            --danger: #b4442f; --danger-soft: #f3ddce;
+            --ok: #5c7a3a; --ok-soft: #e6ecd2;
+            --warn: #a9741f; --warn-soft: #f0e4c6;
+            --shadow: 0 1px 2px rgba(74,58,41,.06), 0 4px 16px rgba(74,58,41,.10);
+            --shadow-hover: 0 2px 4px rgba(74,58,41,.10), 0 12px 28px rgba(74,58,41,.16);
+        }
+        /* Night */
+        [data-theme="dark"] {
+            --bg: #0b1120; --fg: #e8edf6; --muted: #94a3b8; --border: #1e293b;
+            --card: #131c2e; --card-2: #0f1728;
+            --primary: #6366f1; --primary-fg: #ffffff; --primary-soft: #1e2249;
+            --danger: #fb7185; --danger-soft: #3a1622;
+            --ok: #34d399; --ok-soft: #0d2b22;
+            --warn: #fbbf24; --warn-soft: #2e2410;
+            --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.35);
+            --shadow-hover: 0 2px 6px rgba(0,0,0,.4), 0 16px 36px rgba(0,0,0,.5);
         }
         * { box-sizing: border-box; }
         body {
@@ -121,6 +135,12 @@
         .search-bar .input { flex: 1; }
         .favicon { width: 16px; height: 16px; vertical-align: middle; margin-right: 6px; border-radius: 3px; }
         .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: middle; }
+        .folder-ic { display: inline-block; width: 18px; text-align: center; font-size: 15px; line-height: 1; vertical-align: middle; }
+        .theme-switch { display: flex; gap: 6px; padding: 4px 8px; }
+        .theme-switch button { flex: 1; font-size: 16px; padding: 7px 0; border: 1px solid var(--border);
+            background: var(--card); border-radius: var(--radius-sm); cursor: pointer; opacity: .55; transition: all .12s; }
+        .theme-switch button:hover { opacity: 1; }
+        .theme-switch button.active { opacity: 1; border-color: var(--primary); background: var(--primary-soft); }
         form.inline { display: inline; }
         .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
