@@ -26,6 +26,7 @@
         "symfony/http-client": "8.2.x-dev",
         "symfony/monolog-bundle": "^4.0",
         "symfony/runtime": "8.2.x-dev",
+        "symfony/translation": "8.2.*",
         "symfony/twig-bundle": "8.2.x-dev",
         "symfony/validator": "8.2.x-dev",
         "symfony/yaml": "8.2.x-dev"

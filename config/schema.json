@@ -4633,7 +4633,7 @@
                                 "properties": {
                                     "enabled": {
                                         "$ref": "#/$defs/types/boolean",
-                                        "default": false
+                                        "default": true
                                     },
                                     "fallbacks": {
                                         "anyOf": [
@@ -4799,7 +4799,7 @@
                             }
                         ],
                         "default": {
-                            "enabled": false,
+                            "enabled": true,
                             "fallbacks": [],
                             "logging": false,
                             "formatter": "translator.formatter.default",
@@ -5418,7 +5418,7 @@
                                         ],
                                         "default": {
                                             "default": [
-                                                "flock"
+                                                "semaphore"
                                             ]
                                         }
                                     }
@@ -5436,7 +5436,7 @@
                             "enabled": true,
                             "resources": {
                                 "default": [
-                                    "flock"
+                                    "semaphore"
                                 ]
                             }
                         },
