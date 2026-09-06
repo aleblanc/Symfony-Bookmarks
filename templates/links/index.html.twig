@@ -1,16 +1,16 @@
 {% extends 'base.html.twig' %}
-{% block title %}Links{% endblock %}
+{% block title %}{{ 'link.title_plural'|trans }}{% endblock %}
 {% block body %}
     <header class="top">
-        <h1>Links {% if query %}<small class="muted">— search "{{ query }}"</small>{% endif %}</h1>
-        <a href="{{ path('links_new') }}" class="btn btn-primary">+ New link</a>
+        <h1>{{ 'link.title_plural'|trans }} {% if query %}<small class="muted">— {{ 'link.search_for'|trans({'%query%': query}) }}</small>{% endif %}</h1>
+        <a href="{{ path('links_new') }}" class="btn btn-primary">➕ {{ 'link.new'|trans }}</a>
     </header>
-    <form class="search-bar" action="{{ path('links_index') }}" method="get" style="margin-bottom: 20px;">
-        <input class="input" type="search" name="q" placeholder="Full-text search…" value="{{ query }}">
-        <button class="btn" type="submit">Search</button>
+    <form class="search-bar" action="{{ path('links_index') }}" method="get">
+        <input class="input" type="search" name="q" placeholder="{{ 'link.fulltext_placeholder'|trans }}" value="{{ query }}">
+        <button class="btn" type="submit">🔍 {{ 'common.search'|trans }}</button>
     </form>
     {% if links is empty %}
-        <p class="muted">No links match.</p>
+        <p class="muted">{{ 'link.none_match'|trans }}</p>
     {% else %}
         <div class="cards">
             {% for link in links %}{% include 'links/_card.html.twig' %}{% endfor %}

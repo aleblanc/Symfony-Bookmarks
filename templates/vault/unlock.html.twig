@@ -1,10 +1,11 @@
 {% extends 'base.html.twig' %}
-{% block title %}Unlock vault{% endblock %}
+{% block title %}{{ 'vault.unlock_title'|trans({'%name%': vault.name}) }}{% endblock %}
 {% block body %}
-    <h1>Unlock vault "{{ vault.name }}"</h1>
-    {% if error %}<div class="card" style="border-color: var(--danger);"><p>{{ error }}</p></div>{% endif %}
-    <form method="post" class="card" style="max-width: 400px;">
-        <label>Password<br><input class="input" type="password" name="password" required autofocus></label><br><br>
-        <button class="btn btn-primary" type="submit">Unlock (15 min)</button>
+    <header class="top"><h1>🔒 {{ 'vault.unlock_title'|trans({'%name%': vault.name}) }}</h1></header>
+    {% if error %}<div class="card card-form" style="border-color: var(--danger);"><p style="margin:0;color:var(--danger);">{{ error }}</p></div>{% endif %}
+    <form method="post" class="card card-form" style="max-width: 400px;">
+        <label class="field"><span>{{ 'vault.password'|trans }}</span>
+            <input class="input" type="password" name="password" required autofocus></label>
+        <button class="btn btn-primary" type="submit">🔓 {{ 'vault.unlock'|trans }}</button>
     </form>
 {% endblock %}

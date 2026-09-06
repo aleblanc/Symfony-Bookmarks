@@ -1,15 +1,15 @@
 {% extends 'base.html.twig' %}
-{% block title %}Dashboard — {{ dashboard.name }}{% endblock %}
+{% block title %}{{ 'dashboard.title'|trans }} — {{ dashboard.name }}{% endblock %}
 {% block body %}
     <header class="top">
         <h1>{{ dashboard.name }}</h1>
-        <a href="{{ path('links_new') }}" class="btn btn-primary">+ New link</a>
+        <a href="{{ path('links_new') }}" class="btn btn-primary">➕ {{ 'link.new'|trans }}</a>
     </header>
 
     <section>
-        <h2>Recent links</h2>
+        <h2>{{ 'dashboard.recent_links'|trans }}</h2>
         {% if recent_links is empty %}
-            <p class="muted">No links yet. Add your first via the button above or via the browser extension.</p>
+            <p class="muted">{{ 'dashboard.empty'|trans }}</p>
         {% else %}
             <div class="cards">
                 {% for link in recent_links %}{% include 'links/_card.html.twig' %}{% endfor %}
@@ -17,23 +17,23 @@
         {% endif %}
     </section>
 
-    <section style="margin-top:32px">
-        <h2>Collections ({{ collections|length }})</h2>
-        <ul>
+    <section>
+        <h2>{{ 'dashboard.collections_count'|trans({'%count%': collections|length}) }}</h2>
+        <ul class="nav">
             {% for c in collections %}
-                <li><a href="{{ path('links_index', {collection: c.id}) }}"><span style="color:{{ c.color }};">■</span> {{ c.name }}</a></li>
+                <li><a href="{{ path('links_index', {collection: c.id}) }}"><span class="swatch" style="background:{{ c.color }};"></span> {{ c.name }}</a></li>
             {% else %}
-                <li class="muted"><a href="{{ path('collections_new') }}">+ Create first collection</a></li>
+                <li><a href="{{ path('collections_new') }}">➕ {{ 'dashboard.create_first_collection'|trans }}</a></li>
             {% endfor %}
         </ul>
     </section>
 
-    <section style="margin-top:24px">
-        <h2>Tags ({{ tags|length }})</h2>
+    <section>
+        <h2>{{ 'dashboard.tags_count'|trans({'%count%': tags|length}) }}</h2>
         {% for t in tags %}
             <a href="{{ path('links_index', {tag: t.id}) }}"><span class="tag">#{{ t.name }}</span></a>
         {% else %}
-            <p class="muted">No tags yet.</p>
+            <p class="muted">{{ 'dashboard.no_tags'|trans }}</p>
         {% endfor %}
     </section>
 {% endblock %}

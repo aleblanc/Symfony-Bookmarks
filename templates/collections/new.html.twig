@@ -1,11 +1,14 @@
 {% extends 'base.html.twig' %}
-{% block title %}New collection{% endblock %}
+{% block title %}{{ 'collection.new'|trans }}{% endblock %}
 {% block body %}
-    <h1>New collection</h1>
-    <form method="post" class="card" style="max-width: 640px;">
-        <label>Name<br><input class="input" type="text" name="name" required autofocus></label><br><br>
-        <label>Description (optional)<br><textarea class="input" name="description" rows="3"></textarea></label><br><br>
-        <label>Color (hex)<br><input class="input" type="text" name="color" value="#0ea5e9"></label><br><br>
-        <button class="btn btn-primary" type="submit">Create</button>
+    <header class="top"><h1>{{ 'collection.new'|trans }}</h1></header>
+    <form method="post" class="card card-form">
+        <label class="field"><span>{{ 'collection.field_name'|trans }}</span>
+            <input class="input" type="text" name="name" required autofocus></label>
+        <label class="field"><span>{{ 'collection.field_description'|trans }}</span>
+            <textarea class="input" name="description" rows="3"></textarea></label>
+        <label class="field"><span>{{ 'collection.field_color'|trans }}</span>
+            <input class="input" type="text" name="color" value="#0ea5e9"></label>
+        <button class="btn btn-primary" type="submit">{{ 'common.create'|trans }}</button>
     </form>
 {% endblock %}

@@ -1,24 +1,35 @@
-<article class="card">
-    <a href="{{ link.url }}" target="_blank" rel="noopener">
-        {% if link.iconPath %}<img class="favicon" src="{{ link.iconPath }}" alt="">{% endif %}
-        <strong>{{ link.name ?: link.url }}</strong>
+<article class="card link-card">
+    <a class="preview" href="{{ link.url }}" target="_blank" rel="noopener"
+       style="{% if not link.previewImage %}background: linear-gradient(135deg, {{ link.collection.color }}22, {{ link.collection.color }}55);{% endif %}">
+        {% if link.previewImage %}
+            <img src="{{ path('link_preview', {id: link.id}) }}" alt="" loading="lazy">
+        {% else %}
+            <span class="preview-fallback">{% if link.iconPath %}<img class="favicon-lg" src="{{ link.iconPath }}" alt="">{% else %}🔗{% endif %}</span>
+        {% endif %}
     </a>
-    <div class="muted">{{ link.url|slice(0, 80) }}{% if link.url|length > 80 %}…{% endif %}</div>
-    {% if link.description %}<p style="margin: 6px 0;">{{ link.description|slice(0, 200) }}</p>{% endif %}
-    <div style="margin-top: 6px;">
-        {% for tag in link.tags %}<span class="tag">#{{ tag.name }}</span>{% endfor %}
-    </div>
-    <div class="muted" style="margin-top: 8px;">
-        <span style="color: {{ link.collection.color }};">■</span>
-        {{ link.collection.name }} · status: {{ link.status }} · ai: {{ link.aiStatus }}
-    </div>
-    <div style="margin-top: 8px; display: flex; gap: 6px;">
-        <a class="btn btn-sm" href="{{ path('links_show', {id: link.id}) }}">Details</a>
-        <form class="inline" method="post" action="{{ path('links_rearchive', {id: link.id}) }}">
-            <button class="btn btn-sm" type="submit">Re-archive</button>
-        </form>
-        <form class="inline" method="post" action="{{ path('links_delete', {id: link.id}) }}" onsubmit="return confirm('Delete this link?');">
-            <button class="btn btn-sm btn-danger" type="submit">Delete</button>
-        </form>
+    <div class="link-body">
+        <a class="link-title" href="{{ link.url }}" target="_blank" rel="noopener">
+            {% if link.iconPath %}<img class="favicon" src="{{ link.iconPath }}" alt="">{% endif %}
+            <strong>{{ link.name ?: link.url }}</strong>
+        </a>
+        <div class="muted">{{ link.url|slice(0, 80) }}{% if link.url|length > 80 %}…{% endif %}</div>
+        {% if link.description %}<p style="margin: 8px 0;">{{ link.description|slice(0, 160) }}</p>{% endif %}
+        <div style="margin-top: 8px;">
+            {% for tag in link.tags %}<span class="tag">#{{ tag.name }}</span>{% endfor %}
+        </div>
+        <div class="row muted" style="margin-top: 10px;">
+            <span><span class="swatch" style="background: {{ link.collection.color }};"></span> {{ link.collection.name }}</span>
+            <span class="badge {{ link.status }}">{{ ('status.value.' ~ link.status)|trans }}</span>
+            <span class="badge {{ link.aiStatus }}">{{ 'status.ai_label'|trans }}: {{ ('status.value.' ~ link.aiStatus)|trans }}</span>
+        </div>
+        <div class="row" style="margin-top: 12px;">
+            <a class="btn btn-sm" href="{{ path('links_show', {id: link.id}) }}">{{ 'common.details'|trans }}</a>
+            <form class="inline" method="post" action="{{ path('links_rearchive', {id: link.id}) }}">
+                <button class="btn btn-sm" type="submit">↻ {{ 'common.rearchive'|trans }}</button>
+            </form>
+            <form class="inline" method="post" action="{{ path('links_delete', {id: link.id}) }}" onsubmit="return confirm('{{ 'common.confirm_delete_link'|trans }}');">
+                <button class="btn btn-sm btn-danger" type="submit">{{ 'common.delete'|trans }}</button>
+            </form>
+        </div>
     </div>
 </article>

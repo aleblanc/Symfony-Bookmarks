@@ -1,13 +1,18 @@
 {% extends 'base.html.twig' %}
-{% block title %}Import bookmarks{% endblock %}
+{% block title %}{{ 'import.title'|trans }}{% endblock %}
 {% block body %}
-    <h1>Import bookmarks</h1>
+    <header class="top"><h1>{{ 'import.title'|trans }}</h1></header>
     {% if stats %}
-        <div class="card">Imported {{ stats.links }} links into {{ stats.collections }} collections.</div>
+        <div class="card card-form" style="border-color: var(--ok);">
+            ✅ {{ 'import.result'|trans({'%links%': stats.links, '%collections%': stats.collections}) }}
+        </div>
     {% endif %}
-    <form method="post" enctype="multipart/form-data" class="card" style="max-width: 640px;">
-        <label>Netscape HTML export (Firefox / Chrome / Linkwarden)<br>
-            <input type="file" name="bookmarks" accept=".html,.htm" required></label><br><br>
-        <button class="btn btn-primary" type="submit">Import into current dashboard</button>
+    <form method="post" enctype="multipart/form-data" class="card card-form">
+        <label class="field"><span>{{ 'import.field_file'|trans }}</span>
+            <input class="input" type="file" name="bookmarks" accept=".html,.htm" required></label>
+        <p class="muted" style="margin: 0 0 16px;">
+            <strong>{{ 'import.firefox_help_title'|trans }}</strong> — {{ 'import.firefox_help'|trans }}
+        </p>
+        <button class="btn btn-primary" type="submit">📥 {{ 'import.submit'|trans }}</button>
     </form>
 {% endblock %}
