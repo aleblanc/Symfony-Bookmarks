@@ -10,8 +10,9 @@
         <span>{{ 'link.created_label'|trans }}: {{ link.createdAt|date('Y-m-d H:i') }}</span>
     </p>
     {% if link.tags|length > 0 %}
-        <div>{% for t in link.tags %}<span class="tag">#{{ t.name }}</span>{% endfor %}</div>
+        <div>{% for t in link.tags %}<a href="{{ path('links_index', {tag: t.id}) }}"><span class="tag">#{{ t.name }}</span></a>{% endfor %}</div>
     {% endif %}
+    {% if link.aiSummary %}<div class="card" style="border-left:3px solid var(--primary);"><h3>✨ {{ 'link.ai_summary'|trans }}</h3><p>{{ link.aiSummary }}</p></div>{% endif %}
     {% if link.description %}<div class="card"><h3>{{ 'link.description'|trans }}</h3><p>{{ link.description }}</p></div>{% endif %}
     {% if link.textContent %}
         <div class="card"><h3>{{ 'link.readable'|trans }}</h3><div style="white-space:pre-wrap; max-height:600px; overflow:auto;">{{ link.textContent }}</div></div>

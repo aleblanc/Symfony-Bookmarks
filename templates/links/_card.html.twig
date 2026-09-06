@@ -15,7 +15,7 @@
         <div class="muted">{{ link.url|slice(0, 80) }}{% if link.url|length > 80 %}…{% endif %}</div>
         {% if link.description %}<p style="margin: 8px 0;">{{ link.description|slice(0, 160) }}</p>{% endif %}
         <div style="margin-top: 8px;">
-            {% for tag in link.tags %}<span class="tag">#{{ tag.name }}</span>{% endfor %}
+            {% for tag in link.tags %}<a href="{{ path('links_index', {tag: tag.id}) }}"><span class="tag">#{{ tag.name }}</span></a>{% endfor %}
         </div>
         <div class="row muted" style="margin-top: 10px;">
             <span><span class="swatch" style="background: {{ link.collection.color }};"></span> {{ link.collection.name }}</span>
