@@ -17,8 +17,7 @@
         </label>
         <label class="field"><span>{{ 'collection.field_description'|trans }}</span>
             <textarea class="input" name="description" rows="3">{{ collection.description }}</textarea></label>
-        <label class="field"><span>{{ 'collection.field_color'|trans }}</span>
-            <input class="input" type="text" name="color" value="{{ collection.color }}"></label>
+        {% include '_partials/_folder_style.html.twig' with {current_color: collection.color, current_icon: collection.icon} %}
         <div class="row">
             <button class="btn btn-primary" type="submit">{{ 'common.save'|trans }}</button>
             <a class="btn" href="{{ path('collections_show', {id: collection.id}) }}">{{ 'common.cancel'|trans }}</a>

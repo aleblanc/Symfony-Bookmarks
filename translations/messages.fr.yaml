@@ -15,6 +15,7 @@ sidebar:
     search_placeholder: 'Rechercher un lien…'
     manage: 'Gérer les collections'
     tags: 'Étiquettes'
+    theme: 'Thème'
     features: 'Fonctionnalités'
     feature:
         readable: 'Texte lisible'
@@ -23,6 +24,11 @@ sidebar:
         pdf: 'PDF'
     'yes': 'oui'
     'no': 'non'
+
+theme:
+    day: 'Jour'
+    sepia: 'Sépia'
+    night: 'Nuit'
 
 common:
     details: 'Détails'
@@ -105,7 +111,9 @@ collection:
     field_parent: 'Dossier parent'
     no_parent: 'Racine (aucun parent)'
     field_description: 'Description (facultatif)'
-    field_color: 'Couleur (hex)'
+    field_color: 'Couleur'
+    field_icon: 'Icône'
+    icon_search: 'Rechercher une icône…'
     subfolders: 'Sous-dossiers'
     links_in: 'Liens'
     link_count: '%count% lien(s)'

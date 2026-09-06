@@ -1,4 +1,6 @@
+{% import '_partials/_folder_icon.html.twig' as fi %}
 {% macro render(nodes) %}
+    {% import '_partials/_folder_icon.html.twig' as fi %}
     <ul class="nav nav-sub">
         {% for node in nodes %}
             <li>
@@ -7,7 +9,7 @@
                         <summary>
                             <span class="chevron">▸</span>
                             <a class="tree-link" href="{{ path('collections_show', {id: node.collection.id}) }}">
-                                <span class="swatch" style="background:{{ node.collection.color }};"></span>
+                                {{ fi.icon(node.collection) }}
                                 <span class="label">{{ node.collection.name }}</span>
                             </a>
                             <span class="count">{{ node.count }}</span>
@@ -17,7 +19,7 @@
                 {% else %}
                     <a class="tree-leaf" href="{{ path('collections_show', {id: node.collection.id}) }}">
                         <span class="chevron-spacer"></span>
-                        <span class="swatch" style="background:{{ node.collection.color }};"></span>
+                        {{ fi.icon(node.collection) }}
                         <span class="label">{{ node.collection.name }}</span>
                         <span class="count">{{ node.count }}</span>
                     </a>

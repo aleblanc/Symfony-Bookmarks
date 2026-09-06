@@ -1,0 +1,83 @@
+{# Colour + emoji-icon picker for a folder. Include with current_color / current_icon. #}
+{% set cur_color = current_color|default('#0ea5e9') %}
+{% set cur_icon = current_icon|default('') %}
+{% set cur_icon = cur_icon in ['', 'BM'] ? '📁' : cur_icon %}
+
+<div class="field">
+    <span>{{ 'collection.field_color'|trans }}</span>
+    <div class="color-picker">
+        <div class="swatches">
+            {% for c in ['#0ea5e9','#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316','#f59e0b','#10b981','#14b8a6','#64748b','#0f172a','#e11d48'] %}
+                <button type="button" class="swatch-btn" data-color="{{ c }}" style="background:{{ c }};" title="{{ c }}"></button>
+            {% endfor %}
+        </div>
+        <input type="color" id="color-native" value="{{ cur_color }}" aria-label="{{ 'collection.field_color'|trans }}">
+        <input class="input" type="text" name="color" id="color-hex" value="{{ cur_color }}" style="max-width:120px;">
+    </div>
+</div>
+
+<div class="field">
+    <span>{{ 'collection.field_icon'|trans }}</span>
+    <div class="icon-picker">
+        <span class="icon-preview" id="icon-preview">{{ cur_icon }}</span>
+        <input type="hidden" name="icon" id="icon-value" value="{{ cur_icon }}">
+        <input class="input" type="search" id="icon-search" placeholder="{{ 'collection.icon_search'|trans }}" autocomplete="off">
+    </div>
+    <div class="icon-grid" id="icon-grid"></div>
+</div>
+
+<style>
+    .color-picker { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .swatches { display:flex; gap:6px; flex-wrap:wrap; }
+    .swatch-btn { width:24px; height:24px; border-radius:6px; border:2px solid var(--card); box-shadow:0 0 0 1px var(--border); cursor:pointer; padding:0; }
+    .swatch-btn:hover { transform:scale(1.1); }
+    #color-native { width:38px; height:34px; padding:0; border:1px solid var(--border); border-radius:8px; background:var(--card); cursor:pointer; }
+    .icon-picker { display:flex; align-items:center; gap:10px; }
+    .icon-preview { font-size:26px; width:44px; height:44px; display:flex; align-items:center; justify-content:center;
+        border:1px solid var(--border); border-radius:10px; background:var(--card); }
+    .icon-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(40px,1fr)); gap:4px; margin-top:10px;
+        max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:10px; padding:8px; background:var(--card-2); }
+    .icon-grid button { font-size:20px; padding:6px; border:none; background:transparent; border-radius:8px; cursor:pointer; }
+    .icon-grid button:hover { background:var(--primary-soft); }
+</style>
+
+<script>
+(function () {
+    var hex = document.getElementById('color-hex');
+    var native = document.getElementById('color-native');
+    document.querySelectorAll('.swatch-btn').forEach(function (b) {
+        b.addEventListener('click', function () { hex.value = b.dataset.color; native.value = b.dataset.color; });
+    });
+    native.addEventListener('input', function () { hex.value = native.value; });
+    hex.addEventListener('input', function () { if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) native.value = hex.value; });
+
+    var ICONS = [
+        ['📁','folder dossier'],['📂','folder open dossier ouvert'],['🗂️','files onglets classeur'],['📌','pin epingle'],
+        ['⭐','star favori important'],['🔖','bookmark marque page'],['🏠','home maison perso'],['💼','work travail pro job'],
+        ['💻','tech code dev computer ordinateur'],['🖥️','desktop pc'],['📱','mobile phone app'],['⚙️','settings config outils'],
+        ['🔧','tools outils bricolage'],['🧪','science lab test'],['🎨','design art creatif'],['📷','photo camera'],
+        ['🎬','film cinema video movie'],['🎵','music musique audio'],['🎮','games jeux gaming'],['📚','books livres lecture reading'],
+        ['📝','notes writing ecriture blog'],['📰','news actu presse'],['💡','idea idee inspiration'],['🔬','research recherche'],
+        ['💰','money argent finance budget'],['🛒','shopping courses achats'],['🍔','food cuisine recette bouffe'],['✈️','travel voyage avion trip'],
+        ['🌍','world monde geo maps'],['🏃','sport fitness health sante'],['❤️','love coeur perso favoris'],['🎓','school ecole etudes learn'],
+        ['📅','calendar agenda planning'],['✅','todo tasks done taches'],['🔒','security secure prive vault'],['🌐','web internet site'],
+        ['🐧','linux'],['🐙','git github'],['☁️','cloud'],['🤖','ai ia bot robot'],['📊','stats data graph analytics'],['🎯','goals objectifs']
+    ];
+    var grid = document.getElementById('icon-grid');
+    var search = document.getElementById('icon-search');
+    var preview = document.getElementById('icon-preview');
+    var value = document.getElementById('icon-value');
+    function render(q) {
+        q = (q || '').toLowerCase().trim();
+        grid.innerHTML = '';
+        ICONS.filter(function (i) { return !q || i[1].indexOf(q) !== -1 || i[0] === q; }).forEach(function (i) {
+            var b = document.createElement('button');
+            b.type = 'button'; b.textContent = i[0]; b.title = i[1];
+            b.addEventListener('click', function () { value.value = i[0]; preview.textContent = i[0]; });
+            grid.appendChild(b);
+        });
+    }
+    search.addEventListener('input', function () { render(search.value); });
+    render('');
+})();
+</script>

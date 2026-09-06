@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_partials/_folder_icon.html.twig' as fi %}
 {% block title %}{{ 'collection.title_plural'|trans }}{% endblock %}
 {% block body %}
     <header class="top">
@@ -13,7 +14,7 @@
                 <article class="card">
                     <h3 style="margin: 0 0 6px;">
                         <a href="{{ path('collections_show', {id: node.collection.id}) }}">
-                            <span class="swatch" style="background:{{ node.collection.color }};"></span> {{ node.collection.name }}
+                            {{ fi.icon(node.collection) }} {{ node.collection.name }}
                         </a>
                     </h3>
                     {% if node.collection.description %}<p class="muted">{{ node.collection.description }}</p>{% endif %}

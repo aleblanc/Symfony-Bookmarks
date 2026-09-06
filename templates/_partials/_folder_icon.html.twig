@@ -1,0 +1,4 @@
+{% macro icon(collection) %}
+{%- set ic = collection.icon in ['', 'BM'] ? null : collection.icon -%}
+{%- if ic -%}<span class="folder-ic">{{ ic }}</span>{%- else -%}<span class="swatch" style="background:{{ collection.color }};"></span>{%- endif -%}
+{% endmacro %}

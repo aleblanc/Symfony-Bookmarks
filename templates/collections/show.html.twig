@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_partials/_folder_icon.html.twig' as fi %}
 {% block title %}{{ collection.name }}{% endblock %}
 {% block body %}
     <nav class="breadcrumb muted">
@@ -10,7 +11,7 @@
     </nav>
 
     <header class="top">
-        <h1><span class="swatch" style="background:{{ collection.color }};"></span> {{ collection.name }}</h1>
+        <h1>{{ fi.icon(collection) }} {{ collection.name }}</h1>
         <div class="row">
             <a href="{{ path('collections_edit', {id: collection.id}) }}" class="btn">✏️ {{ 'collection.edit'|trans }}</a>
             <a href="{{ path('collections_new', {parent: collection.id}) }}" class="btn">➕ {{ 'collection.new_subfolder'|trans }}</a>
@@ -27,7 +28,7 @@
                     <article class="card">
                         <h3 style="margin:0;">
                             <a href="{{ path('collections_show', {id: child.id}) }}">
-                                <span class="swatch" style="background:{{ child.color }};"></span> {{ child.name }}
+                                {{ fi.icon(child) }} {{ child.name }}
                             </a>
                         </h3>
                         {% if child.description %}<p class="muted" style="margin:6px 0 0;">{{ child.description }}</p>{% endif %}

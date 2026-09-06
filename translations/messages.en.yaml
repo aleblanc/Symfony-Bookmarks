@@ -15,6 +15,7 @@ sidebar:
     search_placeholder: 'Search links…'
     manage: 'Manage collections'
     tags: 'Tags'
+    theme: 'Theme'
     features: 'Features'
     feature:
         readable: 'Readable text'
@@ -23,6 +24,11 @@ sidebar:
         pdf: 'PDF'
     'yes': 'yes'
     'no': 'no'
+
+theme:
+    day: 'Day'
+    sepia: 'Sepia'
+    night: 'Night'
 
 common:
     details: 'Details'
@@ -105,7 +111,9 @@ collection:
     field_parent: 'Parent folder'
     no_parent: 'Top level (no parent)'
     field_description: 'Description (optional)'
-    field_color: 'Color (hex)'
+    field_color: 'Color'
+    field_icon: 'Icon'
+    icon_search: 'Search an icon…'
     subfolders: 'Sub-folders'
     links_in: 'Links'
     link_count: '%count% link(s)'

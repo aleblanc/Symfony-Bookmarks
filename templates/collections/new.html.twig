@@ -17,8 +17,7 @@
         </label>
         <label class="field"><span>{{ 'collection.field_description'|trans }}</span>
             <textarea class="input" name="description" rows="3"></textarea></label>
-        <label class="field"><span>{{ 'collection.field_color'|trans }}</span>
-            <input class="input" type="text" name="color" value="#0ea5e9"></label>
+        {% include '_partials/_folder_style.html.twig' %}
         <button class="btn btn-primary" type="submit">{{ 'common.create'|trans }}</button>
     </form>
 {% endblock %}

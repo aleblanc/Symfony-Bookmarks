@@ -56,6 +56,9 @@ final class CollectionsController extends AbstractApiController
         if (!empty($body['color'])) {
             $collection->setColor((string) $body['color']);
         }
+        if (!empty($body['icon'])) {
+            $collection->setIcon((string) $body['icon']);
+        }
         if (!empty($body['parentId'])) {
             $parent = $this->collections->find((int) $body['parentId']);
             if (null !== $parent && $parent->getDashboard() === $dashboard) {
@@ -88,6 +91,9 @@ final class CollectionsController extends AbstractApiController
         }
         if (!empty($body['color'])) {
             $collection->setColor((string) $body['color']);
+        }
+        if (!empty($body['icon'])) {
+            $collection->setIcon((string) $body['icon']);
         }
         if (\array_key_exists('parentId', $body)) {
             $parent = empty($body['parentId']) ? null : $this->collections->find((int) $body['parentId']);

@@ -66,6 +66,10 @@ final class CollectionController extends AbstractController
                 if ('' !== $color) {
                     $collection->setColor($color);
                 }
+                $icon = trim((string) $request->request->get('icon', ''));
+                if ('' !== $icon) {
+                    $collection->setIcon($icon);
+                }
                 $parent = $this->resolveParent($request->request->get('parent'), $dashboard);
                 $collection->setParent($parent);
                 $this->em->persist($collection);
@@ -109,6 +113,10 @@ final class CollectionController extends AbstractController
                 $color = trim((string) $request->request->get('color', ''));
                 if ('' !== $color) {
                     $collection->setColor($color);
+                }
+                $icon = trim((string) $request->request->get('icon', ''));
+                if ('' !== $icon) {
+                    $collection->setIcon($icon);
                 }
                 $parent = $this->resolveParent($request->request->get('parent'), $dashboard);
                 // Ignore an illegal move (into self/descendant): keep the current parent.
