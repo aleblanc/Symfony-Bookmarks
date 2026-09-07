@@ -9,7 +9,7 @@ Goals:
 - Two independent dashboards (**Perso** / **Pro**) with fully isolated collections, tags and search.
 - Optional per-collection **encrypted vault** (libsodium Argon2id + `crypto_secretbox`).
 - Optional **AI auto-tagging** via a remote [LM Studio](https://lmstudio.ai) instance, through the official `symfony/ai-bundle`.
-- Archival (readable text always, single-file HTML / screenshot / PDF if Chromium is installed) driven by a periodic command — no message broker.
+- Archival (readable text always, screenshot / PDF if Chromium is installed) driven by a periodic command — no message broker.
 
 ---
 
@@ -36,7 +36,7 @@ Goals:
 - SQLite storage with **FTS5** full-text search on links.
 - Two dashboards (Perso / Pro) — every list / search is scoped to the active dashboard.
 - Collections, tags, favicons, "readable" text extraction (pure PHP, no browser).
-- Runtime detection of Chromium / `single-file-cli`: features gracefully disable in the UI when tooling is absent.
+- Runtime detection of Chromium: features gracefully disable in the UI when tooling is absent.
 - Encrypted vault protecting selected collections (URL + title + description + text ciphered at rest).
 - Web UI in Twig (no npm build required — CSS is inline).
 - Netscape HTML bookmarks import (Firefox / Chrome / Linkwarden exports).
@@ -54,7 +54,6 @@ Goals:
 
 **Optional (unlock features):**
 - `chromium` (system package) — enables screenshot + PDF archival
-- `single-file-cli` (`npm i -g single-file-cli`) — enables self-contained HTML archival
 - An LM Studio (or Ollama / vLLM) instance reachable over HTTP — enables AI auto-tagging
 
 **Target machine (my setup):** Raspberry Pi 4 (4 or 8 GB) with Raspberry Pi OS Bookworm (default apt ships PHP 8.2; use the deb.sury.org repo for PHP 8.5). SQLite file should live on an SSD (USB3) — not the SD card — for durability and performance.
@@ -79,7 +78,6 @@ sudo apt install -y \
 
 # Optional — unlock archival features:
 sudo apt install -y chromium
-sudo npm install -g single-file-cli   # requires nodejs
 ```
 
 ### 2. Clone and install
@@ -141,7 +139,7 @@ All settings live in `.env` (defaults) and `.env.local` (your overrides, git-ign
 | `DATABASE_URL` | `sqlite:///%kernel.project_dir%/var/data_%kernel.environment%.db` | SQLite file path (per env). Point to your SSD in prod, e.g. `sqlite:///mnt/ssd/bookmarks/data.db` |
 | `APP_API_TOKEN` | *(empty)* | Bearer token the extension must send. **If empty, any Bearer token is accepted** — leave empty only for LAN-only setups. Generate via `app:generate-secrets`. |
 | `APP_INSTANCE_URL` | `http://localhost:8000` | External URL of your instance (used by the extension when you configure it) |
-| `APP_ARCHIVE_DIR` | `var/archives` | Where single-file / screenshot / PDF files are stored. Point to your SSD in prod |
+| `APP_ARCHIVE_DIR` | `var/archives` | Where screenshot / PDF files are stored. Point to your SSD in prod |
 | `APP_CHROME_PATH` | *(empty)* | Override the auto-detected Chromium path. Leave empty for auto-detect (`/usr/bin/chromium`, `/usr/bin/google-chrome`, …) |
 | `APP_AI_ENABLED` | `false` | Set to `true` to activate the AI cron (`app:ai-tag-pending`) |
 | `APP_AI_TAG_MODEL` | `qwen2.5-7b-instruct` | Model ID loaded in LM Studio |
@@ -168,7 +166,7 @@ list). Current schedules:
 
 | Command | Schedule | What it does |
 |---|---|---|
-| `app:index-pending` | `*/5 * * * *` | fetch pending links, extract readable text, screenshot/PDF/single-file if Chromium is present |
+| `app:index-pending` | `*/5 * * * *` | fetch pending links, extract readable text, screenshot/PDF if Chromium is present |
 | `app:ai-tag-pending` | `*/10 * * * *` | tag archived links via the LLM agent (if `APP_AI_ENABLED=true`) |
 | `app:ai-summarize-pending` | `*/15 * * * *` | summarize archived links via the LLM agent |
 
