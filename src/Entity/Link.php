@@ -65,6 +65,10 @@ class Link
     #[ORM\JoinTable(name: 'link_tag')]
     private DoctrineCollection $tags;
 
+    /** @var DoctrineCollection<int, ArchiveAsset> */
+    #[ORM\OneToMany(targetEntity: ArchiveAsset::class, mappedBy: 'link')]
+    private DoctrineCollection $assets;
+
     #[ORM\Column(length: 16)]
     private string $status = self::STATUS_PENDING;
 
@@ -94,6 +98,7 @@ class Link
         $this->url = $url;
         $this->collection = $collection;
         $this->tags = new ArrayCollection();
+        $this->assets = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -183,6 +188,24 @@ class Link
         if (!$this->tags->contains($tag)) {
             $this->tags->add($tag);
         }
+    }
+
+    /** @return list<ArchiveAsset> */
+    public function getAssets(): array
+    {
+        return array_values($this->assets->toArray());
+    }
+
+    /** Returns the archived asset of the given kind (pdf/screenshot/…), or null. */
+    public function getAsset(string $kind): ?ArchiveAsset
+    {
+        foreach ($this->assets as $asset) {
+            if ($asset->getKind() === $kind) {
+                return $asset;
+            }
+        }
+
+        return null;
     }
 
     public function removeTag(Tag $tag): void

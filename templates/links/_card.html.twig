@@ -19,6 +19,14 @@
                 {% for tag in link.tags %}<a href="{{ path('links_index', {tag: tag.id}) }}" class="tag">#{{ tag.name }}</a>{% endfor %}
             </div>
         {% endif %}
+        {% set pdf = link.getAsset('pdf') %}
+        {% set shot = link.getAsset('screenshot') %}
+        {% if pdf or shot %}
+            <div class="link-assets">
+                {% if pdf %}<a class="asset-chip" href="{{ path('archive_asset_serve', {id: pdf.id}) }}" target="_blank" rel="noopener">📄 {{ 'link.asset.pdf'|trans }}</a>{% endif %}
+                {% if shot %}<a class="asset-chip" href="{{ path('archive_asset_serve', {id: shot.id}) }}" target="_blank" rel="noopener">🖼️ {{ 'link.asset.screenshot'|trans }}</a>{% endif %}
+            </div>
+        {% endif %}
         <div class="link-foot">
             <span class="link-meta muted">
                 <a href="{{ path('collections_show', {id: link.collection.id}) }}" class="cname">{{ fi.icon(link.collection) }} {{ link.collection.name }}</a>
