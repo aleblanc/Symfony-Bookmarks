@@ -110,6 +110,14 @@ final class LinkController extends AbstractController
         return $this->redirectToRoute('links_index');
     }
 
+    #[Route('/links/{id}/click', name: 'links_click', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function click(int $id): Response
+    {
+        $this->links->registerClick($id);
+
+        return new Response('', Response::HTTP_NO_CONTENT);
+    }
+
     #[Route('/links/{id}/rearchive', name: 'links_rearchive', methods: ['POST'])]
     public function reArchive(int $id): RedirectResponse
     {

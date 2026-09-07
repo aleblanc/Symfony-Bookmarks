@@ -236,5 +236,14 @@
         {% block body %}{% endblock %}
     </main>
 </div>
+<script>
+    // Track clicks on bookmark links without changing their real href (copy/middle-click keep working).
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest('a[data-click-id]');
+        if (a && navigator.sendBeacon) {
+            navigator.sendBeacon('/links/' + a.dataset.clickId + '/click');
+        }
+    }, true);
+</script>
 </body>
 </html>

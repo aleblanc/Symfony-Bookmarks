@@ -15,6 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(columns: ['status'])]
 #[ORM\Index(columns: ['ai_status'])]
 #[ORM\Index(columns: ['summary_status'])]
+#[ORM\Index(columns: ['last_clicked_at'])]
 class Link
 {
     public const STATUS_PENDING = 'pending';
@@ -92,6 +93,12 @@ class Link
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $archivedAt = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastClickedAt = null;
+
+    #[ORM\Column]
+    private int $clickCount = 0;
 
     public function __construct(string $url, Collection $collection)
     {
@@ -286,5 +293,15 @@ class Link
     public function setArchivedAt(?\DateTimeImmutable $archivedAt): void
     {
         $this->archivedAt = $archivedAt;
+    }
+
+    public function getLastClickedAt(): ?\DateTimeImmutable
+    {
+        return $this->lastClickedAt;
+    }
+
+    public function getClickCount(): int
+    {
+        return $this->clickCount;
     }
 }

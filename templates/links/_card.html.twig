@@ -1,6 +1,6 @@
 {% import '_partials/_folder_icon.html.twig' as fi %}
 <article class="link-card">
-    <a class="link-thumb" href="{{ link.url }}" target="_blank" rel="noopener"
+    <a class="link-thumb" href="{{ link.url }}" target="_blank" rel="noopener" data-click-id="{{ link.id }}"
        {% if not link.previewImage %}style="background: linear-gradient(135deg, {{ link.collection.color }}22, {{ link.collection.color }}66);"{% endif %}>
         {% if link.previewImage %}
             <img src="{{ path('link_preview', {id: link.id}) }}" alt="" loading="lazy">
@@ -9,7 +9,7 @@
         {% else %}🔗{% endif %}
     </a>
     <div class="link-content">
-        <a class="link-title" href="{{ link.url }}" target="_blank" rel="noopener">
+        <a class="link-title" href="{{ link.url }}" target="_blank" rel="noopener" data-click-id="{{ link.id }}">
             {% if link.iconPath %}<img class="favicon" src="{{ link.iconPath }}" alt="">{% endif %}
             <span>{{ link.name ?: link.url }}</span>
         </a>

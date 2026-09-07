@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_partials/_folder_icon.html.twig' as fi %}
 {% block title %}{{ 'dashboard.title'|trans }} — {{ dashboard.name }}{% endblock %}
 {% block body %}
     <header class="top">
@@ -6,34 +7,36 @@
         <a href="{{ path('links_new') }}" class="btn btn-primary">➕ {{ 'link.new'|trans }}</a>
     </header>
 
-    <section>
-        <h2>{{ 'dashboard.recent_links'|trans }}</h2>
-        {% if recent_links is empty %}
-            <p class="muted">{{ 'dashboard.empty'|trans }}</p>
-        {% else %}
+    {% if clicked is empty and added is empty and by_collection is empty %}
+        <p class="muted">{{ 'dashboard.empty'|trans }}</p>
+    {% endif %}
+
+    {% if clicked is not empty %}
+        <section>
+            <h2>👆 {{ 'dashboard.recent_clicked'|trans }}</h2>
             <div class="link-list">
-                {% for link in recent_links %}{% include 'links/_card.html.twig' %}{% endfor %}
+                {% for link in clicked %}{% include 'links/_card.html.twig' %}{% endfor %}
             </div>
-        {% endif %}
-    </section>
+        </section>
+    {% endif %}
 
-    <section>
-        <h2>{{ 'dashboard.collections_count'|trans({'%count%': collections|length}) }}</h2>
-        <ul class="nav">
-            {% for c in collections %}
-                <li><a href="{{ path('links_index', {collection: c.id}) }}"><span class="swatch" style="background:{{ c.color }};"></span> {{ c.name }}</a></li>
-            {% else %}
-                <li><a href="{{ path('collections_new') }}">➕ {{ 'dashboard.create_first_collection'|trans }}</a></li>
-            {% endfor %}
-        </ul>
-    </section>
+    {% if added is not empty %}
+        <section>
+            <h2>🆕 {{ 'dashboard.recent_added'|trans }}</h2>
+            <div class="link-list">
+                {% for link in added %}{% include 'links/_card.html.twig' %}{% endfor %}
+            </div>
+        </section>
+    {% endif %}
 
-    <section>
-        <h2>{{ 'dashboard.tags_count'|trans({'%count%': tags|length}) }}</h2>
-        {% for t in tags %}
-            <a href="{{ path('links_index', {tag: t.id}) }}"><span class="tag">#{{ t.name }}</span></a>
-        {% else %}
-            <p class="muted">{{ 'dashboard.no_tags'|trans }}</p>
-        {% endfor %}
-    </section>
+    {% for row in by_collection %}
+        <section>
+            <h2>
+                <a href="{{ path('collections_show', {id: row.collection.id}) }}">{{ fi.icon(row.collection) }} {{ row.collection.name }}</a>
+            </h2>
+            <div class="link-list">
+                {% for link in row.links %}{% include 'links/_card.html.twig' %}{% endfor %}
+            </div>
+        </section>
+    {% endfor %}
 {% endblock %}

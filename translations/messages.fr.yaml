@@ -57,6 +57,8 @@ status:
 dashboard:
     title: 'Tableau de bord'
     recent_links: 'Liens récents'
+    recent_clicked: 'Derniers liens cliqués'
+    recent_added: 'Derniers liens ajoutés'
     empty: 'Aucun lien pour l''instant. Ajoutez-en un avec le bouton ci-dessus ou via l''extension navigateur.'
     collections_count: 'Collections (%count%)'
     create_first_collection: 'Créer une première collection'

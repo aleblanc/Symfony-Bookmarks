@@ -134,6 +134,45 @@ final class LinkRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    /** Records a click via a direct UPDATE (bypasses the encrypt lifecycle listener). */
+    public function registerClick(int $id): void
+    {
+        $this->createQueryBuilder('l')
+            ->update()
+            ->set('l.lastClickedAt', ':now')
+            ->set('l.clickCount', 'l.clickCount + 1')
+            ->where('l.id = :id')
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->execute();
+    }
+
+    /** @return list<Link> most recently clicked links of a dashboard */
+    public function findRecentlyClicked(Dashboard $dashboard, int $limit = 8): array
+    {
+        return $this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d AND l.lastClickedAt IS NOT NULL')
+            ->setParameter('d', $dashboard)
+            ->orderBy('l.lastClickedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** @return list<Link> most recently added links of a collection */
+    public function findRecentForCollection(Collection $collection, int $limit = 4): array
+    {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.collection = :c')
+            ->setParameter('c', $collection)
+            ->orderBy('l.id', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * @param int|null $limit null = no limit (show the whole collection)
      *

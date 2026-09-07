@@ -6,7 +6,6 @@ namespace App\Controller\Web;
 
 use App\Repository\CollectionRepository;
 use App\Repository\LinkRepository;
-use App\Repository\TagRepository;
 use App\Service\CurrentDashboard;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +17,6 @@ final class DashboardController extends AbstractController
         private readonly CurrentDashboard $current,
         private readonly LinkRepository $links,
         private readonly CollectionRepository $collections,
-        private readonly TagRepository $tags,
     ) {
     }
 
@@ -27,11 +25,19 @@ final class DashboardController extends AbstractController
     {
         $dashboard = $this->current->get();
 
+        $byCollection = [];
+        foreach ($this->collections->findForDashboard($dashboard) as $collection) {
+            $recent = $this->links->findRecentForCollection($collection, 4);
+            if ([] !== $recent) {
+                $byCollection[] = ['collection' => $collection, 'links' => $recent];
+            }
+        }
+
         return $this->render('dashboard/index.html.twig', [
             'dashboard' => $dashboard,
-            'recent_links' => $this->links->findForDashboard($dashboard, 12),
-            'collections' => $this->collections->findForDashboard($dashboard),
-            'tags' => $this->tags->findForDashboard($dashboard),
+            'clicked' => $this->links->findRecentlyClicked($dashboard, 8),
+            'added' => $this->links->findForDashboard($dashboard, 8, null, 'DESC'),
+            'by_collection' => $byCollection,
         ]);
     }
 }
