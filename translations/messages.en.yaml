@@ -15,6 +15,7 @@ sidebar:
     search_placeholder: 'Search links…'
     manage: 'Manage collections'
     tags: 'Tags'
+    all_tags: 'All tags'
     theme: 'Theme'
     features: 'Features'
     feature:
@@ -139,3 +140,6 @@ vault:
     unlock_title: 'Unlock vault "%name%"'
     password: 'Password'
     unlock: 'Unlock (15 min)'
+
+tag:
+    title_plural: 'Tags'

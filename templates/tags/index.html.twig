@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'tag.title_plural'|trans }}{% endblock %}
+{% block body %}
+    <header class="top"><h1>🏷️ {{ 'tag.title_plural'|trans }} <small class="muted">({{ tags|length }})</small></h1></header>
+    {% if tags is empty %}
+        <p class="muted">{{ 'dashboard.no_tags'|trans }}</p>
+    {% else %}
+        <div class="tag-cloud">
+            {% for row in tags %}
+                <a href="{{ path('links_index', {tag: row.tag.id}) }}" class="tag-cloud-item">
+                    #{{ row.tag.name }}<span class="tag-count">{{ row.count }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}

@@ -37,7 +37,7 @@ final class FeaturesExtension extends AbstractExtension
             new TwigFunction('sidebar_tags', function (): array {
                 $dashboard = $this->current->tryGet();
 
-                return null === $dashboard ? [] : $this->tags->findForDashboardWithCounts($dashboard);
+                return null === $dashboard ? [] : $this->tags->findForDashboardWithCounts($dashboard, 50);
             }),
         ];
     }

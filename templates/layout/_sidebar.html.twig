@@ -40,9 +40,11 @@
         <summary>
             <span class="chevron">▸</span>
             <span class="ico">🏷️</span> {{ 'sidebar.tags'|trans }}
+            <a class="manage" href="{{ path('tags_index') }}" title="{{ 'sidebar.all_tags'|trans }}">☰</a>
         </summary>
+        {% set stags = sidebar_tags() %}
         <ul class="nav nav-sub">
-            {% for row in sidebar_tags() %}
+            {% for row in stags %}
                 <li><a href="{{ path('links_index', {tag: row.tag.id}) }}">
                     <span class="chevron-spacer"></span>
                     <span class="label">#{{ row.tag.name }}</span>
@@ -52,6 +54,9 @@
                 <li><span class="muted" style="padding:6px 10px;display:block;">{{ 'dashboard.no_tags'|trans }}</span></li>
             {% endfor %}
         </ul>
+        {% if stags|length >= 50 %}
+            <a class="nav-more" href="{{ path('tags_index') }}">{{ 'sidebar.all_tags'|trans }} →</a>
+        {% endif %}
     </details>
 
     <h2>{{ 'sidebar.search'|trans }}</h2>

@@ -15,6 +15,7 @@ sidebar:
     search_placeholder: 'Rechercher un lien…'
     manage: 'Gérer les collections'
     tags: 'Étiquettes'
+    all_tags: 'Tous les tags'
     theme: 'Thème'
     features: 'Fonctionnalités'
     feature:
@@ -139,3 +140,6 @@ vault:
     unlock_title: 'Déverrouiller le coffre « %name% »'
     password: 'Mot de passe'
     unlock: 'Déverrouiller (15 min)'
+
+tag:
+    title_plural: 'Étiquettes'

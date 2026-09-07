@@ -31,23 +31,29 @@ final class TagRepository extends ServiceEntityRepository
     }
 
     /**
-     * Tags in use in a dashboard, each with its link count — for the sidebar.
+     * Tags in use in a dashboard, each with its link count, most-used first.
+     *
+     * @param int|null $limit null = all (dedicated page); e.g. 50 for the sidebar
      *
      * @return list<array{tag: Tag, count: int}>
      */
-    public function findForDashboardWithCounts(Dashboard $dashboard): array
+    public function findForDashboardWithCounts(Dashboard $dashboard, ?int $limit = null): array
     {
-        /** @var list<array{tag: Tag, cnt: int|string}> $rows */
-        $rows = $this->createQueryBuilder('t')
+        $qb = $this->createQueryBuilder('t')
             ->select('t AS tag', 'COUNT(l.id) AS cnt')
             ->leftJoin('t.links', 'l')
             ->andWhere('t.dashboard = :d')
             ->setParameter('d', $dashboard)
             ->groupBy('t.id')
             ->having('COUNT(l.id) > 0')
-            ->orderBy('t.name', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('cnt', 'DESC')
+            ->addOrderBy('t.name', 'ASC');
+        if (null !== $limit) {
+            $qb->setMaxResults($limit);
+        }
+
+        /** @var list<array{tag: Tag, cnt: int|string}> $rows */
+        $rows = $qb->getQuery()->getResult();
 
         return array_map(
             static fn (array $row): array => ['tag' => $row['tag'], 'count' => (int) $row['cnt']],
