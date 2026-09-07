@@ -21,18 +21,14 @@
         {% endif %}
         {% set pdf = link.getAsset('pdf') %}
         {% set shot = link.getAsset('screenshot') %}
-        {% if pdf or shot %}
-            <div class="link-assets">
-                {% if pdf %}<a class="asset-chip" href="{{ path('archive_asset_serve', {id: pdf.id}) }}" target="_blank" rel="noopener">📄 {{ 'link.asset.pdf'|trans }}</a>{% endif %}
-                {% if shot %}<a class="asset-chip" href="{{ path('archive_asset_serve', {id: shot.id}) }}" target="_blank" rel="noopener">🖼️ {{ 'link.asset.screenshot'|trans }}</a>{% endif %}
-            </div>
-        {% endif %}
         <div class="link-foot">
             <span class="link-meta muted">
                 <a href="{{ path('collections_show', {id: link.collection.id}) }}" class="cname">{{ fi.icon(link.collection) }} {{ link.collection.name }}</a>
                 <span class="badge {{ link.status }}">{{ ('status.value.' ~ link.status)|trans }}</span>
             </span>
             <span class="link-actions">
+                {% if pdf %}<a class="icon-btn" href="{{ path('archive_asset_serve', {id: pdf.id}) }}" target="_blank" rel="noopener" title="{{ 'link.asset.pdf'|trans }}" aria-label="{{ 'link.asset.pdf'|trans }}">📄</a>{% endif %}
+                {% if shot %}<a class="icon-btn" href="{{ path('archive_asset_serve', {id: shot.id}) }}" target="_blank" rel="noopener" title="{{ 'link.asset.screenshot'|trans }}" aria-label="{{ 'link.asset.screenshot'|trans }}">🖼️</a>{% endif %}
                 <a class="icon-btn" href="{{ path('links_show', {id: link.id}) }}" title="{{ 'common.details'|trans }}" aria-label="{{ 'common.details'|trans }}">👁️</a>
                 <form class="inline" method="post" action="{{ path('links_rearchive', {id: link.id}) }}">
                     <button class="icon-btn" type="submit" title="{{ 'common.rearchive'|trans }}" aria-label="{{ 'common.rearchive'|trans }}">↻</button>
