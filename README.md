@@ -57,7 +57,7 @@ Web UI (Twig)  ──────────────────┼──�
                                  │       │                                   │
                                  │       │ writes Link(status=pending)       │
 Cron (simple-cron-scheduler)     │       ▼                                   │
-  ├── app:archive-pending  ──────┼──► ArchiveRunner ──► ReadableExtractor    │
+  ├── app:index-pending  ──────┼──► ArchiveRunner ──► ReadableExtractor    │
   │                              │                  └── SingleFile/PNG/PDF ──┼── skipped if no Chrome
   └── app:ai-tag-pending   ──────┼──► AutoTagger ──► LM Studio (remote)      │
                                  │                                           │
@@ -201,7 +201,7 @@ Two Symfony commands do the background work:
 
 | Command | What it does | Suggested frequency |
 |---|---|---|
-| `php bin/console app:archive-pending` | Picks links with `status=pending`, fetches HTML, extracts readable text, generates single-file/PNG/PDF if Chromium is available | Every 5 min |
+| `php bin/console app:index-pending` | Picks links with `status=pending`, fetches HTML, extracts readable text, generates single-file/PNG/PDF if Chromium is available | Every 5 min |
 | `php bin/console app:ai-tag-pending` | Picks links with `ai_status=pending` (already archived), calls the tagger agent, attaches tags | Every 10 min |
 
 You can run them manually or install a system cron. Two approaches:
@@ -209,7 +209,7 @@ You can run them manually or install a system cron. Two approaches:
 ### Option A — Direct cron entries (simplest)
 
 ```
-*/5  * * * * cd /var/www/bookmarks && php bin/console app:archive-pending --limit=20 >> var/log/archive.log 2>&1
+*/5  * * * * cd /var/www/bookmarks && php bin/console app:index-pending --limit=20 >> var/log/index.log 2>&1
 */10 * * * * cd /var/www/bookmarks && php bin/console app:ai-tag-pending  --limit=20 >> var/log/ai.log      2>&1
 ```
 
@@ -221,7 +221,7 @@ Create `config/packages/simple_cron_scheduler.yaml`:
 simple_cron_scheduler:
     schedules:
         archive_pending:
-            command: 'app:archive-pending'
+            command: 'app:index-pending'
             expression: '*/5 * * * *'
         ai_tag_pending:
             command: 'app:ai-tag-pending'
@@ -381,7 +381,7 @@ symfony server:start
 You can also run the two workers on-demand while iterating:
 
 ```bash
-php bin/console app:archive-pending
+php bin/console app:index-pending
 php bin/console app:ai-tag-pending
 ```
 

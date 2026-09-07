@@ -48,7 +48,7 @@ Web UI (Twig)  ──────────────────┼──�
                                  │       │                                   │
                                  │       │ writes Link(status=pending)       │
 Cron (simple-cron-scheduler)     │       ▼                                   │
-  ├── app:archive-pending  ──────┼──► ArchiveRunner ──► ReadableExtractor    │
+  ├── app:index-pending  ──────┼──► ArchiveRunner ──► ReadableExtractor    │
   │                              │                  └── SingleFile/PNG/PDF ──┼── skipped if no Chrome
   └── app:ai-tag-pending   ──────┼──► AutoTagger ──► LM Studio (remote)      │
                                  │                                           │
@@ -72,7 +72,7 @@ Cron (simple-cron-scheduler)     │       ▼                                  
 
 ```
 src/
-├── Command/                    # 5 CLI commands (archive-pending [--rearchive], ai-tag-pending [--retry-failed], ai-summarize-pending [--retry-failed], create-vault, generate-secrets)
+├── Command/                    # 5 CLI commands (index-pending [--reindex], ai-tag-pending [--retry-failed], ai-summarize-pending [--retry-failed], create-vault, generate-secrets)
 ├── Controller/
 │   ├── Api/                    # /api/v1/* — envelope {"response": ...}, matches Linkwarden extension
 │   └── Web/                    # Twig UI controllers
@@ -112,7 +112,7 @@ tests/SmokeTest.php             # data-provider smoke test on every public URL +
 
 ## Known gotchas
 
-1. **`foreign_keys` PRAGMA now enforced.** `src/Doctrine/SqliteForeignKeysMiddleware.php` (registered in services.yaml with tag `doctrine.middleware`) runs `PRAGMA foreign_keys = ON` on every connection, so the schema's `ON DELETE CASCADE` is honoured — deleting a Collection now cascades to its Links. Before this fix, deleting a collection left orphan links pointing at a missing row, which crashed `app:archive-pending` with `EntityNotFoundException` when `EncryptLinkListener` loaded `link.getCollection()` during flush. Defense-in-depth: `findPendingArchive`/`findPendingAiEnrichment` INNER JOIN the collection so any pre-existing orphan is skipped, not fatal. Clean up legacy orphans with: `php bin/console dbal:run-sql "DELETE FROM links WHERE collection_id NOT IN (SELECT id FROM collections)"`. `journal_mode=WAL` is still NOT set (separate perf TODO, non-blocking).
+1. **`foreign_keys` PRAGMA now enforced.** `src/Doctrine/SqliteForeignKeysMiddleware.php` (registered in services.yaml with tag `doctrine.middleware`) runs `PRAGMA foreign_keys = ON` on every connection, so the schema's `ON DELETE CASCADE` is honoured — deleting a Collection now cascades to its Links. Before this fix, deleting a collection left orphan links pointing at a missing row, which crashed `app:index-pending` with `EntityNotFoundException` when `EncryptLinkListener` loaded `link.getCollection()` during flush. Defense-in-depth: `findPendingArchive`/`findPendingAiEnrichment` INNER JOIN the collection so any pre-existing orphan is skipped, not fatal. Clean up legacy orphans with: `php bin/console dbal:run-sql "DELETE FROM links WHERE collection_id NOT IN (SELECT id FROM collections)"`. `journal_mode=WAL` is still NOT set (separate perf TODO, non-blocking).
 
 2. **Symfony version display shows 8.1.6** even though composer.json requires `8.2.x-dev` for several components. This is because many Symfony components don't have an 8.2 branch yet — they resolve to 8.1.x stable. This is expected and fine.
 
@@ -137,7 +137,7 @@ php bin/console doctrine:migrations:migrate --no-interaction
 APP_ENV=test php bin/console doctrine:migrations:migrate --no-interaction
 
 # Background workers (would be cron on Pi)
-php bin/console app:archive-pending --limit=20
+php bin/console app:index-pending --limit=20
 php bin/console app:ai-tag-pending --limit=20
 
 # One-time setup
@@ -160,7 +160,7 @@ One system crontab line ticks the scheduler every minute; the schedules live in 
 
 Schedules are declared with `#[AsCronTask('<cron expr>', description: '...')]` on the
 command classes (auto-discovered by `CollectCommandsPass` — no task list in yaml):
-- `app:archive-pending` — `*/5 * * * *`
+- `app:index-pending` — `*/5 * * * *`
 - `app:ai-tag-pending` — `*/10 * * * *`
 - `app:ai-summarize-pending` — `*/15 * * * *`
 
