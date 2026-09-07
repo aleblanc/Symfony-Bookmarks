@@ -188,6 +188,13 @@ server {
 }
 ```
 
+## Roadmap / future ideas
+
+Non-committed feature ideas live in `docs/ROADMAP.md` (dead-link health check + an
+"Archive" section, an "À trier" queue with AI category suggestions, a "watch for
+changes" status with alerts, and yt-dlp video download). Consult it before
+proposing new large features.
+
 ## The plan document
 
 The full 30h implementation plan lives at `../docs/superpowers/plans/2026-09-06-symfony-bookmark-manager.md` (relative to this file — in the parent Linkwarden repo). Progress is 95% done; the remaining items are:
