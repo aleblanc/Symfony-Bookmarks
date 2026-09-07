@@ -152,13 +152,21 @@ vendor/bin/phpunit
 
 ## Production cron entry (target machine)
 
+One system crontab line ticks the scheduler every minute; the schedules live in code:
+
 ```
-* * * * * cd /var/www/bookmarks && php bin/console simple-cron:run >> var/log/cron.log 2>&1
+* * * * * cd /var/www/bookmarks && php bin/console scheduler:run >> var/log/cron.log 2>&1
 ```
 
-`config/packages/simple_cron_scheduler.yaml` (TODO — not yet written) declares two schedules:
-- `app:archive-pending` every 5 minutes
-- `app:ai-tag-pending` every 10 minutes
+Schedules are declared with `#[AsCronTask('<cron expr>', description: '...')]` on the
+command classes (auto-discovered by `CollectCommandsPass` — no task list in yaml):
+- `app:archive-pending` — `*/5 * * * *`
+- `app:ai-tag-pending` — `*/10 * * * *`
+- `app:ai-summarize-pending` — `*/15 * * * *`
+
+`config/packages/simple_cron_scheduler.yaml` only sets globals (timezone `Europe/Luxembourg`,
+`log_channel: cron`). Inspect with `php bin/console scheduler:list`. Per-task `lock` (default
+true) prevents overlapping runs.
 
 ## Production nginx (target machine)
 

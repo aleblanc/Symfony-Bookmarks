@@ -1,0 +1,7 @@
+simple_cron_scheduler:
+    # Cron expressions are evaluated in this timezone.
+    timezone: 'Europe/Luxembourg'
+    # Reuse the existing 'cron' Monolog channel (the bundle default 'scheduler' isn't declared).
+    log_channel: 'cron'
+    # Tasks themselves are declared with #[AsCronTask] on the command classes
+    # (see src/Command/*). Per-task `lock` (default true) prevents overlap.

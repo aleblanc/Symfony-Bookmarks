@@ -9,6 +9,7 @@ use App\Repository\LinkRepository;
 use App\Service\Ai\AutoSummarizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use SimpleCronScheduler\Attribute\AsCronTask;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,6 +17,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'app:ai-summarize-pending', description: 'Summarize archived links whose summary_status is pending via the configured LLM agent')]
+#[AsCronTask('*/15 * * * *', description: 'AI-summarize pending links')]
 final class AppAiSummarizePendingCommand extends Command
 {
     public function __construct(

@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Repository\LinkRepository;
 use App\Service\Archiver\ArchiveRunner;
+use SimpleCronScheduler\Attribute\AsCronTask;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -13,6 +14,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'app:archive-pending', description: 'Archive links whose status is pending')]
+#[AsCronTask('*/5 * * * *', description: 'Archive pending links')]
 final class AppArchivePendingCommand extends Command
 {
     public function __construct(
