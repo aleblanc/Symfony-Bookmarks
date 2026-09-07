@@ -7,6 +7,8 @@
 /public/bundles/
 /public/assets/favicons/
 /var/
+/config/reference.php
+/config/schema.json
 /vendor/
 ###< symfony/framework-bundle ###
 
