@@ -58,6 +58,7 @@ dashboard:
     title: 'Dashboard'
     recent_links: 'Recent links'
     recent_clicked: 'Recently clicked'
+    most_clicked: 'Most clicked'
     recent_added: 'Recently added'
     empty: 'No links yet. Add your first via the button above or via the browser extension.'
     collections_count: 'Collections (%count%)'

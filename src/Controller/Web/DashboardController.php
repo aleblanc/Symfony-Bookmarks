@@ -36,6 +36,7 @@ final class DashboardController extends AbstractController
         return $this->render('dashboard/index.html.twig', [
             'dashboard' => $dashboard,
             'clicked' => $this->links->findRecentlyClicked($dashboard, 8),
+            'most_clicked' => $this->links->findMostClicked($dashboard, 8),
             'added' => $this->links->findForDashboard($dashboard, 8, null, 'DESC'),
             'by_collection' => $byCollection,
         ]);

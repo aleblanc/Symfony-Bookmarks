@@ -7,7 +7,7 @@
         <a href="{{ path('links_new') }}" class="btn btn-primary">➕ {{ 'link.new'|trans }}</a>
     </header>
 
-    {% if clicked is empty and added is empty and by_collection is empty %}
+    {% if clicked is empty and most_clicked is empty and added is empty and by_collection is empty %}
         <p class="muted">{{ 'dashboard.empty'|trans }}</p>
     {% endif %}
 
@@ -16,6 +16,15 @@
             <h2>👆 {{ 'dashboard.recent_clicked'|trans }}</h2>
             <div class="link-list">
                 {% for link in clicked %}{% include 'links/_card.html.twig' %}{% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if most_clicked is not empty %}
+        <section>
+            <h2>🔥 {{ 'dashboard.most_clicked'|trans }}</h2>
+            <div class="link-list">
+                {% for link in most_clicked %}{% include 'links/_card.html.twig' %}{% endfor %}
             </div>
         </section>
     {% endif %}

@@ -161,6 +161,20 @@ final class LinkRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return list<Link> most clicked links of a dashboard */
+    public function findMostClicked(Dashboard $dashboard, int $limit = 8): array
+    {
+        return $this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d AND l.clickCount > 0')
+            ->setParameter('d', $dashboard)
+            ->orderBy('l.clickCount', 'DESC')
+            ->addOrderBy('l.lastClickedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     /** @return list<Link> most recently added links of a collection */
     public function findRecentForCollection(Collection $collection, int $limit = 4): array
     {
