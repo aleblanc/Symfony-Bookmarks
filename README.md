@@ -45,19 +45,16 @@ Goals:
 
 ---
 
-## Screenshots
+**Links list** — compact cards with preview thumbnails, clickable tags, per-link
+collection + status, and direct **PDF / screenshot** links. The left sidebar has
+full-text search, the collapsible collection tree and tags ranked by usage.
 
-| Dashboard | Links (compact cards) |
-|---|---|
-| ![Dashboard — recently clicked / added / per collection](docs/screenshots/dashboard.png) | ![Links list](docs/screenshots/links.png) |
+![Links list](docs/capture1.png)
 
-| Collection detail | Tags page |
-|---|---|
-| ![Collection with sub-folders and links](docs/screenshots/collection.png) | ![Tag cloud](docs/screenshots/tags.png) |
+**Link detail** — an **AI summary** (in your configured language), the readable
+text extraction, and the **indexed content** (PDF + screenshot) to download.
 
-| Import — folder selection | New link |
-|---|---|
-| ![Import: pick folders to import](docs/screenshots/import.png) | ![New link form](docs/screenshots/new-link.png) |
+![Link detail](docs/capture2.png)
 
 ---
 
