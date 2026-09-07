@@ -57,11 +57,13 @@ services:
         arguments:
             $enabled: '%env(bool:APP_AI_ENABLED)%'
             $aiLogger: '@monolog.logger.ai'
+            $callDelayMs: '%env(int:APP_AI_CALL_DELAY_MS)%'
 
     App\Command\AppAiSummarizePendingCommand:
         arguments:
             $enabled: '%env(bool:APP_AI_ENABLED)%'
             $aiLogger: '@monolog.logger.ai'
+            $callDelayMs: '%env(int:APP_AI_CALL_DELAY_MS)%'
 
     App\Service\Ai\AutoTagger:
         arguments:

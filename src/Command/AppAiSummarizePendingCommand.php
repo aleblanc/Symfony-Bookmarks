@@ -26,6 +26,7 @@ final class AppAiSummarizePendingCommand extends Command
         private readonly EntityManagerInterface $em,
         private readonly LoggerInterface $aiLogger,
         private readonly bool $enabled,
+        private readonly int $callDelayMs = 0,
     ) {
         parent::__construct();
     }
@@ -71,6 +72,9 @@ final class AppAiSummarizePendingCommand extends Command
                 $this->aiLogger->error('ai summarization failed', ['link' => $link->getId(), 'err' => $e->getMessage()]);
             }
             $this->em->flush();
+            if ($this->callDelayMs > 0) {
+                usleep($this->callDelayMs * 1000); // throttle the AI server between calls
+            }
         }
         $output->writeln(\sprintf('%d links processed', \count($links)));
 
