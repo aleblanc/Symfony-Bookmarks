@@ -16,6 +16,7 @@ Goals:
 ## Table of contents
 
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -41,6 +42,22 @@ Goals:
 - Web UI in Twig (no npm build required — CSS is inline).
 - Netscape HTML bookmarks import (Firefox / Chrome / Linkwarden exports).
 - AI auto-tagging via any OpenAI-compatible endpoint (LM Studio, Ollama, vLLM, cloud API…).
+
+---
+
+## Screenshots
+
+| Dashboard | Links (compact cards) |
+|---|---|
+| ![Dashboard — recently clicked / added / per collection](docs/screenshots/dashboard.png) | ![Links list](docs/screenshots/links.png) |
+
+| Collection detail | Tags page |
+|---|---|
+| ![Collection with sub-folders and links](docs/screenshots/collection.png) | ![Tag cloud](docs/screenshots/tags.png) |
+
+| Import — folder selection | New link |
+|---|---|
+| ![Import: pick folders to import](docs/screenshots/import.png) | ![New link form](docs/screenshots/new-link.png) |
 
 ---
 
