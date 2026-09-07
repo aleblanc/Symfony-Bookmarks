@@ -47,7 +47,7 @@ Goals:
 ## Requirements
 
 **Runtime:**
-- PHP **8.2 or newer** with extensions: `ctype`, `iconv`, `mbstring`, `xml`, `curl`, `sqlite3` (`pdo_sqlite`), `sodium`
+- PHP **8.5** (8.2 minimum) with extensions: `ctype`, `iconv`, `mbstring`, `xml`, `curl`, `sqlite3` (`pdo_sqlite`), `sodium`
 - SQLite **3.35+** (bundled with the `sqlite3` package on Debian/Ubuntu/Raspberry Pi OS Bookworm)
 - Composer 2
 - A web server (nginx / Apache / `symfony local:server` in dev)
@@ -57,7 +57,7 @@ Goals:
 - `single-file-cli` (`npm i -g single-file-cli`) — enables self-contained HTML archival
 - An LM Studio (or Ollama / vLLM) instance reachable over HTTP — enables AI auto-tagging
 
-**Target machine (my setup):** Raspberry Pi 4 (4 or 8 GB) with Raspberry Pi OS Bookworm (PHP 8.2 in default apt). SQLite file should live on an SSD (USB3) — not the SD card — for durability and performance.
+**Target machine (my setup):** Raspberry Pi 4 (4 or 8 GB) with Raspberry Pi OS Bookworm (default apt ships PHP 8.2; use the deb.sury.org repo for PHP 8.5). SQLite file should live on an SSD (USB3) — not the SD card — for durability and performance.
 
 ---
 
@@ -66,10 +66,15 @@ Goals:
 ### 1. System packages (Debian / Ubuntu / Raspberry Pi OS Bookworm)
 
 ```bash
+# Bookworm's default apt ships PHP 8.2; add the deb.sury.org repo to get PHP 8.5:
+sudo apt install -y apt-transport-https ca-certificates curl lsb-release
+curl -sSL https://packages.sury.org/php/apt.gpg | sudo tee /etc/apt/trusted.gpg.d/sury-php.gpg > /dev/null
+echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/sury-php.list
+
 sudo apt update
 sudo apt install -y \
-  php8.2-cli php8.2-fpm php8.2-sqlite3 php8.2-mbstring php8.2-xml \
-  php8.2-curl php8.2-intl php8.2-dom \
+  php8.5-cli php8.5-fpm php8.5-sqlite3 php8.5-mbstring php8.5-xml \
+  php8.5-curl php8.5-intl php8.5-dom \
   sqlite3 composer git
 
 # Optional — unlock archival features:
@@ -157,48 +162,31 @@ All settings live in `.env` (defaults) and `.env.local` (your overrides, git-ign
 
 ## Cron / scheduled jobs
 
-Two Symfony commands do the background work:
+Schedules are declared **in code** with `simple-cron-scheduler`'s `#[AsCronTask]`
+attribute on the command classes in `src/Command/` (auto-discovered — no YAML task
+list). Current schedules:
 
-| Command | What it does | Suggested frequency |
+| Command | Schedule | What it does |
 |---|---|---|
-| `php bin/console app:index-pending` | Picks links with `status=pending`, fetches HTML, extracts readable text, generates single-file/PNG/PDF if Chromium is available | Every 5 min |
-| `php bin/console app:ai-tag-pending` | Picks links with `ai_status=pending` (already archived), calls the tagger agent, attaches tags | Every 10 min |
+| `app:index-pending` | `*/5 * * * *` | fetch pending links, extract readable text, screenshot/PDF/single-file if Chromium is present |
+| `app:ai-tag-pending` | `*/10 * * * *` | tag archived links via the LLM agent (if `APP_AI_ENABLED=true`) |
+| `app:ai-summarize-pending` | `*/15 * * * *` | summarize archived links via the LLM agent |
 
-You can run them manually or install a system cron. Two approaches:
-
-### Option A — Direct cron entries (simplest)
-
-```
-*/5  * * * * cd /var/www/bookmarks && php bin/console app:index-pending --limit=20 >> var/log/index.log 2>&1
-*/10 * * * * cd /var/www/bookmarks && php bin/console app:ai-tag-pending  --limit=20 >> var/log/ai.log      2>&1
-```
-
-### Option B — Via `simple-cron-scheduler` (single cron entry)
-
-Create `config/packages/simple_cron_scheduler.yaml`:
-
-```yaml
-simple_cron_scheduler:
-    schedules:
-        archive_pending:
-            command: 'app:index-pending'
-            expression: '*/5 * * * *'
-        ai_tag_pending:
-            command: 'app:ai-tag-pending'
-            expression: '*/10 * * * *'
-```
-
-Then a single crontab entry ticks the scheduler:
+A **single** system crontab entry ticks the scheduler every minute; it runs
+whatever is due:
 
 ```
-* * * * * cd /var/www/bookmarks && php bin/console simple-cron:run >> var/log/cron.log 2>&1
+* * * * * cd /var/www/bookmarks && php bin/console scheduler:run >> var/log/cron.log 2>&1
 ```
+
+Inspect the registered tasks with `php bin/console scheduler:list`. To change a
+frequency, edit the `#[AsCronTask('<cron expr>', …)]` attribute on the command.
 
 ---
 
 ## Production deployment (nginx + php-fpm)
 
-Assumes the code is at `/var/www/bookmarks` and PHP-FPM listens on `/run/php/php8.2-fpm.sock`.
+Assumes the code is at `/var/www/bookmarks` and PHP-FPM listens on `/run/php/php8.5-fpm.sock`.
 
 ```bash
 # 1. Deploy
@@ -251,7 +239,7 @@ server {
     }
 
     location ~ ^/index\.php(/|$) {
-        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.5-fpm.sock;
         fastcgi_split_path_info ^(.+\.php)(/.*)$;
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
