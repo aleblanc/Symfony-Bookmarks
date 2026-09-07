@@ -332,4 +332,6 @@ Links land as `status=pending` so the archival cron will pick them up.
 
 ## License
 
-Proprietary — see individual dependency licenses in `composer.lock`. This is a personal project; use as you wish for personal deployments.
+**Personal Use License** — private, non-commercial use only. No commercial use,
+no redistribution, no offering it as a service. See [`LICENSE`](LICENSE) for the
+full terms. Third-party dependencies keep their own licenses (see `composer.lock`).
