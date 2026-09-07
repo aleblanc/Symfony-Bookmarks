@@ -26,16 +26,26 @@ final class NetscapeBookmarksImporter
      * the folder hierarchy: each nested <H3> folder becomes a Collection whose
      * parent is the enclosing folder; each <A HREF> becomes a Link in its folder.
      *
+     * When $selectedIds is provided, only entries whose folder matches one of the
+     * selected folder ids (see NetscapeBookmarkParser::pathId) are imported; null
+     * imports everything.
+     *
+     * @param list<string>|null $selectedIds
+     *
      * @return array{collections: int, links: int}
      */
-    public function import(string $html, Dashboard $dashboard): array
+    public function import(string $html, Dashboard $dashboard, ?array $selectedIds = null): array
     {
         $stats = ['collections' => 0, 'links' => 0];
+        $selected = null === $selectedIds ? null : array_flip($selectedIds);
 
         /** @var array<string, Collection> $cache "<parentId>/<name>" => Collection */
         $cache = [];
 
         foreach ($this->parser->parse($html, self::ROOT_FOLDER) as $entry) {
+            if (null !== $selected && !isset($selected[$this->parser->pathId($entry['folders'])])) {
+                continue;
+            }
             $path = [] === $entry['folders'] ? [self::ROOT_FOLDER] : $entry['folders'];
 
             $collection = null;

@@ -1,0 +1,18 @@
+{% macro render(nodes) %}
+    {% import _self as self %}
+    <ul class="import-tree">
+        {% for n in nodes %}
+            <li>
+                <label class="import-row">
+                    <input type="checkbox" class="folder-cb" name="folders[]" value="{{ n.id }}" checked>
+                    <span class="folder-ic">📁</span>
+                    <span class="import-name">{{ n.name }}</span>
+                    <span class="count">{{ n.count }}</span>
+                </label>
+                {% if n.children is not empty %}
+                    {{ self.render(n.children) }}
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endmacro %}

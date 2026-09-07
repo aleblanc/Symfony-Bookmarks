@@ -68,6 +68,80 @@ final class NetscapeBookmarkParser
         return $entries;
     }
 
+    /**
+     * Builds a nested folder tree from parsed entries, for the import preview.
+     * Each node carries a base64 id (its folder path) usable as a checkbox value.
+     *
+     * @param list<array{url: string, title: string, folders: list<string>}> $entries
+     *
+     * @return array{root_count: int, root_id: string, nodes: list<array{name: string, id: string, count: int, children: array<int, mixed>}>}
+     */
+    public function folderTree(array $entries): array
+    {
+        $rootCount = 0;
+        /** @var array<string, array{count: int, children: array<string, mixed>}> $tree */
+        $tree = [];
+        foreach ($entries as $entry) {
+            if ([] === $entry['folders']) {
+                ++$rootCount;
+                continue;
+            }
+            $ref = &$tree;
+            $last = \count($entry['folders']) - 1;
+            foreach ($entry['folders'] as $i => $name) {
+                if (!isset($ref[$name])) {
+                    $ref[$name] = ['count' => 0, 'children' => []];
+                }
+                if ($i === $last) {
+                    ++$ref[$name]['count'];
+                }
+                $ref = &$ref[$name]['children'];
+            }
+            unset($ref);
+        }
+
+        return [
+            'root_count' => $rootCount,
+            'root_id' => $this->pathId([]),
+            'nodes' => $this->buildNodes($tree, []),
+        ];
+    }
+
+    /**
+     * @param array<string, array{count: int, children: array<string, mixed>}> $nodes
+     * @param list<string>                                                      $parentPath
+     *
+     * @return list<array{name: string, id: string, count: int, children: array<int, mixed>}>
+     */
+    private function buildNodes(array $nodes, array $parentPath): array
+    {
+        ksort($nodes, \SORT_NATURAL | \SORT_FLAG_CASE);
+        $out = [];
+        foreach ($nodes as $name => $data) {
+            $path = [...$parentPath, $name];
+            /** @var array<string, array{count: int, children: array<string, mixed>}> $children */
+            $children = $data['children'];
+            $out[] = [
+                'name' => $name,
+                'id' => $this->pathId($path),
+                'count' => $data['count'],
+                'children' => $this->buildNodes($children, $path),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Encodes a folder path as a stable, form-safe id (base64 of the JSON path).
+     *
+     * @param list<string> $path
+     */
+    public function pathId(array $path): string
+    {
+        return base64_encode((string) json_encode($path));
+    }
+
     private function text(string $raw): string
     {
         return trim(html_entity_decode(strip_tags($raw), \ENT_QUOTES | \ENT_HTML5));

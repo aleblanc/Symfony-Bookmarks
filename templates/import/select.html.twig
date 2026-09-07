@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+{% import '_partials/_import_tree.html.twig' as importtree %}
+{% block title %}{{ 'import.select_title'|trans }}{% endblock %}
+{% block body %}
+    <header class="top"><h1>{{ 'import.select_title'|trans }}</h1></header>
+    <p class="muted">{{ 'import.select_intro'|trans }}</p>
+
+    <form method="post" action="{{ path('import_confirm') }}" class="card" style="max-width:720px;">
+        <div class="row" style="margin-bottom:12px;">
+            <button type="button" class="btn btn-sm" id="check-all">{{ 'import.select_all'|trans }}</button>
+            <button type="button" class="btn btn-sm" id="check-none">{{ 'import.select_none'|trans }}</button>
+        </div>
+
+        {% if tree.root_count > 0 %}
+            <label class="import-row">
+                <input type="checkbox" class="folder-cb" name="folders[]" value="{{ tree.root_id }}" checked>
+                <span class="folder-ic">🔖</span>
+                <span class="import-name">{{ 'import.root_links'|trans }}</span>
+                <span class="count">{{ tree.root_count }}</span>
+            </label>
+        {% endif %}
+
+        {% if tree.nodes is empty and tree.root_count == 0 %}
+            <p class="muted">{{ 'import.nothing_found'|trans }}</p>
+        {% else %}
+            {{ importtree.render(tree.nodes) }}
+        {% endif %}
+
+        <div class="row" style="margin-top:16px;">
+            <button class="btn btn-primary" type="submit">📥 {{ 'import.confirm'|trans }}</button>
+            <a class="btn" href="{{ path('import_index') }}">{{ 'common.cancel'|trans }}</a>
+        </div>
+    </form>
+
+    <script>
+        (function () {
+            // Ticking a folder toggles its whole subtree.
+            document.querySelectorAll('.import-tree .folder-cb').forEach(function (cb) {
+                cb.addEventListener('change', function () {
+                    var li = cb.closest('li');
+                    li.querySelectorAll('.folder-cb').forEach(function (c) { c.checked = cb.checked; });
+                });
+            });
+            function setAll(v) { document.querySelectorAll('.folder-cb').forEach(function (c) { c.checked = v; }); }
+            document.getElementById('check-all').addEventListener('click', function () { setAll(true); });
+            document.getElementById('check-none').addEventListener('click', function () { setAll(false); });
+        })();
+    </script>
+{% endblock %}

@@ -73,6 +73,24 @@ final class NetscapeBookmarkParserTest extends TestCase
         self::assertSame('https://ok.com', $entries[0]['url']);
     }
 
+    public function testFolderTreeStructureAndCounts(): void
+    {
+        $parser = new NetscapeBookmarkParser();
+        $tree = $parser->folderTree($parser->parse(self::HTML, 'Imported'));
+
+        self::assertSame(1, $tree['root_count']); // "Lien Racine"
+        self::assertCount(2, $tree['nodes']); // "Autre dossier", "Barre personnelle" (natural sort)
+
+        $names = array_map(static fn (array $n): string => $n['name'], $tree['nodes']);
+        self::assertContains('Barre personnelle', $names);
+        self::assertContains('Autre dossier', $names);
+
+        $barre = array_values(array_filter($tree['nodes'], static fn (array $n): bool => 'Barre personnelle' === $n['name']))[0];
+        self::assertSame(2, $barre['count']); // Lien A + Lien C
+        self::assertSame('Sous-dossier Dev', $barre['children'][0]['name']);
+        self::assertSame($parser->pathId(['Barre personnelle', 'Sous-dossier Dev']), $barre['children'][0]['id']);
+    }
+
     /**
      * @return array<string, list<string>> url => folder path
      */

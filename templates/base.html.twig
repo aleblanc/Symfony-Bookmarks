@@ -183,6 +183,13 @@
         details.tree-node > summary .tree-link:hover { text-decoration: none; }
         .tree-leaf { display: flex; align-items: center; gap: 8px; color: var(--fg); }
         .chevron-spacer { width: 10px; flex: none; }
+        /* Import folder selection tree */
+        .import-tree { list-style: none; margin: 0; padding-left: 18px; border-left: 1px solid var(--border); }
+        .import-tree.root, form > .import-tree { border-left: none; padding-left: 0; }
+        .import-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: var(--radius-sm); cursor: pointer; }
+        .import-row:hover { background: var(--primary-soft); }
+        .import-row input { width: 16px; height: 16px; }
+        .import-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         @media (max-width: 780px) {
             .layout { grid-template-columns: 1fr; }
