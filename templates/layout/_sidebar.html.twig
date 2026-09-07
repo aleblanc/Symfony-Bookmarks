@@ -13,6 +13,11 @@
         <span class="dash-badge" style="background: {{ current.color }};">● {{ current.name }}</span>
     {% endif %}
 
+    <form class="sidebar-search" action="{{ path('links_index') }}" method="get">
+        <span class="sidebar-search-ic">🔍</span>
+        <input class="input" type="search" name="q" placeholder="{{ 'sidebar.search_placeholder'|trans }}">
+    </form>
+
     <h2>{{ 'nav.section'|trans }}</h2>
     <ul class="nav">
         <li><a href="{{ path('dashboard') }}"><span class="ico">🏠</span> {{ 'nav.home'|trans }}</a></li>
@@ -58,11 +63,6 @@
             <a class="nav-more" href="{{ path('tags_index') }}">{{ 'sidebar.all_tags'|trans }} →</a>
         {% endif %}
     </details>
-
-    <h2>{{ 'sidebar.search'|trans }}</h2>
-    <form action="{{ path('links_index') }}" method="get">
-        <input class="input" type="search" name="q" placeholder="{{ 'sidebar.search_placeholder'|trans }}">
-    </form>
 
     <h2>{{ 'sidebar.features'|trans }}</h2>
     {% set feat = archive_features() %}
