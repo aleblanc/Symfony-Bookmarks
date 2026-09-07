@@ -16,20 +16,16 @@ Goals:
 ## Table of contents
 
 - [Features](#features)
-- [Architecture](#architecture)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [First run](#first-run)
-- [Browser extension setup](#browser-extension-setup)
 - [Cron / scheduled jobs](#cron--scheduled-jobs)
 - [Production deployment (nginx + php-fpm)](#production-deployment-nginx--php-fpm)
 - [AI features (LM Studio)](#ai-features-lm-studio)
 - [Encrypted vault](#encrypted-vault)
 - [Import existing bookmarks](#import-existing-bookmarks)
-- [Development](#development)
-- [Testing and quality gates](#testing-and-quality-gates)
-- [Troubleshooting](#troubleshooting)
+- [More docs](#more-docs)
 - [License](#license)
 
 ---
@@ -45,29 +41,6 @@ Goals:
 - Web UI in Twig (no npm build required — CSS is inline).
 - Netscape HTML bookmarks import (Firefox / Chrome / Linkwarden exports).
 - AI auto-tagging via any OpenAI-compatible endpoint (LM Studio, Ollama, vLLM, cloud API…).
-
----
-
-## Architecture
-
-```
-Browser extension (Linkwarden) ──┐
-                                 │  Bearer token
-Web UI (Twig)  ──────────────────┼──► /api/v1/* (Linkwarden envelope)  ──► SQLite + FTS5
-                                 │       │                                   │
-                                 │       │ writes Link(status=pending)       │
-Cron (simple-cron-scheduler)     │       ▼                                   │
-  ├── app:index-pending  ──────┼──► ArchiveRunner ──► ReadableExtractor    │
-  │                              │                  └── SingleFile/PNG/PDF ──┼── skipped if no Chrome
-  └── app:ai-tag-pending   ──────┼──► AutoTagger ──► LM Studio (remote)      │
-                                 │                                           │
-                                 ▼                                           │
-                            Session-scoped:                                  │
-                            - CurrentDashboard (Perso / Pro)                 │
-                            - VaultSession (unlocked keys, 15 min TTL)  ─────┘
-```
-
-No Symfony Messenger, no broker: background work polls `WHERE status='pending'` in SQLite. Two Symfony commands run on cron.
 
 ---
 
@@ -182,19 +155,6 @@ All settings live in `.env` (defaults) and `.env.local` (your overrides, git-ign
 
 ---
 
-## Browser extension setup
-
-Install the [official Linkwarden extension](https://github.com/linkwarden/browser-extension) in Firefox / Chrome / Edge. Then:
-
-1. Open the extension options.
-2. **Instance URL**: `http://<your-instance>/` (e.g. `http://raspberrypi.local:8000`).
-3. **API token**: paste the value of `APP_API_TOKEN` from your `.env.local`.
-4. Click "Sign in" — the extension calls `GET /api/v1/users/me`; you should see the collection dropdown populate.
-
-New links you add via the extension will land in the app instantly and get archived on the next cron tick.
-
----
-
 ## Cron / scheduled jobs
 
 Two Symfony commands do the background work:
@@ -263,14 +223,12 @@ sudo chown -R www-data:www-data var public/assets/favicons /mnt/ssd/bookmarks
 sudo systemctl reload nginx
 ```
 
-**nginx site config**:
+**nginx site config** (plain HTTP — put TLS termination behind a reverse proxy / VPN as you prefer):
 
 ```nginx
 server {
-    listen 443 ssl http2;
-    server_name bm.example.tld;
-    ssl_certificate     /etc/letsencrypt/live/bm.example.tld/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/bm.example.tld/privkey.pem;
+    listen 80;
+    server_name bookmarks.local;
 
     root  /var/www/bookmarks/public;
     index index.php;
@@ -288,14 +246,23 @@ server {
         try_files $uri /index.php$is_args$args;
     }
 
+    location /bundles {
+        try_files $uri =404;
+    }
+
     location ~ ^/index\.php(/|$) {
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT   $document_root;
         internal;
     }
 
     location ~ \.php$ { return 404; }
+
+    error_log  /var/log/nginx/bookmarks.error.log;
+    access_log /var/log/nginx/bookmarks.access.log;
 }
 ```
 
@@ -332,27 +299,9 @@ Any OpenAI-compatible endpoint works — swap `LM_STUDIO_HOST_URL` for your Olla
 
 ## Encrypted vault
 
-A vault lets you attach a password to selected collections. Their links' URL, title, description and readable text are encrypted at rest with `crypto_secretbox` (libsodium XSalsa20-Poly1305). The password derives the key via Argon2id (`crypto_pwhash`).
+Attach a password to selected collections; their links' URL, title, description and readable text are encrypted at rest (libsodium Argon2id + `crypto_secretbox`). Locked links show as `[locked]` placeholders until you unlock the vault.
 
-### Create a vault
-
-```bash
-php bin/console app:create-vault mysecrets --password='correct horse battery staple'
-```
-
-### Attach a collection to it
-
-Not yet exposed in the UI — do it manually in SQLite for now:
-
-```bash
-sqlite3 var/data_prod.db "UPDATE collections SET vault_id = 1 WHERE name = 'Finance';"
-```
-
-### Use it
-
-Collections attached to a vault are hidden from the sidebar until unlocked. Visit `/vault/1/unlock`, enter the password. The derived key is kept in the PHP session for **15 minutes**, then the vault re-locks automatically. Locked links appear as `[locked]` placeholders — nothing decryptable server-side without the password.
-
-**If you forget the password, the data is unrecoverable.** No backdoor.
+See **[docs/encrypted-vault.md](docs/encrypted-vault.md)** for setup and usage.
 
 ---
 
@@ -366,64 +315,15 @@ Links land as `status=pending` so the archival cron will pick them up.
 
 ---
 
-## Development
+## More docs
 
-```bash
-composer install                  # install dev deps
-php bin/console doctrine:migrations:migrate --no-interaction
-
-# Dev server
-php -S 127.0.0.1:8000 -t public
-# or with the Symfony CLI (nicer):
-symfony server:start
-```
-
-You can also run the two workers on-demand while iterating:
-
-```bash
-php bin/console app:index-pending
-php bin/console app:ai-tag-pending
-```
-
-The Web UI hot-reload is not wired (no npm dev server) — refresh the page manually. Twig cache is cleared automatically in dev.
-
----
-
-## Testing and quality gates
-
-```bash
-# Prepare the test DB (once, and after every schema change)
-APP_ENV=test php bin/console doctrine:database:drop --force --if-exists
-APP_ENV=test php bin/console doctrine:migrations:migrate --no-interaction
-
-# Run tests
-vendor/bin/phpunit
-
-# Static analysis (PHPStan level 8, must be 0 errors)
-vendor/bin/phpstan analyse --memory-limit=512M
-
-# Code style
-composer cs-check     # dry-run
-composer cs-fix       # apply
-```
-
-The `tests/SmokeTest.php` file uses a data provider to hit every public URL and every API endpoint — a fast regression net.
-
----
-
-## Troubleshooting
-
-| Symptom | Cause / fix |
-|---|---|
-| `SQLSTATE[HY000]: General error: 1 no such table: links` when running tests | Test DB not migrated. Run the two `APP_ENV=test` commands above. |
-| Web page loads but API returns `401 Invalid or missing token` | `APP_API_TOKEN` is set but the extension sends a different token (or none). Match them in `.env.local` and the extension settings. |
-| Extension shows "Cannot connect" | Check the instance URL (must include the scheme, e.g. `http://192.168.1.10:8000`). If nginx `auth_basic` is on `/api/`, disable it there (see nginx config above). |
-| `debug:container ai.agent.tagger` fails | Missing `symfony/ai-agent` dep. Run `composer require symfony/ai-agent`. |
-| AI cron logs `ai tagging failed: Connection refused` | Wrong `LM_STUDIO_HOST_URL`, LM Studio server not running, or "Serve on Local Network" is off. |
-| Chrome archival never produces files | `ChromeDetector` didn't find the binary. Check `php bin/console debug:container App\\Service\\ChromeDetector` and paths in `.env` (`APP_CHROME_PATH`). |
-| Everything works in dev, prod page is blank | `APP_ENV=prod` requires a warm cache. Run `php bin/console cache:warmup --env=prod` and check `var/log/prod-*.log`. |
-
-See also [CLAUDE.md](CLAUDE.md) for architectural notes and design decisions.
+- [Architecture](docs/architecture.md) — data flow and the no-broker cron design.
+- [Browser extension setup](docs/browser-extension.md) — connecting the Linkwarden extension.
+- [Encrypted vault](docs/encrypted-vault.md) — per-collection at-rest encryption.
+- [Development](docs/development.md) — dev server, workers, tests and quality gates.
+- [Troubleshooting](docs/troubleshooting.md) — common symptoms and fixes.
+- [Roadmap](docs/ROADMAP.md) — non-committed feature ideas.
+- [CLAUDE.md](CLAUDE.md) — full design notes and non-obvious constraints.
 
 ---
 
