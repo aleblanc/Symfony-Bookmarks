@@ -43,10 +43,14 @@ final class NetscapeBookmarksImporter
         $cache = [];
 
         foreach ($this->parser->parse($html, self::ROOT_FOLDER) as $entry) {
-            if (null !== $selected && !isset($selected[$this->parser->pathId($entry['folders'])])) {
+            $folders = $entry['folders'];
+            if (null !== $selected && !isset($selected[$this->parser->pathId($folders)])) {
                 continue;
             }
-            $path = [] === $entry['folders'] ? [self::ROOT_FOLDER] : $entry['folders'];
+            $path = $this->effectivePath($folders, $selected);
+            if ([] === $path) {
+                continue;
+            }
 
             $collection = null;
             foreach ($path as $name) {
@@ -64,6 +68,38 @@ final class NetscapeBookmarksImporter
         $this->em->flush();
 
         return $stats;
+    }
+
+    /**
+     * The folder chain to create for an entry. Without a selection, the full path
+     * (root sentinel for a document-root link). With a selection, only the
+     * *selected* ancestor folders — so a subfolder imported without its parent
+     * attaches to the nearest selected ancestor (or the root) instead of
+     * recreating the unchecked parent.
+     *
+     * @param list<string>            $folders
+     * @param array<string, int>|null $selected pathId => flag
+     *
+     * @return list<string>
+     */
+    private function effectivePath(array $folders, ?array $selected): array
+    {
+        if ([] === $folders) {
+            return [self::ROOT_FOLDER];
+        }
+        if (null === $selected) {
+            return $folders;
+        }
+        $path = [];
+        $prefix = [];
+        foreach ($folders as $name) {
+            $prefix[] = $name;
+            if (isset($selected[$this->parser->pathId($prefix)])) {
+                $path[] = $name;
+            }
+        }
+
+        return $path;
     }
 
     /**
