@@ -71,6 +71,7 @@ services:
     App\Service\Ai\AutoSummarizer:
         arguments:
             $summarizerAgent: '@ai.agent.summarizer'
+            $language: '%env(APP_AI_TAG_LANG)%'
 
     _instanceof:
         App\Service\Archiver\AssetArchiverInterface:

@@ -29,4 +29,4 @@ ai:
         summarizer:
             platform: 'ai.platform.lmstudio'
             model: '%env(APP_AI_SUMMARY_MODEL)%'
-            prompt: 'Summarize the given article in two French sentences.'
+            prompt: 'Summarize the given article concisely. The output language is set by the caller.'

@@ -10,8 +10,12 @@ use Symfony\AI\Platform\Message\MessageBag;
 
 final class AutoSummarizer
 {
-    public function __construct(private readonly AgentInterface $summarizerAgent)
-    {
+    private const LANGUAGES = ['fr' => 'French', 'en' => 'English'];
+
+    public function __construct(
+        private readonly AgentInterface $summarizerAgent,
+        private readonly string $language = 'fr',
+    ) {
     }
 
     /**
@@ -19,8 +23,10 @@ final class AutoSummarizer
      */
     public function summarize(string $title, string $textContent): string
     {
+        $language = self::LANGUAGES[$this->language] ?? 'French';
         $prompt = \sprintf(
-            "Summarize the following web page in two sentences. Answer with the summary text only, no preamble.\nTitle: %s\nContent: %s",
+            "Summarize the following web page in two sentences, written in %s whatever the page's language. Answer with the summary text only, no preamble.\nTitle: %s\nContent: %s",
+            $language,
             $title,
             mb_substr($textContent, 0, 4000),
         );
