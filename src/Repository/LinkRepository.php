@@ -134,29 +134,41 @@ final class LinkRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    /** @return list<Link> */
-    public function findForCollection(Collection $collection, int $limit = 50): array
+    /**
+     * @param int|null $limit null = no limit (show the whole collection)
+     *
+     * @return list<Link>
+     */
+    public function findForCollection(Collection $collection, ?int $limit = null): array
     {
-        return $this->createQueryBuilder('l')
+        $qb = $this->createQueryBuilder('l')
             ->andWhere('l.collection = :c')
             ->setParameter('c', $collection)
-            ->orderBy('l.id', 'ASC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+            ->orderBy('l.id', 'ASC');
+        if (null !== $limit) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
-    /** @return list<Link> */
-    public function findForTag(Tag $tag, int $limit = 50): array
+    /**
+     * @param int|null $limit null = no limit
+     *
+     * @return list<Link>
+     */
+    public function findForTag(Tag $tag, ?int $limit = null): array
     {
-        return $this->createQueryBuilder('l')
+        $qb = $this->createQueryBuilder('l')
             ->join('l.tags', 't')
             ->andWhere('t = :t')
             ->setParameter('t', $tag)
-            ->orderBy('l.id', 'ASC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+            ->orderBy('l.id', 'ASC');
+        if (null !== $limit) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
