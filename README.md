@@ -1,6 +1,6 @@
 # Symfony Bookmarks
 
-A lightweight, self-hosted, single-user bookmark manager built in **Symfony 8.2** + **SQLite**, designed to run on a Raspberry Pi 4 (~200 MB RAM) and stay **compatible with the official Linkwarden browser extensions** for Firefox and Chrome.
+A lightweight, self-hosted, single-user bookmark manager built in **PHP 8.5 / Symfony** + **SQLite**, designed to run on a Raspberry Pi 4 (~200 MB RAM) and stay **compatible with the official Linkwarden browser extensions** for Firefox and Chrome.
 
 Goals:
 - Replace the full Linkwarden stack (Next.js + PostgreSQL + Chromium workers, ~1.5–3 GB RAM) with a lean PHP-only stack.
@@ -16,7 +16,6 @@ Goals:
 ## Table of contents
 
 - [Features](#features)
-- [Screenshots](#screenshots)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -27,6 +26,7 @@ Goals:
 - [Encrypted vault](#encrypted-vault)
 - [Import existing bookmarks](#import-existing-bookmarks)
 - [More docs](#more-docs)
+- [Screenshots](#screenshots)
 - [License](#license)
 
 ---
@@ -42,19 +42,6 @@ Goals:
 - Web UI in Twig (no npm build required — CSS is inline).
 - Netscape HTML bookmarks import (Firefox / Chrome / Linkwarden exports).
 - AI auto-tagging via any OpenAI-compatible endpoint (LM Studio, Ollama, vLLM, cloud API…).
-
----
-
-**Links list** — compact cards with preview thumbnails, clickable tags, per-link
-collection + status, and direct **PDF / screenshot** links. The left sidebar has
-full-text search, the collapsible collection tree and tags ranked by usage.
-
-![Links list](docs/capture1.png)
-
-**Link detail** — an **AI summary** (in your configured language), the readable
-text extraction, and the **indexed content** (PDF + screenshot) to download.
-
-![Link detail](docs/capture2.png)
 
 ---
 
@@ -324,6 +311,22 @@ Links land as `status=pending` so the archival cron will pick them up.
 - [Troubleshooting](docs/troubleshooting.md) — common symptoms and fixes.
 - [Roadmap](docs/ROADMAP.md) — non-committed feature ideas.
 - [CLAUDE.md](CLAUDE.md) — full design notes and non-obvious constraints.
+
+---
+
+## Screenshots
+
+**Dashboard** — recently clicked and most clicked links, then each collection with its latest items:
+
+![Dashboard](docs/screenshot-dashboard.png)
+
+**Collection** (sepia theme) — a folder with its links, sub-folders and rename/move actions:
+
+![Collection detail](docs/screenshot-collection.png)
+
+**Link detail** (dark theme) — the AI summary in your language, readable text and the indexed PDF / screenshot:
+
+![Link detail](docs/screenshot-link.png)
 
 ---
 
