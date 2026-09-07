@@ -1,35 +1,38 @@
-<article class="card link-card">
-    <a class="preview" href="{{ link.url }}" target="_blank" rel="noopener"
-       style="{% if not link.previewImage %}background: linear-gradient(135deg, {{ link.collection.color }}22, {{ link.collection.color }}55);{% endif %}">
+{% import '_partials/_folder_icon.html.twig' as fi %}
+<article class="link-card">
+    <a class="link-thumb" href="{{ link.url }}" target="_blank" rel="noopener"
+       {% if not link.previewImage %}style="background: linear-gradient(135deg, {{ link.collection.color }}22, {{ link.collection.color }}66);"{% endif %}>
         {% if link.previewImage %}
             <img src="{{ path('link_preview', {id: link.id}) }}" alt="" loading="lazy">
-        {% else %}
-            <span class="preview-fallback">{% if link.iconPath %}<img class="favicon-lg" src="{{ link.iconPath }}" alt="">{% else %}🔗{% endif %}</span>
-        {% endif %}
+        {% elseif link.iconPath %}
+            <img class="link-thumb-fav" src="{{ link.iconPath }}" alt="">
+        {% else %}🔗{% endif %}
     </a>
-    <div class="link-body">
+    <div class="link-content">
         <a class="link-title" href="{{ link.url }}" target="_blank" rel="noopener">
             {% if link.iconPath %}<img class="favicon" src="{{ link.iconPath }}" alt="">{% endif %}
-            <strong>{{ link.name ?: link.url }}</strong>
+            <span>{{ link.name ?: link.url }}</span>
         </a>
-        <div class="muted">{{ link.url|slice(0, 80) }}{% if link.url|length > 80 %}…{% endif %}</div>
-        {% if link.description %}<p style="margin: 8px 0;">{{ link.description|slice(0, 160) }}</p>{% endif %}
-        <div style="margin-top: 8px;">
-            {% for tag in link.tags %}<a href="{{ path('links_index', {tag: tag.id}) }}"><span class="tag">#{{ tag.name }}</span></a>{% endfor %}
-        </div>
-        <div class="row muted" style="margin-top: 10px;">
-            <span><span class="swatch" style="background: {{ link.collection.color }};"></span> {{ link.collection.name }}</span>
-            <span class="badge {{ link.status }}">{{ ('status.value.' ~ link.status)|trans }}</span>
-            <span class="badge {{ link.aiStatus }}">{{ 'status.ai_label'|trans }}: {{ ('status.value.' ~ link.aiStatus)|trans }}</span>
-        </div>
-        <div class="row" style="margin-top: 12px;">
-            <a class="btn btn-sm" href="{{ path('links_show', {id: link.id}) }}">{{ 'common.details'|trans }}</a>
-            <form class="inline" method="post" action="{{ path('links_rearchive', {id: link.id}) }}">
-                <button class="btn btn-sm" type="submit">↻ {{ 'common.rearchive'|trans }}</button>
-            </form>
-            <form class="inline" method="post" action="{{ path('links_delete', {id: link.id}) }}" onsubmit="return confirm('{{ 'common.confirm_delete_link'|trans }}');">
-                <button class="btn btn-sm btn-danger" type="submit">{{ 'common.delete'|trans }}</button>
-            </form>
+        <div class="link-domain muted">{{ (link.url|split('/'))[2]|default(link.url) }}</div>
+        {% if link.tags is not empty %}
+            <div class="link-tags">
+                {% for tag in link.tags %}<a href="{{ path('links_index', {tag: tag.id}) }}" class="tag">#{{ tag.name }}</a>{% endfor %}
+            </div>
+        {% endif %}
+        <div class="link-foot">
+            <span class="link-meta muted">
+                <a href="{{ path('collections_show', {id: link.collection.id}) }}" class="cname">{{ fi.icon(link.collection) }} {{ link.collection.name }}</a>
+                <span class="badge {{ link.status }}">{{ ('status.value.' ~ link.status)|trans }}</span>
+            </span>
+            <span class="link-actions">
+                <a class="icon-btn" href="{{ path('links_show', {id: link.id}) }}" title="{{ 'common.details'|trans }}" aria-label="{{ 'common.details'|trans }}">👁️</a>
+                <form class="inline" method="post" action="{{ path('links_rearchive', {id: link.id}) }}">
+                    <button class="icon-btn" type="submit" title="{{ 'common.rearchive'|trans }}" aria-label="{{ 'common.rearchive'|trans }}">↻</button>
+                </form>
+                <form class="inline" method="post" action="{{ path('links_delete', {id: link.id}) }}" onsubmit="return confirm('{{ 'common.confirm_delete_link'|trans }}');">
+                    <button class="icon-btn icon-btn--danger" type="submit" title="{{ 'common.delete'|trans }}" aria-label="{{ 'common.delete'|trans }}">🗑️</button>
+                </form>
+            </span>
         </div>
     </div>
 </article>

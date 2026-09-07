@@ -144,16 +144,36 @@
         form.inline { display: inline; }
         .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
-        /* Link cards with preview banner */
-        .link-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
-        .link-card .preview { display: block; aspect-ratio: 16 / 9; background: var(--card-2); overflow: hidden; }
-        .link-card .preview img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s; }
-        .cards .card.link-card:hover .preview img { transform: scale(1.04); }
-        .preview-fallback { display: flex; align-items: center; justify-content: center; height: 100%; font-size: 28px; }
-        .favicon-lg { width: 40px; height: 40px; border-radius: 8px; box-shadow: var(--shadow); }
-        .link-body { padding: 14px 16px 16px; }
-        .link-title { display: flex; align-items: center; gap: 4px; color: var(--fg); }
-        .link-title strong { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        /* Link cards — compact media-object, mobile-first */
+        .link-list { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        @media (min-width: 760px) { .link-list { grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 12px; } }
+
+        .link-card { display: flex; gap: 12px; background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 10px; box-shadow: var(--shadow); transition: box-shadow .12s, transform .12s; }
+        .link-card:hover { box-shadow: var(--shadow-hover); }
+        @media (hover: hover) { .link-card:hover { transform: translateY(-1px); } }
+
+        .link-thumb { flex: none; width: 72px; height: 72px; border-radius: var(--radius-sm); overflow: hidden;
+            display: flex; align-items: center; justify-content: center; font-size: 26px; background: var(--card-2); }
+        .link-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .link-thumb .link-thumb-fav { width: 34px; height: 34px; border-radius: 7px; box-shadow: var(--shadow); }
+
+        .link-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .link-title { display: flex; align-items: flex-start; gap: 6px; color: var(--fg); font-weight: 600; line-height: 1.35; }
+        .link-title:hover { text-decoration: none; }
+        .link-title .favicon { margin-top: 2px; }
+        .link-title span { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .link-domain { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .link-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; max-height: 46px; overflow: hidden; }
+        .link-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 6px; }
+        .link-meta { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; }
+        .link-meta .cname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .link-actions { display: flex; gap: 4px; flex: none; }
+        .icon-btn { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+            border: 1px solid var(--border); background: var(--card); border-radius: var(--radius-sm); cursor: pointer;
+            font-size: 15px; color: var(--fg); transition: all .12s; }
+        .icon-btn:hover { background: var(--primary-soft); border-color: var(--primary); text-decoration: none; }
+        .icon-btn--danger:hover { background: var(--danger-soft); border-color: var(--danger); }
 
         /* Collapsible sidebar sections */
         details.collapse { margin: 2px 0; }

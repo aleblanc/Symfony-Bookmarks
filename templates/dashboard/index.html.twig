@@ -11,7 +11,7 @@
         {% if recent_links is empty %}
             <p class="muted">{{ 'dashboard.empty'|trans }}</p>
         {% else %}
-            <div class="cards">
+            <div class="link-list">
                 {% for link in recent_links %}{% include 'links/_card.html.twig' %}{% endfor %}
             </div>
         {% endif %}
