@@ -66,6 +66,7 @@ services:
     App\Service\Ai\AutoTagger:
         arguments:
             $taggerAgent: '@ai.agent.tagger'
+            $tagLanguage: '%env(APP_AI_TAG_LANG)%'
 
     App\Service\Ai\AutoSummarizer:
         arguments:

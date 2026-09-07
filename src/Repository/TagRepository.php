@@ -61,6 +61,26 @@ final class TagRepository extends ServiceEntityRepository
         );
     }
 
+    /**
+     * Existing tag names of a dashboard — fed to the AI so it reuses them
+     * instead of inventing variants (game / games / gaming).
+     *
+     * @return list<string>
+     */
+    public function namesForDashboard(Dashboard $dashboard): array
+    {
+        /** @var list<array{name: string}> $rows */
+        $rows = $this->createQueryBuilder('t')
+            ->select('t.name')
+            ->andWhere('t.dashboard = :d')
+            ->setParameter('d', $dashboard)
+            ->orderBy('t.name', 'ASC')
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_values(array_map(static fn (array $r): string => (string) $r['name'], $rows));
+    }
+
     public function findOrCreate(string $name, Dashboard $dashboard): Tag
     {
         $existing = $this->findOneBy(['dashboard' => $dashboard, 'name' => strtolower(trim($name))]);

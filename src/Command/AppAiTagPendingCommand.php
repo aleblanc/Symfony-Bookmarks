@@ -50,11 +50,15 @@ final class AppAiTagPendingCommand extends Command
             $output->writeln(\sprintf('%d failed link(s) requeued', $reset));
         }
         $links = $this->links->findPendingAiEnrichment((int) $input->getOption('limit'));
+        /** @var array<int, list<string>> $existingByDashboard */
+        $existingByDashboard = [];
         foreach ($links as $link) {
+            $dashboard = $link->getCollection()->getDashboard();
+            $existing = $existingByDashboard[(int) $dashboard->getId()] ??= $this->tagRepository->namesForDashboard($dashboard);
             try {
-                $suggested = $this->tagger->suggest($link->getName() ?? '', $link->getTextContent() ?? '');
+                $suggested = $this->tagger->suggest($link->getName() ?? '', $link->getTextContent() ?? '', $existing);
                 foreach ($suggested as $name) {
-                    $tag = $this->tagRepository->findOrCreate($name, $link->getCollection()->getDashboard());
+                    $tag = $this->tagRepository->findOrCreate($name, $dashboard);
                     $link->addTag($tag);
                 }
                 $link->setAiStatus(Link::AI_DONE);
