@@ -10,7 +10,11 @@ use Symfony\AI\Platform\Message\MessageBag;
 
 final class AutoTagger
 {
-    private const LANGUAGES = ['fr' => 'French', 'en' => 'English'];
+    /** @var array<string, array{name: string, examples: string}> */
+    private const LANGUAGES = [
+        'fr' => ['name' => 'French', 'examples' => 'jeu-video, musique, horreur, tutoriel, recette, actualité'],
+        'en' => ['name' => 'English', 'examples' => 'video-game, music, horror, tutorial, recipe, news'],
+    ];
 
     public function __construct(
         private readonly AgentInterface $taggerAgent,
@@ -20,8 +24,8 @@ final class AutoTagger
 
     /**
      * Suggests tags for a page. Existing tags are given to the model so it reuses
-     * them (keeping the vocabulary consistent) instead of inventing variants, and
-     * all tags come back in the configured language whatever the page's language.
+     * them (consistent vocabulary) instead of inventing variants, tags come back
+     * in the configured language, and years/numbers/junk are dropped defensively.
      *
      * @param list<string> $existingTags existing dashboard tags to prefer
      *
@@ -29,26 +33,28 @@ final class AutoTagger
      */
     public function suggest(string $title, string $textContent, array $existingTags = [], int $max = 5): array
     {
-        $language = self::LANGUAGES[$this->tagLanguage] ?? 'French';
+        $lang = self::LANGUAGES[$this->tagLanguage] ?? self::LANGUAGES['fr'];
         $existing = [] === $existingTags ? '(none yet)' : implode(', ', \array_slice($existingTags, 0, 200));
 
         $prompt = \sprintf(
             <<<'PROMPT'
-                Assign %1$d to %2$d topical tags to the web page below.
-                Rules:
-                - Always answer in %3$s, whatever the page's language.
-                - Reuse an existing tag whenever it fits; only invent a new one if none apply.
-                - lowercase, singular, single word or hyphenated (e.g. "video-game", never "games"/"gaming").
-                - No generic prefixes ("checked-", "todo-"…), no punctuation, no numbering.
-                Existing tags (prefer these): %4$s
-                Answer strictly as a JSON array of strings, nothing else.
+                You tag a web page with %1$d to %2$d topical tags.
+                MOST IMPORTANT: every tag MUST be a %3$s word, whatever the page's language.
+                Translate the concept to %3$s (e.g. %4$s).
+                Other rules:
+                - Reuse a tag from the existing list whenever it fits; invent a new one only if none apply.
+                - lowercase, singular, one word or hyphenated (never plural/gerund: "jeu" not "jeux", "video-game" not "gaming").
+                - NO years, NO dates, NO numbers, NO punctuation, no site names unless essential.
+                Existing tags to prefer: %5$s
+                Answer with ONLY a JSON array of strings.
 
-                Title: %5$s
-                Content: %6$s
+                Title: %6$s
+                Content: %7$s
                 PROMPT,
             min(3, $max),
             $max,
-            $language,
+            $lang['name'],
+            $lang['examples'],
             $existing,
             $title,
             mb_substr($textContent, 0, 2000),
@@ -59,20 +65,48 @@ final class AutoTagger
         $raw = trim(\is_string($content) ? $content : '');
         $raw = (string) preg_replace('/^```(?:json)?|```$/m', '', $raw);
         $decoded = json_decode(trim($raw), true);
-        if (!\is_array($decoded)) {
-            return [];
+
+        return \is_array($decoded) ? $this->normaliseTags($decoded, $max) : [];
+    }
+
+    /**
+     * Cleans a raw list of tags: lowercase/hyphenate, drop years/numbers/junk,
+     * dedupe, cap at $max. Deterministic — the reliable half of the tagging.
+     *
+     * @param array<mixed> $values
+     *
+     * @return list<string>
+     */
+    public function normaliseTags(array $values, int $max = 5): array
+    {
+        $out = [];
+        foreach ($values as $value) {
+            $tag = $this->normalise((string) $value);
+            if (null !== $tag) {
+                $out[$tag] = true; // dedupe on key
+            }
+            if (\count($out) >= $max) {
+                break;
+            }
         }
 
-        $tags = \array_slice(
-            array_values(array_filter(array_map(static fn ($v): string => (string) $v, $decoded))),
-            0,
-            $max,
-        );
+        return array_keys($out);
+    }
 
-        // Normalise defensively: lowercase, trim, spaces -> hyphens, dedupe.
-        return array_values(array_unique(array_map(
-            static fn (string $t): string => trim(preg_replace('/\s+/', '-', strtolower(trim($t))) ?? '', '-'),
-            $tags,
-        )));
+    /** Normalises a raw tag, or returns null if it should be dropped (year, number, junk). */
+    private function normalise(string $raw): ?string
+    {
+        $tag = trim((string) preg_replace('/\s+/', '-', strtolower(trim($raw))), '-');
+        $tag = trim((string) preg_replace('/[^\p{L}\p{N}-]+/u', '', $tag), '-');
+
+        if ('' === $tag || mb_strlen($tag) < 2 || mb_strlen($tag) > 30) {
+            return null;
+        }
+        // Drop pure numbers and years (2025, 19xx…).
+        if (1 === preg_match('/^\d+$/', $tag)) {
+            return null;
+        }
+
+        return $tag;
     }
 }
