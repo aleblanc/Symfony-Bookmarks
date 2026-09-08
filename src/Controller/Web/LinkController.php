@@ -101,11 +101,19 @@ final class LinkController extends AbstractController
     }
 
     #[Route('/links/{id}/delete', name: 'links_delete', methods: ['POST'])]
-    public function delete(int $id): RedirectResponse
+    public function delete(int $id, Request $request): RedirectResponse
     {
         $link = $this->links->find($id) ?? throw $this->createNotFoundException();
         $this->em->remove($link);
         $this->em->flush();
+
+        // Stay on the page the deletion was triggered from (dashboard, a collection,
+        // a filtered list…). The form posts the current URL as return_to; only a
+        // same-site path is honoured, to avoid an open redirect.
+        $returnTo = (string) $request->request->get('return_to', '');
+        if (str_starts_with($returnTo, '/') && !str_starts_with($returnTo, '//')) {
+            return $this->redirect($returnTo);
+        }
 
         return $this->redirectToRoute('links_index');
     }
