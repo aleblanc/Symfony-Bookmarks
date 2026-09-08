@@ -58,6 +58,7 @@ final class LinkRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('l')
             ->join('l.collection', 'c')
             ->andWhere('c.vault IS NULL')
+            ->andWhere("(l.url LIKE 'http://%' OR l.url LIKE 'https://%')")
             ->orderBy('l.healthCheckedAt', 'ASC')
             ->addOrderBy('l.id', 'ASC');
         if (null !== $notCheckedSince) {
