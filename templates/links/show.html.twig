@@ -45,6 +45,7 @@
     </div>
     {% if link.lastError %}<div class="card" style="border-color: var(--danger);"><h3>{{ 'link.last_error'|trans }}</h3><pre>{{ link.lastError }}</pre></div>{% endif %}
     <div class="row" style="margin-top: 20px;">
+        <a class="btn" href="{{ path('links_edit', {id: link.id}) }}">✏️ {{ 'common.edit'|trans }}</a>
         <form class="inline" method="post" action="{{ path('links_rearchive', {id: link.id}) }}">
             <button class="btn" type="submit">↻ {{ 'link.rearchive_now'|trans }}</button>
         </form>

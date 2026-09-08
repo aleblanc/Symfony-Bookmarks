@@ -89,6 +89,41 @@ final class LinkController extends AbstractController
         ]);
     }
 
+    #[Route('/links/{id}/edit', name: 'links_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function edit(int $id, Request $request): Response
+    {
+        $link = $this->links->find($id) ?? throw $this->createNotFoundException();
+        $dashboard = $this->current->get();
+        $collections = $this->collections->findForDashboard($dashboard);
+
+        if ($request->isMethod('POST')) {
+            $url = trim((string) $request->request->get('url', ''));
+            $collectionId = (int) $request->request->get('collection', 0);
+            $collection = 0 === $collectionId ? null : $this->collections->find($collectionId);
+            if ('' !== $url && null !== $collection && false !== filter_var($url, \FILTER_VALIDATE_URL)) {
+                $link->setUrl($url);
+                $link->setCollection($collection);
+                $name = trim((string) $request->request->get('name', ''));
+                $link->setName('' !== $name ? $name : null);
+
+                // Editing "un-deadifies" the link: clear the health verdict so it drops
+                // out of the dead list and is re-checked fresh on the next run.
+                $link->setHealthStatus(Link::HEALTH_UNKNOWN);
+                $link->setHttpStatus(null);
+                $link->setHealthCheckedAt(null);
+
+                $this->em->flush();
+
+                return $this->redirectToRoute('links_show', ['id' => $link->getId()]);
+            }
+        }
+
+        return $this->render('links/edit.html.twig', [
+            'link' => $link,
+            'collections' => $collections,
+        ]);
+    }
+
     // Declared before /links/{id} so the static path wins ({id} has no digit guard).
     #[Route('/links/dead', name: 'links_dead', methods: ['GET'])]
     public function dead(): Response

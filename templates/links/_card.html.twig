@@ -37,6 +37,7 @@
                 {% if pdf %}<a class="icon-btn" href="{{ path('archive_asset_serve', {id: pdf.id}) }}" target="_blank" rel="noopener" title="{{ 'link.asset.pdf'|trans }}" aria-label="{{ 'link.asset.pdf'|trans }}"><svg class="ic-svg" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#E2231A" d="M6 2h8l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path fill="#fff" fill-opacity=".35" d="M14 2v4h4z"/><text x="10.7" y="18" text-anchor="middle" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="6.4">PDF</text></svg></a>{% endif %}
                 {% if shot %}<a class="icon-btn" href="{{ path('archive_asset_serve', {id: shot.id}) }}" target="_blank" rel="noopener" title="{{ 'link.asset.screenshot'|trans }}" aria-label="{{ 'link.asset.screenshot'|trans }}">🖼️</a>{% endif %}
                 <a class="icon-btn" href="{{ path('links_show', {id: link.id}) }}" title="{{ 'common.details'|trans }}" aria-label="{{ 'common.details'|trans }}">👁️</a>
+                <a class="icon-btn" href="{{ path('links_edit', {id: link.id}) }}" title="{{ 'common.edit'|trans }}" aria-label="{{ 'common.edit'|trans }}">✏️</a>
                 <form class="inline" method="post" action="{{ path('links_rearchive', {id: link.id}) }}">
                     <button class="icon-btn" type="submit" title="{{ 'common.rearchive'|trans }}" aria-label="{{ 'common.rearchive'|trans }}">↻</button>
                 </form>

@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'link.edit'|trans }}{% endblock %}
+{% block body %}
+    <header class="top"><h1>{{ 'link.edit'|trans }}</h1></header>
+    <form method="post" class="card card-form">
+        <label class="field"><span>{{ 'link.field_url'|trans }}</span>
+            <input class="input" type="url" name="url" value="{{ link.url }}" required autofocus></label>
+        <label class="field"><span>{{ 'link.field_name'|trans }}</span>
+            <input class="input" type="text" name="name" value="{{ link.name }}"></label>
+        <label class="field"><span>{{ 'link.field_collection'|trans }}</span>
+            <select class="input" name="collection" required>
+                {% for c in collections %}<option value="{{ c.id }}" {{ c.id == link.collection.id ? 'selected' : '' }}>{% for a in c.ancestors %}{{ a.name }} / {% endfor %}{{ c.name }}</option>{% endfor %}
+            </select>
+        </label>
+        {% if link.isDead %}
+            <p class="muted field-hint">{{ 'link.edit_undead_hint'|trans }}</p>
+        {% endif %}
+        <div class="row">
+            <button class="btn btn-primary" type="submit">{{ 'common.save'|trans }}</button>
+            <a class="btn" href="{{ path('links_show', {id: link.id}) }}">{{ 'common.cancel'|trans }}</a>
+        </div>
+    </form>
+{% endblock %}
