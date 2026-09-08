@@ -29,4 +29,15 @@ final class ArchiveAssetRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /** @return list<ArchiveAsset> */
+    public function findByKind(string $kind): array
+    {
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.kind = :k')
+            ->setParameter('k', $kind)
+            ->orderBy('a.sizeBytes', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

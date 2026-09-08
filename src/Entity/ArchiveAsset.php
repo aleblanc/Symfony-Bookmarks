@@ -71,6 +71,11 @@ class ArchiveAsset
         return $this->sizeBytes;
     }
 
+    public function setSizeBytes(int $sizeBytes): void
+    {
+        $this->sizeBytes = $sizeBytes;
+    }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;

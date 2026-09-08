@@ -35,6 +35,14 @@ services:
         arguments:
             $overridePath: '%env(APP_CHROME_PATH)%'
 
+    App\Service\Archiver\GhostscriptDetector:
+        arguments:
+            $overridePath: '%env(APP_GHOSTSCRIPT_PATH)%'
+
+    App\Command\AppCompressPdfsCommand:
+        arguments:
+            $archiveDir: '%env(resolve:APP_ARCHIVE_DIR)%'
+
     App\Service\Archiver\ArchiveRunner:
         arguments:
             $archiveDir: '%env(resolve:APP_ARCHIVE_DIR)%'
