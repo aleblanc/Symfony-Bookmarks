@@ -81,6 +81,15 @@ final class AppCheckLinksCommand extends Command
         }
 
         $output->writeln(\sprintf('%d checked, %d dead', $checked, $dead));
+        // Make the default caps obvious so "it didn't check everything" isn't a surprise.
+        $limit = (int) $input->getOption('limit');
+        if ($limit > 0 && $checked >= $limit) {
+            $output->writeln(\sprintf(
+                'Reached --limit=%d; more may remain. Re-run, or use --limit=0 --recheck-after=0%s for a full sweep.',
+                $limit,
+                $input->getOption('include-ignored') ? '' : ' --include-ignored',
+            ));
+        }
         $this->logger->info('link health check run', ['checked' => $checked, 'dead' => $dead]);
 
         return Command::SUCCESS;
