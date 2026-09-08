@@ -26,6 +26,19 @@ final class LinkRepository extends ServiceEntityRepository
      * next `app:archive-pending` run re-fetches them (e.g. to regenerate previews).
      * Returns the count reset.
      */
+    /** Reassigns every link of one collection to another (folder merge). Returns the count moved. */
+    public function moveAllToCollection(Collection $from, Collection $to): int
+    {
+        return (int) $this->createQueryBuilder('l')
+            ->update()
+            ->set('l.collection', ':to')
+            ->where('l.collection = :from')
+            ->setParameter('to', $to)
+            ->setParameter('from', $from)
+            ->getQuery()
+            ->execute();
+    }
+
     public function requeueAllForArchive(): int
     {
         return (int) $this->createQueryBuilder('l')

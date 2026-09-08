@@ -42,10 +42,22 @@ final class CollectionController extends AbstractController
     {
         $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
 
+        // Merge targets: every other folder of the dashboard, minus this one and its
+        // descendants (merging into a descendant would delete it via the cascade).
+        $forbidden = [$collection->getId()];
+        foreach ($this->collections->findDescendants($collection) as $descendant) {
+            $forbidden[] = $descendant->getId();
+        }
+        $mergeTargets = array_values(array_filter(
+            $this->collections->findForDashboard($collection->getDashboard()),
+            static fn (Collection $c): bool => !\in_array($c->getId(), $forbidden, true),
+        ));
+
         return $this->render('collections/show.html.twig', [
             'collection' => $collection,
             'children' => $this->collections->findChildren($collection),
             'links' => $this->links->findForCollection($collection),
+            'merge_targets' => $mergeTargets,
         ]);
     }
 
@@ -180,6 +192,46 @@ final class CollectionController extends AbstractController
         return null !== $parent
             ? $this->redirectToRoute('collections_show', ['id' => $parent->getId()])
             : $this->redirectToRoute('collections_index');
+    }
+
+    #[Route('/collections/{id}/merge', name: 'collections_merge', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function merge(int $id, Request $request): RedirectResponse
+    {
+        $source = $this->collections->find($id) ?? throw $this->createNotFoundException();
+        $targetId = (int) $request->request->get('target', 0);
+        $target = $targetId > 0 ? $this->collections->find($targetId) : null;
+
+        // Guard: a real, different folder in the same dashboard, not a descendant of
+        // the source (that would be deleted by the cascade), and same vault setting
+        // (moving links across differing encryption would corrupt them).
+        $forbidden = [$source->getId()];
+        foreach ($this->collections->findDescendants($source) as $descendant) {
+            $forbidden[] = $descendant->getId();
+        }
+        $sameVault = $source->getVault()?->getId() === $target?->getVault()?->getId();
+        if (null === $target
+            || $target->getDashboard() !== $source->getDashboard()
+            || \in_array($target->getId(), $forbidden, true)
+            || !$sameVault
+        ) {
+            return $this->redirectToRoute('collections_show', ['id' => $source->getId()]);
+        }
+
+        // Move the source's direct links, then reparent its sub-folders under the target.
+        $this->links->moveAllToCollection($source, $target);
+        foreach ($this->collections->findChildren($source) as $child) {
+            $child->setParent($target);
+        }
+        $this->em->flush();
+
+        // Renumber the target's children (positions may now collide) and drop the source.
+        foreach ($this->collections->findChildren($target) as $i => $child) {
+            $child->setPosition($i);
+        }
+        $this->em->remove($source);
+        $this->em->flush();
+
+        return $this->redirectToRoute('collections_show', ['id' => $target->getId()]);
     }
 
     #[Route('/collections/{id}/delete', name: 'collections_delete', methods: ['POST'])]

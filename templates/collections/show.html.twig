@@ -55,7 +55,17 @@
         {% endif %}
     </section>
 
-    <div class="row" style="margin-top:24px;">
+    <div class="row" style="margin-top:24px; gap:16px;">
+        {% if merge_targets is not empty %}
+            <form class="row" method="post" action="{{ path('collections_merge', {id: collection.id}) }}"
+                  onsubmit="return confirm('{{ 'collection.confirm_merge'|trans }}');">
+                <select class="input" name="target" required style="max-width:280px;">
+                    <option value="">— {{ 'collection.merge_into'|trans }} —</option>
+                    {% for c in merge_targets %}<option value="{{ c.id }}">{% for a in c.ancestors %}{{ a.name }} / {% endfor %}{{ c.name }}</option>{% endfor %}
+                </select>
+                <button class="btn btn-sm" type="submit">🔀 {{ 'collection.merge'|trans }}</button>
+            </form>
+        {% endif %}
         <form class="inline" method="post" action="{{ path('collections_delete', {id: collection.id}) }}" onsubmit="return confirm('{{ 'collection.confirm_delete'|trans }}');">
             <button class="btn btn-sm btn-danger" type="submit">{{ 'common.delete'|trans }}</button>
         </form>
