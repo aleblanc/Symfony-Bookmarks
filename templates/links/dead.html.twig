@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'dead.title'|trans }}{% endblock %}
+{% block body %}
+    <header class="top">
+        <h1>💀 {{ 'dead.title'|trans }}</h1>
+        <a href="{{ path('dashboard') }}" class="btn">{{ 'common.back'|trans }}</a>
+    </header>
+    <p class="muted">{{ 'dead.intro'|trans }}</p>
+    {% if links is empty %}
+        <p class="muted">{{ 'dead.none'|trans }}</p>
+    {% else %}
+        <div class="link-list">
+            {% for link in links %}{% include 'links/_card.html.twig' %}{% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}

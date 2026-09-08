@@ -6,6 +6,7 @@ namespace App\Twig;
 
 use App\Repository\CollectionRepository;
 use App\Repository\DashboardRepository;
+use App\Repository\LinkRepository;
 use App\Repository\TagRepository;
 use App\Service\ChromeDetector;
 use App\Service\CurrentDashboard;
@@ -20,6 +21,7 @@ final class FeaturesExtension extends AbstractExtension
         private readonly CurrentDashboard $current,
         private readonly CollectionRepository $collections,
         private readonly TagRepository $tags,
+        private readonly LinkRepository $links,
     ) {
     }
 
@@ -38,6 +40,11 @@ final class FeaturesExtension extends AbstractExtension
                 $dashboard = $this->current->tryGet();
 
                 return null === $dashboard ? [] : $this->tags->findForDashboardWithCounts($dashboard, 50);
+            }),
+            new TwigFunction('dead_links_count', function (): int {
+                $dashboard = $this->current->tryGet();
+
+                return null === $dashboard ? 0 : $this->links->countDeadForDashboard($dashboard);
             }),
         ];
     }

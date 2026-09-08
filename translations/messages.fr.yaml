@@ -8,6 +8,7 @@ nav:
     new_link: 'Nouveau lien'
     collections: 'Collections'
     import: 'Importer'
+    dead_links: 'Liens morts'
     open_menu: 'Ouvrir le menu'
     close_menu: 'Fermer le menu'
     collapse_menu: 'Réduire le menu'
@@ -46,6 +47,12 @@ common:
     optional: 'facultatif'
     confirm_delete_link: 'Supprimer ce lien ?'
     confirm_delete: 'Supprimer ?'
+    back: 'Retour'
+
+dead:
+    title: 'Liens morts'
+    intro: 'Liens dont la dernière vérification a renvoyé une erreur 4xx (ex. 404). Lancez « app:check-links » pour rafraîchir. La suppression est manuelle : utilisez 🗑️ sur chaque carte.'
+    none: 'Aucun lien mort détecté. 🎉'
 
 status:
     label: 'statut'

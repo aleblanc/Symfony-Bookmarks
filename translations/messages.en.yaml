@@ -8,6 +8,7 @@ nav:
     new_link: 'New link'
     collections: 'Collections'
     import: 'Import'
+    dead_links: 'Dead links'
     open_menu: 'Open menu'
     close_menu: 'Close menu'
     collapse_menu: 'Collapse menu'
@@ -46,6 +47,12 @@ common:
     optional: 'optional'
     confirm_delete_link: 'Delete this link?'
     confirm_delete: 'Delete?'
+    back: 'Back'
+
+dead:
+    title: 'Dead links'
+    intro: 'Links whose last check returned a 4xx error (e.g. 404). Run "app:check-links" to refresh. Deletion is manual: use 🗑️ on each card.'
+    none: 'No dead links found. 🎉'
 
 status:
     label: 'status'

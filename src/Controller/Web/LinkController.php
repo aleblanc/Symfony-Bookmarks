@@ -89,6 +89,18 @@ final class LinkController extends AbstractController
         ]);
     }
 
+    // Declared before /links/{id} so the static path wins ({id} has no digit guard).
+    #[Route('/links/dead', name: 'links_dead', methods: ['GET'])]
+    public function dead(): Response
+    {
+        $dashboard = $this->current->get();
+
+        return $this->render('links/dead.html.twig', [
+            'dashboard' => $dashboard,
+            'links' => $this->links->findDeadForDashboard($dashboard),
+        ]);
+    }
+
     #[Route('/links/{id}', name: 'links_show', methods: ['GET'])]
     public function show(int $id): Response
     {

@@ -27,6 +27,9 @@
         <li><a href="{{ path('links_index') }}"><span class="ico">🔗</span> {{ 'nav.all_links'|trans }}</a></li>
         <li><a href="{{ path('links_new') }}"><span class="ico">➕</span> {{ 'nav.new_link'|trans }}</a></li>
         <li><a href="{{ path('import_index') }}"><span class="ico">📥</span> {{ 'nav.import'|trans }}</a></li>
+        <li><a href="{{ path('links_dead') }}"><span class="ico">💀</span> {{ 'nav.dead_links'|trans }}
+            {% set dead = dead_links_count() %}{% if dead > 0 %}<span class="count count-danger">{{ dead }}</span>{% endif %}
+        </a></li>
     </ul>
 
     {% import '_partials/_folder_icon.html.twig' as fi %}

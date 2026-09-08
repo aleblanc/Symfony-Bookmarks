@@ -71,6 +71,33 @@ final class LinkRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    /** @return list<Link> dead links (last check was a 4xx) for the dashboard */
+    public function findDeadForDashboard(Dashboard $dashboard): array
+    {
+        return $this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d')
+            ->andWhere('l.healthStatus = :dead')
+            ->setParameter('d', $dashboard)
+            ->setParameter('dead', Link::HEALTH_DEAD)
+            ->orderBy('l.healthCheckedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countDeadForDashboard(Dashboard $dashboard): int
+    {
+        return (int) $this->createQueryBuilder('l')
+            ->select('COUNT(l.id)')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d')
+            ->andWhere('l.healthStatus = :dead')
+            ->setParameter('d', $dashboard)
+            ->setParameter('dead', Link::HEALTH_DEAD)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     /** @return list<Link> */
     public function findPendingArchive(int $limit = 20): array
     {
