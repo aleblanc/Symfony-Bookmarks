@@ -41,7 +41,8 @@
                     <button class="icon-btn" type="submit" title="{{ 'common.rearchive'|trans }}" aria-label="{{ 'common.rearchive'|trans }}">↻</button>
                 </form>
                 <form class="inline" method="post" action="{{ path('links_delete', {id: link.id}) }}" onsubmit="return confirm('{{ 'common.confirm_delete_link'|trans }}');">
-                    <input type="hidden" name="return_to" value="{{ app.request.requestUri }}">
+                    {# basePath carries the reverse-proxy sub-path (X-Forwarded-Prefix); requestUri does not. #}
+                    <input type="hidden" name="return_to" value="{{ app.request.basePath }}{{ app.request.pathInfo }}{% if app.request.queryString %}?{{ app.request.queryString }}{% endif %}">
                     <button class="icon-btn icon-btn--danger" type="submit" title="{{ 'common.delete'|trans }}" aria-label="{{ 'common.delete'|trans }}">🗑️</button>
                 </form>
             </span>

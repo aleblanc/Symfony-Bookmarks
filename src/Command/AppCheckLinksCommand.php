@@ -17,7 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
     name: 'app:check-links',
-    description: 'HTTP-check links and flag dead ones (4xx). Least-recently-checked first.',
+    description: 'HTTP-check links and flag dead ones (404/410). Least-recently-checked first.',
 )]
 final class AppCheckLinksCommand extends Command
 {

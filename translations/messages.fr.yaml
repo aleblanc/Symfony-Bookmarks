@@ -51,7 +51,7 @@ common:
 
 dead:
     title: 'Liens morts'
-    intro: 'Liens dont la dernière vérification a renvoyé une erreur 4xx (ex. 404). Lancez « app:check-links » pour rafraîchir. La suppression est manuelle : utilisez 🗑️ sur chaque carte.'
+    intro: 'Liens dont la dernière vérification a renvoyé un 404 ou 410 (page supprimée). Lancez « app:check-links » pour rafraîchir. La suppression est manuelle : utilisez 🗑️ sur chaque carte.'
     none: 'Aucun lien mort détecté. 🎉'
 
 status:

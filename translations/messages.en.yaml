@@ -51,7 +51,7 @@ common:
 
 dead:
     title: 'Dead links'
-    intro: 'Links whose last check returned a 4xx error (e.g. 404). Run "app:check-links" to refresh. Deletion is manual: use 🗑️ on each card.'
+    intro: 'Links whose last check returned 404 or 410 (page gone). Run "app:check-links" to refresh. Deletion is manual: use 🗑️ on each card.'
     none: 'No dead links found. 🎉'
 
 status:

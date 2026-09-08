@@ -37,8 +37,8 @@ class Link
     /** Link health from the last HTTP check (app:check-links). */
     public const HEALTH_UNKNOWN = 'unknown'; // never checked
     public const HEALTH_ALIVE = 'alive';     // 2xx / 3xx
-    public const HEALTH_DEAD = 'dead';       // 4xx (e.g. 404)
-    public const HEALTH_ERROR = 'error';     // 5xx or transport error (DNS, timeout, TLS)
+    public const HEALTH_DEAD = 'dead';       // 404 / 410 only (resource really gone)
+    public const HEALTH_ERROR = 'error';     // other 4xx (403 bot-block, 401, 429…), 5xx, transport error
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

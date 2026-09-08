@@ -46,10 +46,13 @@ final readonly class LinkHealthChecker
 
         $response->cancel(); // we only needed the status line — don't download the body
 
+        // Only 404/410 mean the resource is really gone. Other 4xx (401/403/405/429…)
+        // are ambiguous — a bare curl request is often bot-blocked (403) or rate-limited
+        // (429), which does NOT mean the link is dead — so those map to "error", not "dead".
         $status = match (true) {
             $code >= 200 && $code < 400 => Link::HEALTH_ALIVE,
-            $code >= 400 && $code < 500 => Link::HEALTH_DEAD,
-            default => Link::HEALTH_ERROR, // 5xx
+            404 === $code, 410 === $code => Link::HEALTH_DEAD,
+            default => Link::HEALTH_ERROR, // other 4xx (auth/forbidden/rate-limit) and 5xx
         };
 
         return ['status' => $status, 'httpStatus' => $code, 'error' => null];
