@@ -32,6 +32,10 @@
                             </a>
                         </h3>
                         {% if child.description %}<p class="muted" style="margin:6px 0 0;">{{ child.description }}</p>{% endif %}
+                        <div class="row" style="margin-top:10px;">
+                            <form class="inline" method="post" action="{{ path('collections_move', {id: child.id}) }}"><input type="hidden" name="direction" value="up"><button class="btn btn-sm" type="submit" title="{{ 'collection.move_up'|trans }}" aria-label="{{ 'collection.move_up'|trans }}">↑</button></form>
+                            <form class="inline" method="post" action="{{ path('collections_move', {id: child.id}) }}"><input type="hidden" name="direction" value="down"><button class="btn btn-sm" type="submit" title="{{ 'collection.move_down'|trans }}" aria-label="{{ 'collection.move_down'|trans }}">↓</button></form>
+                        </div>
                     </article>
                 {% endfor %}
             </div>

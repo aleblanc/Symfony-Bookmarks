@@ -138,6 +138,44 @@ final class CollectionController extends AbstractController
         ]);
     }
 
+    #[Route('/collections/{id}/move', name: 'collections_move', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function move(int $id, Request $request): RedirectResponse
+    {
+        $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
+        $direction = (string) $request->request->get('direction');
+
+        // Normalise the whole sibling group to 0..n first (legacy rows are all 0),
+        // then swap this folder's position with its neighbour in the chosen direction.
+        $siblings = $this->collections->findSiblings($collection);
+        foreach ($siblings as $i => $sibling) {
+            $sibling->setPosition($i);
+        }
+        $index = null;
+        foreach ($siblings as $i => $sibling) {
+            if ($sibling->getId() === $collection->getId()) {
+                $index = $i;
+                break;
+            }
+        }
+        if (null !== $index) {
+            $target = 'up' === $direction ? $index - 1 : ('down' === $direction ? $index + 1 : $index);
+            if ($target >= 0 && $target < \count($siblings) && $target !== $index) {
+                $a = $siblings[$index];
+                $b = $siblings[$target];
+                $pa = $a->getPosition();
+                $a->setPosition($b->getPosition());
+                $b->setPosition($pa);
+            }
+        }
+        $this->em->flush();
+
+        $parent = $collection->getParent();
+
+        return null !== $parent
+            ? $this->redirectToRoute('collections_show', ['id' => $parent->getId()])
+            : $this->redirectToRoute('collections_index');
+    }
+
     #[Route('/collections/{id}/delete', name: 'collections_delete', methods: ['POST'])]
     public function delete(int $id): RedirectResponse
     {

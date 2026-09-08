@@ -25,6 +25,9 @@
                     <div class="row" style="margin-top: 12px;">
                         <a class="btn btn-sm" href="{{ path('collections_show', {id: node.collection.id}) }}">{{ 'common.open'|trans }}</a>
                         <a class="btn btn-sm" href="{{ path('collections_new', {parent: node.collection.id}) }}">➕ {{ 'collection.new_subfolder'|trans }}</a>
+                        <span class="spacer" style="flex:1;"></span>
+                        <form class="inline" method="post" action="{{ path('collections_move', {id: node.collection.id}) }}"><input type="hidden" name="direction" value="up"><button class="btn btn-sm" type="submit" title="{{ 'collection.move_up'|trans }}" aria-label="{{ 'collection.move_up'|trans }}">↑</button></form>
+                        <form class="inline" method="post" action="{{ path('collections_move', {id: node.collection.id}) }}"><input type="hidden" name="direction" value="down"><button class="btn btn-sm" type="submit" title="{{ 'collection.move_down'|trans }}" aria-label="{{ 'collection.move_down'|trans }}">↓</button></form>
                     </div>
                 </article>
             {% endfor %}

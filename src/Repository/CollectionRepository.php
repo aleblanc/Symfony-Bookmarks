@@ -26,7 +26,8 @@ final class CollectionRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('c')
             ->andWhere('c.dashboard = :d')
             ->setParameter('d', $dashboard)
-            ->orderBy('c.name', 'ASC')
+            ->orderBy('c.position', 'ASC')
+            ->addOrderBy('c.name', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -50,13 +51,36 @@ final class CollectionRepository extends ServiceEntityRepository
         return $descendants;
     }
 
+    /**
+     * Siblings of a collection (same parent, same dashboard) in display order,
+     * including the collection itself. Used by the up/down reorder action.
+     *
+     * @return list<Collection>
+     */
+    public function findSiblings(Collection $collection): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->andWhere('c.dashboard = :d')
+            ->setParameter('d', $collection->getDashboard())
+            ->orderBy('c.position', 'ASC')
+            ->addOrderBy('c.name', 'ASC');
+        if (null === $collection->getParent()) {
+            $qb->andWhere('c.parent IS NULL');
+        } else {
+            $qb->andWhere('c.parent = :p')->setParameter('p', $collection->getParent());
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
     /** @return list<Collection> direct children of a collection */
     public function findChildren(Collection $parent): array
     {
         return $this->createQueryBuilder('c')
             ->andWhere('c.parent = :p')
             ->setParameter('p', $parent)
-            ->orderBy('c.name', 'ASC')
+            ->orderBy('c.position', 'ASC')
+            ->addOrderBy('c.name', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -75,7 +99,8 @@ final class CollectionRepository extends ServiceEntityRepository
             ->andWhere('c.dashboard = :d')
             ->setParameter('d', $dashboard)
             ->groupBy('c.id')
-            ->orderBy('c.name', 'ASC')
+            ->orderBy('c.position', 'ASC')
+            ->addOrderBy('c.name', 'ASC')
             ->getQuery()
             ->getResult();
 

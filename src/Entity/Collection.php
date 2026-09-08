@@ -49,6 +49,10 @@ class Collection
     #[ORM\Column(name: 'skip_processing', type: 'boolean', options: ['default' => false])]
     private bool $skipProcessing = false;
 
+    /** Manual sort order among siblings (lower = first); name breaks ties. */
+    #[ORM\Column(options: ['default' => 0])]
+    private int $position = 0;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -157,6 +161,16 @@ class Collection
     public function setSkipProcessing(bool $skipProcessing): void
     {
         $this->skipProcessing = $skipProcessing;
+    }
+
+    public function getPosition(): int
+    {
+        return $this->position;
+    }
+
+    public function setPosition(int $position): void
+    {
+        $this->position = $position;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

@@ -128,6 +128,8 @@ collection:
     title_plural: 'Collections'
     new: 'New collection'
     new_subfolder: 'New sub-folder'
+    move_up: 'Move up'
+    move_down: 'Move down'
     edit: 'Edit'
     none: 'No collections yet.'
     view_links: 'View links'
