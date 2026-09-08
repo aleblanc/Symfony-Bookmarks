@@ -148,11 +148,16 @@ final class LinkController extends AbstractController
     }
 
     #[Route('/links/{id}/delete', name: 'links_delete', methods: ['POST'])]
-    public function delete(int $id, Request $request): RedirectResponse
+    public function delete(int $id, Request $request): Response
     {
         $link = $this->links->find($id) ?? throw $this->createNotFoundException();
         $this->em->remove($link);
         $this->em->flush();
+
+        // AJAX delete (dead-links page): no redirect — the caller just removes the card.
+        if ($request->isXmlHttpRequest()) {
+            return new Response('', Response::HTTP_NO_CONTENT);
+        }
 
         // Stay on the page the deletion was triggered from (dashboard, a collection,
         // a filtered list…). The form posts the current URL as return_to; only a

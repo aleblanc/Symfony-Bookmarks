@@ -6,11 +6,35 @@
         <a href="{{ path('dashboard') }}" class="btn">{{ 'common.back'|trans }}</a>
     </header>
     <p class="muted">{{ 'dead.intro'|trans }}</p>
-    {% if links is empty %}
-        <p class="muted">{{ 'dead.none'|trans }}</p>
-    {% else %}
+    <p class="muted" id="dead-empty"{% if links is not empty %} hidden{% endif %}>{{ 'dead.none'|trans }}</p>
+    {% if links is not empty %}
         <div class="link-list">
-            {% for link in links %}{% include 'links/_card.html.twig' %}{% endfor %}
+            {% for link in links %}{% include 'links/_card.html.twig' with {ajax_delete: true} %}{% endfor %}
         </div>
     {% endif %}
+
+    <script>
+        // Delete straight away (no confirm, no page reload): POST via fetch, drop the card.
+        document.querySelectorAll('form[data-ajax-delete]').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                fetch(form.action, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (r) {
+                        if (!r.ok) { return; }
+                        var card = form.closest('.link-card');
+                        if (card) { card.remove(); }
+                        var badge = document.querySelector('.nav a .count-danger');
+                        if (badge) {
+                            var n = parseInt(badge.textContent, 10) - 1;
+                            if (n > 0) { badge.textContent = n; } else { badge.remove(); }
+                        }
+                        if (!document.querySelector('.link-list .link-card')) {
+                            var list = document.querySelector('.link-list');
+                            if (list) { list.remove(); }
+                            document.getElementById('dead-empty').hidden = false;
+                        }
+                    });
+            });
+        });
+    </script>
 {% endblock %}
