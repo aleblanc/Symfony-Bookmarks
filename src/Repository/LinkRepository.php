@@ -72,7 +72,7 @@ final class LinkRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    /** @return list<Link> dead links (last check was a 4xx) for the dashboard */
+    /** @return list<Link> dead links (last check was 404/410) for the dashboard, sorted by URL */
     public function findDeadForDashboard(Dashboard $dashboard): array
     {
         return $this->createQueryBuilder('l')
@@ -81,7 +81,7 @@ final class LinkRepository extends ServiceEntityRepository
             ->andWhere('l.healthStatus = :dead')
             ->setParameter('d', $dashboard)
             ->setParameter('dead', Link::HEALTH_DEAD)
-            ->orderBy('l.healthCheckedAt', 'DESC')
+            ->orderBy('l.url', 'ASC')
             ->getQuery()
             ->getResult();
     }
