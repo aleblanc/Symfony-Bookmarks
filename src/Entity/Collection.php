@@ -41,6 +41,14 @@ class Collection
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Vault $vault = null;
 
+    /**
+     * "À trier" / inbox folder: its links are excluded from all automatic
+     * processing (archiving, favicon, AI tagging, AI summary). Move a link out
+     * (or untick this flag) and the pending queues pick it up again.
+     */
+    #[ORM\Column(name: 'skip_processing', type: 'boolean', options: ['default' => false])]
+    private bool $skipProcessing = false;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -139,6 +147,16 @@ class Collection
     public function isVaultProtected(): bool
     {
         return $this->vault !== null;
+    }
+
+    public function isSkipProcessing(): bool
+    {
+        return $this->skipProcessing;
+    }
+
+    public function setSkipProcessing(bool $skipProcessing): void
+    {
+        $this->skipProcessing = $skipProcessing;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

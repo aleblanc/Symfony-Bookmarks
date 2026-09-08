@@ -18,6 +18,11 @@
         <label class="field"><span>{{ 'collection.field_description'|trans }}</span>
             <textarea class="input" name="description" rows="3"></textarea></label>
         {% include '_partials/_folder_style.html.twig' %}
+        <label class="field field-check">
+            <input type="checkbox" name="skip_processing" value="1">
+            <span>{{ 'collection.field_skip_processing'|trans }}</span>
+        </label>
+        <p class="muted field-hint">{{ 'collection.skip_processing_hint'|trans }}</p>
         <button class="btn btn-primary" type="submit">{{ 'common.create'|trans }}</button>
     </form>
 {% endblock %}

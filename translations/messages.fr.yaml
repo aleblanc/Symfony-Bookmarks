@@ -53,6 +53,7 @@ status:
         done: 'terminé'
         failed: 'échec'
         skip: 'ignoré'
+        unsorted: 'à trier'
 
 dashboard:
     title: 'Tableau de bord'
@@ -115,6 +116,8 @@ collection:
     field_parent: 'Dossier parent'
     no_parent: 'Racine (aucun parent)'
     field_description: 'Description (facultatif)'
+    field_skip_processing: 'Dossier « à trier » (pas de traitement automatique)'
+    skip_processing_hint: 'Les liens de ce dossier sont ignorés par l''archivage, la récupération de favicon et l''analyse IA (tags, résumé). Déplacez un lien ailleurs, ou décochez cette case, pour relancer leur traitement.'
     field_color: 'Couleur'
     field_icon: 'Icône'
     icon_search: 'Rechercher une icône…'

@@ -72,6 +72,7 @@ final class CollectionController extends AbstractController
                 }
                 $parent = $this->resolveParent($request->request->get('parent'), $dashboard);
                 $collection->setParent($parent);
+                $collection->setSkipProcessing($request->request->getBoolean('skip_processing'));
                 $this->em->persist($collection);
                 $this->em->flush();
 
@@ -124,6 +125,7 @@ final class CollectionController extends AbstractController
                     $parent = $collection->getParent();
                 }
                 $collection->setParent($parent);
+                $collection->setSkipProcessing($request->request->getBoolean('skip_processing'));
                 $this->em->flush();
 
                 return $this->redirectToRoute('collections_show', ['id' => $collection->getId()]);

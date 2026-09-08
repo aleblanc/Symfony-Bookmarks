@@ -53,6 +53,7 @@ status:
         done: 'done'
         failed: 'failed'
         skip: 'skipped'
+        unsorted: 'to sort'
 
 dashboard:
     title: 'Dashboard'
@@ -115,6 +116,8 @@ collection:
     field_parent: 'Parent folder'
     no_parent: 'Top level (no parent)'
     field_description: 'Description (optional)'
+    field_skip_processing: '“To sort” folder (no automatic processing)'
+    skip_processing_hint: 'Links in this folder are skipped by archiving, favicon fetching and AI analysis (tags, summary). Move a link elsewhere, or untick this box, to resume their processing.'
     field_color: 'Color'
     field_icon: 'Icon'
     icon_search: 'Search an icon…'

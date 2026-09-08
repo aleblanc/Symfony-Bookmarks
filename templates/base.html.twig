@@ -135,6 +135,11 @@
         .badge.pending, .badge.archiving { background: var(--warn-soft); color: var(--warn); }
         .badge.done, .badge.skip { background: var(--ok-soft); color: var(--ok); }
         .badge.failed { background: var(--danger-soft); color: var(--danger); }
+        .badge.skip.unsorted, .badge.unsorted { background: var(--card-2); color: var(--muted); border: 1px dashed var(--border); }
+
+        .field-check { display: flex; flex-direction: row; align-items: center; gap: 8px; }
+        .field-check input { width: 16px; height: 16px; }
+        .field-hint { margin: -6px 0 4px; font-size: 12px; }
 
         header.top { display: flex; align-items: center; justify-content: space-between;
             gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }

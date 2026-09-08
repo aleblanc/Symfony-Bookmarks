@@ -5,8 +5,12 @@
     <p><a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.url }}</a></p>
     <p class="row muted">
         <span><span class="swatch" style="background: {{ link.collection.color }};"></span> {{ 'link.collection_label'|trans }}: {{ link.collection.name }}</span>
-        <span class="badge {{ link.status }}">{{ ('status.value.' ~ link.status)|trans }}</span>
-        <span class="badge {{ link.aiStatus }}">{{ 'status.ai_label'|trans }}: {{ ('status.value.' ~ link.aiStatus)|trans }}</span>
+        {% if link.collection.skipProcessing %}
+            <span class="badge unsorted">{{ 'status.value.unsorted'|trans }}</span>
+        {% else %}
+            <span class="badge {{ link.status }}">{{ ('status.value.' ~ link.status)|trans }}</span>
+            <span class="badge {{ link.aiStatus }}">{{ 'status.ai_label'|trans }}: {{ ('status.value.' ~ link.aiStatus)|trans }}</span>
+        {% endif %}
         <span>{{ 'link.created_label'|trans }}: {{ link.createdAt|date('Y-m-d H:i') }}</span>
     </p>
     {% if link.tags|length > 0 %}
