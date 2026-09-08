@@ -39,6 +39,11 @@ services:
         arguments:
             $overridePath: '%env(APP_GHOSTSCRIPT_PATH)%'
 
+    App\Service\Archiver\PdfArchiver:
+        arguments:
+            $compressQuality: '%env(APP_PDF_COMPRESS_QUALITY)%'
+            $logger: '@monolog.logger.archive'
+
     App\Command\AppCompressPdfsCommand:
         arguments:
             $archiveDir: '%env(resolve:APP_ARCHIVE_DIR)%'

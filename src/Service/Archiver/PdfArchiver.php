@@ -6,12 +6,17 @@ namespace App\Service\Archiver;
 
 use App\Entity\ArchiveAsset;
 use App\Service\ChromeDetector;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Process\Process;
 
 final class PdfArchiver implements AssetArchiverInterface
 {
-    public function __construct(private readonly ChromeDetector $chrome)
-    {
+    public function __construct(
+        private readonly ChromeDetector $chrome,
+        private readonly PdfCompressor $compressor,
+        private readonly LoggerInterface $logger,
+        private readonly string $compressQuality = 'ebook',
+    ) {
     }
 
     public function isEnabled(): bool
@@ -40,5 +45,23 @@ final class PdfArchiver implements AssetArchiverInterface
         ]);
         $process->setTimeout(90);
         $process->mustRun();
+
+        // Chrome embeds images uncompressed; shrink the PDF in place when
+        // Ghostscript is available. Never let a compression hiccup fail the
+        // archive — the uncompressed PDF is already a valid capture.
+        if ($this->compressor->isEnabled()) {
+            try {
+                $result = $this->compressor->compress($outputPath, $this->compressQuality, true);
+                if ($result->replaced) {
+                    $this->logger->info('pdf compressed', [
+                        'before' => $result->sizeBefore,
+                        'after' => $result->sizeAfter,
+                        'saved' => $result->bytesSaved(),
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                $this->logger->warning('pdf compression skipped', ['err' => $e->getMessage()]);
+            }
+        }
     }
 }
