@@ -54,6 +54,8 @@ dead:
     title: 'Liens morts'
     intro: 'Liens dont la dernière vérification a renvoyé un 404 ou 410 (page supprimée). Lancez « app:check-links » pour rafraîchir. La suppression est manuelle : utilisez 🗑️ sur chaque carte.'
     none: 'Aucun lien mort détecté. 🎉'
+    unreachable_title: 'Injoignables'
+    unreachable_intro: 'Liens dont la dernière vérification a échoué au niveau réseau (domaine mort, DNS, connexion refusée, timeout, TLS). Ce n''est pas forcément un 404 — vérifiez avant de supprimer.'
 
 status:
     label: 'statut'
@@ -108,6 +110,7 @@ link:
     readable: 'Contenu lisible'
     last_error: 'Dernière erreur'
     dead: 'lien mort'
+    unreachable: 'injoignable'
     health_checked: 'Vérifié le'
     health:
         unknown: 'non vérifié'

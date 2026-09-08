@@ -13,8 +13,19 @@
         </div>
     {% endif %}
 
+    {% if unreachable is not empty %}
+        <section style="margin-top:28px;">
+            <h2>📡 {{ 'dead.unreachable_title'|trans }} <span class="muted">({{ unreachable|length }})</span></h2>
+            <p class="muted">{{ 'dead.unreachable_intro'|trans }}</p>
+            <div class="link-list">
+                {% for link in unreachable %}{% include 'links/_card.html.twig' with {ajax_delete: true} %}{% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
     <script>
         // Delete straight away (no confirm, no page reload): POST via fetch, drop the card.
+        // The 404 list sits at the top level; unreachable links live inside a <section>.
         document.querySelectorAll('form[data-ajax-delete]').forEach(function (form) {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -22,15 +33,22 @@
                     .then(function (r) {
                         if (!r.ok) { return; }
                         var card = form.closest('.link-card');
-                        if (card) { card.remove(); }
-                        var badge = document.querySelector('.nav a .count-danger');
-                        if (badge) {
-                            var n = parseInt(badge.textContent, 10) - 1;
-                            if (n > 0) { badge.textContent = n; } else { badge.remove(); }
+                        if (!card) { return; }
+                        var inSection = card.closest('section') !== null; // unreachable, not a 404
+                        var list = card.closest('.link-list');
+                        card.remove();
+                        if (list && !list.querySelector('.link-card')) {
+                            var section = list.closest('section');
+                            if (section) { section.remove(); } else { list.remove(); }
                         }
-                        if (!document.querySelector('.link-list .link-card')) {
-                            var list = document.querySelector('.link-list');
-                            if (list) { list.remove(); }
+                        if (!inSection) {
+                            var badge = document.querySelector('.nav a .count-danger');
+                            if (badge) {
+                                var n = parseInt(badge.textContent, 10) - 1;
+                                if (n > 0) { badge.textContent = n; } else { badge.remove(); }
+                            }
+                        }
+                        if (!document.querySelector('.link-card')) {
                             document.getElementById('dead-empty').hidden = false;
                         }
                     });

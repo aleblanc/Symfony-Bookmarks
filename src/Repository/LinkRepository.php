@@ -104,6 +104,20 @@ final class LinkRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return list<Link> unreachable links (last check failed at transport level) for the dashboard */
+    public function findUnreachableForDashboard(Dashboard $dashboard): array
+    {
+        return $this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d')
+            ->andWhere('l.healthStatus = :err')
+            ->setParameter('d', $dashboard)
+            ->setParameter('err', Link::HEALTH_ERROR)
+            ->orderBy('l.url', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countDeadForDashboard(Dashboard $dashboard): int
     {
         return (int) $this->createQueryBuilder('l')

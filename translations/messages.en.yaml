@@ -54,6 +54,8 @@ dead:
     title: 'Dead links'
     intro: 'Links whose last check returned 404 or 410 (page gone). Run "app:check-links" to refresh. Deletion is manual: use 🗑️ on each card.'
     none: 'No dead links found. 🎉'
+    unreachable_title: 'Unreachable'
+    unreachable_intro: 'Links whose last check failed at the network level (dead domain, DNS, refused connection, timeout, TLS). Not necessarily a 404 — check before deleting.'
 
 status:
     label: 'status'
@@ -108,6 +110,7 @@ link:
     readable: 'Readable'
     last_error: 'Last error'
     dead: 'dead link'
+    unreachable: 'unreachable'
     health_checked: 'Checked'
     health:
         unknown: 'not checked'

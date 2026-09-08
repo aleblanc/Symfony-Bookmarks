@@ -31,6 +31,8 @@
                 {% endif %}
                 {% if link.isDead %}
                     <span class="badge failed">💀 {{ 'link.dead'|trans }}{% if link.httpStatus %} ({{ link.httpStatus }}){% endif %}</span>
+                {% elseif link.healthStatus == 'error' %}
+                    <span class="badge unreachable">📡 {{ 'link.unreachable'|trans }}</span>
                 {% endif %}
             </span>
             <span class="link-actions">

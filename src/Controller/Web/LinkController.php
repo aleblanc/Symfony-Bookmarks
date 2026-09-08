@@ -133,6 +133,7 @@ final class LinkController extends AbstractController
         return $this->render('links/dead.html.twig', [
             'dashboard' => $dashboard,
             'links' => $this->links->findDeadForDashboard($dashboard),
+            'unreachable' => $this->links->findUnreachableForDashboard($dashboard),
         ]);
     }
 
