@@ -130,6 +130,8 @@ collection:
     new_subfolder: 'New sub-folder'
     move_up: 'Move up'
     move_down: 'Move down'
+    move_top: 'Move to top'
+    move_bottom: 'Move to bottom'
     edit: 'Edit'
     none: 'No collections yet.'
     view_links: 'View links'

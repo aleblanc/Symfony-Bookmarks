@@ -130,6 +130,8 @@ collection:
     new_subfolder: 'Nouveau sous-dossier'
     move_up: 'Monter'
     move_down: 'Descendre'
+    move_top: 'Mettre en premier'
+    move_bottom: 'Mettre en dernier'
     edit: 'Modifier'
     none: 'Aucune collection pour l''instant.'
     view_links: 'Voir les liens'

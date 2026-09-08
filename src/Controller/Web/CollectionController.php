@@ -144,12 +144,10 @@ final class CollectionController extends AbstractController
         $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
         $direction = (string) $request->request->get('direction');
 
-        // Normalise the whole sibling group to 0..n first (legacy rows are all 0),
-        // then swap this folder's position with its neighbour in the chosen direction.
+        // Reorder within the sibling group (same parent). Take the ordered list, move
+        // this folder to its target slot, then renumber 0..n. Handles up/down (±1) and
+        // top/bottom (first/last). Legacy rows all at 0 get normalised in the process.
         $siblings = $this->collections->findSiblings($collection);
-        foreach ($siblings as $i => $sibling) {
-            $sibling->setPosition($i);
-        }
         $index = null;
         foreach ($siblings as $i => $sibling) {
             if ($sibling->getId() === $collection->getId()) {
@@ -158,14 +156,22 @@ final class CollectionController extends AbstractController
             }
         }
         if (null !== $index) {
-            $target = 'up' === $direction ? $index - 1 : ('down' === $direction ? $index + 1 : $index);
-            if ($target >= 0 && $target < \count($siblings) && $target !== $index) {
-                $a = $siblings[$index];
-                $b = $siblings[$target];
-                $pa = $a->getPosition();
-                $a->setPosition($b->getPosition());
-                $b->setPosition($pa);
+            $last = \count($siblings) - 1;
+            $target = match ($direction) {
+                'up' => $index - 1,
+                'down' => $index + 1,
+                'top' => 0,
+                'bottom' => $last,
+                default => $index,
+            };
+            $target = max(0, min($last, $target));
+            if ($target !== $index) {
+                $moved = array_splice($siblings, $index, 1);
+                array_splice($siblings, $target, 0, $moved);
             }
+        }
+        foreach ($siblings as $i => $sibling) {
+            $sibling->setPosition($i);
         }
         $this->em->flush();
 
