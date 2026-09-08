@@ -39,6 +39,38 @@ final class LinkRepository extends ServiceEntityRepository
             ->execute();
     }
 
+    /**
+     * Links to health-check, least-recently-checked first (never-checked come first
+     * since their health_checked_at is NULL, which sorts first in ASC on SQLite).
+     * After a link is checked its timestamp moves it to the back of the queue, so
+     * successive runs advance through the whole set instead of repeating the same rows.
+     *
+     * $notCheckedSince, when given, excludes links already checked more recently than
+     * that instant — a daily cron then spends no requests re-checking fresh links.
+     *
+     * Vault-protected collections are skipped: their URL is encrypted and reads as a
+     * `[locked]` placeholder in a CLI run, so it cannot be fetched. $limit <= 0 = all.
+     *
+     * @return list<Link>
+     */
+    public function findForHealthCheck(int $limit = 100, ?\DateTimeImmutable $notCheckedSince = null): array
+    {
+        $qb = $this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.vault IS NULL')
+            ->orderBy('l.healthCheckedAt', 'ASC')
+            ->addOrderBy('l.id', 'ASC');
+        if (null !== $notCheckedSince) {
+            $qb->andWhere('(l.healthCheckedAt IS NULL OR l.healthCheckedAt < :since)')
+                ->setParameter('since', $notCheckedSince);
+        }
+        if ($limit > 0) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
     /** @return list<Link> */
     public function findPendingArchive(int $limit = 20): array
     {

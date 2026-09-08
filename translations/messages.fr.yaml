@@ -97,6 +97,13 @@ link:
     ai_summary: 'Résumé IA'
     readable: 'Contenu lisible'
     last_error: 'Dernière erreur'
+    dead: 'lien mort'
+    health_checked: 'Vérifié le'
+    health:
+        unknown: 'non vérifié'
+        alive: 'en ligne'
+        dead: 'lien mort'
+        error: 'erreur serveur'
     rearchive_now: 'Ré-indexer maintenant'
     archives: 'Contenu indexé'
     no_archives: 'Aucune copie indexée pour ce lien (lance l''indexation, ou installe Chrome pour la capture/PDF).'

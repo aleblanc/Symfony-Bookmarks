@@ -11,6 +11,12 @@
             <span class="badge {{ link.status }}">{{ ('status.value.' ~ link.status)|trans }}</span>
             <span class="badge {{ link.aiStatus }}">{{ 'status.ai_label'|trans }}: {{ ('status.value.' ~ link.aiStatus)|trans }}</span>
         {% endif %}
+        {% if link.healthCheckedAt %}
+            <span class="badge {{ link.isDead ? 'failed' : (link.healthStatus == 'alive' ? 'done' : 'skip') }}"
+                  title="{{ 'link.health_checked'|trans }}: {{ link.healthCheckedAt|date('Y-m-d H:i') }}">
+                {{ link.isDead ? '💀 ' : '' }}{{ ('link.health.' ~ link.healthStatus)|trans }}{% if link.httpStatus %} ({{ link.httpStatus }}){% endif %}
+            </span>
+        {% endif %}
         <span>{{ 'link.created_label'|trans }}: {{ link.createdAt|date('Y-m-d H:i') }}</span>
     </p>
     {% if link.tags|length > 0 %}
@@ -43,6 +49,8 @@
             <button class="btn" type="submit">↻ {{ 'link.rearchive_now'|trans }}</button>
         </form>
         <form class="inline" method="post" action="{{ path('links_delete', {id: link.id}) }}" onsubmit="return confirm('{{ 'common.confirm_delete'|trans }}');">
+            {# This detail page disappears with the link, so return to its collection. #}
+            <input type="hidden" name="return_to" value="{{ path('collections_show', {id: link.collection.id}) }}">
             <button class="btn btn-danger" type="submit">{{ 'common.delete'|trans }}</button>
         </form>
     </div>

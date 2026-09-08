@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(columns: ['ai_status'])]
 #[ORM\Index(columns: ['summary_status'])]
 #[ORM\Index(columns: ['last_clicked_at'])]
+#[ORM\Index(columns: ['health_status'])]
 class Link
 {
     public const STATUS_PENDING = 'pending';
@@ -32,6 +33,12 @@ class Link
     public const SUMMARY_DONE = 'done';
     public const SUMMARY_FAILED = 'failed';
     public const SUMMARY_SKIP = 'skip';
+
+    /** Link health from the last HTTP check (app:check-links). */
+    public const HEALTH_UNKNOWN = 'unknown'; // never checked
+    public const HEALTH_ALIVE = 'alive';     // 2xx / 3xx
+    public const HEALTH_DEAD = 'dead';       // 4xx (e.g. 404)
+    public const HEALTH_ERROR = 'error';     // 5xx or transport error (DNS, timeout, TLS)
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -99,6 +106,16 @@ class Link
 
     #[ORM\Column]
     private int $clickCount = 0;
+
+    #[ORM\Column(length: 16, options: ['default' => self::HEALTH_UNKNOWN])]
+    private string $healthStatus = self::HEALTH_UNKNOWN;
+
+    /** Last observed HTTP status code (null if the request never reached the server). */
+    #[ORM\Column(nullable: true)]
+    private ?int $httpStatus = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $healthCheckedAt = null;
 
     public function __construct(string $url, Collection $collection)
     {
@@ -303,5 +320,40 @@ class Link
     public function getClickCount(): int
     {
         return $this->clickCount;
+    }
+
+    public function getHealthStatus(): string
+    {
+        return $this->healthStatus;
+    }
+
+    public function setHealthStatus(string $healthStatus): void
+    {
+        $this->healthStatus = $healthStatus;
+    }
+
+    public function isDead(): bool
+    {
+        return self::HEALTH_DEAD === $this->healthStatus;
+    }
+
+    public function getHttpStatus(): ?int
+    {
+        return $this->httpStatus;
+    }
+
+    public function setHttpStatus(?int $httpStatus): void
+    {
+        $this->httpStatus = $httpStatus;
+    }
+
+    public function getHealthCheckedAt(): ?\DateTimeImmutable
+    {
+        return $this->healthCheckedAt;
+    }
+
+    public function setHealthCheckedAt(?\DateTimeImmutable $healthCheckedAt): void
+    {
+        $this->healthCheckedAt = $healthCheckedAt;
     }
 }

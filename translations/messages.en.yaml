@@ -97,6 +97,13 @@ link:
     ai_summary: 'AI summary'
     readable: 'Readable'
     last_error: 'Last error'
+    dead: 'dead link'
+    health_checked: 'Checked'
+    health:
+        unknown: 'not checked'
+        alive: 'online'
+        dead: 'dead link'
+        error: 'server error'
     rearchive_now: 'Re-index now'
     archives: 'Indexed content'
     no_archives: 'No indexed copy for this link yet (run indexing, or install Chrome for screenshot/PDF).'
