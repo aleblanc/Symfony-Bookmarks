@@ -4,6 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>{% block title %}{{ 'app.name'|trans }}{% endblock %}</title>
+    {# Explicit favicon: without it the browser requests /favicon.ico at the domain
+       root, escaping the reverse-proxy sub-path. asset() prepends the base path. #}
+    <link rel="icon" href="{{ asset('favicon.svg') }}">
+    {# Base path (includes the X-Forwarded-Prefix sub-path) for hardcoded JS fetches. #}
+    <script>window.APP_BASE = {{ app.request.basePath|json_encode|raw }};</script>
     <script>(function(){var t=localStorage.getItem('theme');if(t){document.documentElement.dataset.theme=t;}})();</script>
     <style>
         :root {
@@ -244,7 +249,7 @@
     document.addEventListener('click', function (e) {
         var a = e.target.closest('a[data-click-id]');
         if (a && navigator.sendBeacon) {
-            navigator.sendBeacon('/links/' + a.dataset.clickId + '/click');
+            navigator.sendBeacon(window.APP_BASE + '/links/' + a.dataset.clickId + '/click');
         }
     }, true);
 </script>

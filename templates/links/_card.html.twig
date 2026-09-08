@@ -5,12 +5,12 @@
         {% if link.previewImage %}
             <img src="{{ path('link_preview', {id: link.id}) }}" alt="" loading="lazy">
         {% elseif link.iconPath %}
-            <img class="link-thumb-fav" src="{{ link.iconPath }}" alt="">
+            <img class="link-thumb-fav" src="{{ app.request.basePath }}{{ link.iconPath }}" alt="">
         {% else %}🔗{% endif %}
     </a>
     <div class="link-content">
         <a class="link-title" href="{{ link.url }}" target="_blank" rel="noopener" data-click-id="{{ link.id }}">
-            {% if link.iconPath %}<img class="favicon" src="{{ link.iconPath }}" alt="">{% endif %}
+            {% if link.iconPath %}<img class="favicon" src="{{ app.request.basePath }}{{ link.iconPath }}" alt="">{% endif %}
             <span>{{ link.name ?: link.url }}</span>
         </a>
         <div class="link-domain muted">{{ (link.url|split('/'))[2]|default(link.url) }}</div>

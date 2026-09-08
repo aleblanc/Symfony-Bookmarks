@@ -3,6 +3,17 @@ framework:
     secret: '%env(APP_SECRET)%'
     default_locale: fr
 
+    # Behind a reverse proxy that mounts the app under a sub-path (e.g. /bookmarks).
+    # x-forwarded-prefix is NOT trusted by default — without it asset()/path() and
+    # app.request.basePath omit the sub-path and links escape the sub-folder.
+    trusted_proxies: '%env(TRUSTED_PROXIES)%'
+    trusted_headers:
+        - 'x-forwarded-for'
+        - 'x-forwarded-host'
+        - 'x-forwarded-proto'
+        - 'x-forwarded-port'
+        - 'x-forwarded-prefix'
+
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 

@@ -2,7 +2,7 @@
     <div class="brand"><span class="logo">🔖</span> {{ 'app.name'|trans }}</div>
 
     {% set current = current_dashboard() %}
-    <form class="switch-form" method="post" action="#" onsubmit="event.preventDefault(); const id=this.elements.dashboard.value; fetch('/dashboard/switch/'+id, {method:'POST'}).then(()=>location.reload());">
+    <form class="switch-form" method="post" action="#" onsubmit="event.preventDefault(); const id=this.elements.dashboard.value; fetch(window.APP_BASE + '/dashboard/switch/'+id, {method:'POST'}).then(()=>location.reload());">
         <select name="dashboard" class="input" onchange="this.form.requestSubmit()">
             {% for d in all_dashboards() %}
                 <option value="{{ d.id }}" {{ current and current.id == d.id ? 'selected' : '' }}>{{ d.name }}</option>

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5cefb60f381d058edcc4d6f491be8c13",
+    "content-hash": "137b23b33d6cd5bcb0003e91d0ff0c64",
     "packages": [
         {
             "name": "aleblanc/simple-cron-scheduler",
@@ -4441,12 +4441,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/framework-bundle.git",
-                "reference": "577971f2a6eeb401c5aed210f1052aad5f8331b5"
+                "reference": "d28f5b1d72f6ff608c22463bec8c994393cd82df"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/framework-bundle/zipball/577971f2a6eeb401c5aed210f1052aad5f8331b5",
-                "reference": "577971f2a6eeb401c5aed210f1052aad5f8331b5",
+                "url": "https://api.github.com/repos/symfony/framework-bundle/zipball/d28f5b1d72f6ff608c22463bec8c994393cd82df",
+                "reference": "d28f5b1d72f6ff608c22463bec8c994393cd82df",
                 "shasum": ""
             },
             "require": {
@@ -4582,7 +4582,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-04T09:25:52+00:00"
+            "time": "2026-09-07T16:41:06+00:00"
         },
         {
             "name": "symfony/http-client",
@@ -7209,12 +7209,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/validator.git",
-                "reference": "826e1757890a0cd49859e742e5dfe713e056c27c"
+                "reference": "61e5a2e3e01d25dad01bddd6155ba6bbbe6e38dc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/validator/zipball/826e1757890a0cd49859e742e5dfe713e056c27c",
-                "reference": "826e1757890a0cd49859e742e5dfe713e056c27c",
+                "url": "https://api.github.com/repos/symfony/validator/zipball/61e5a2e3e01d25dad01bddd6155ba6bbbe6e38dc",
+                "reference": "61e5a2e3e01d25dad01bddd6155ba6bbbe6e38dc",
                 "shasum": ""
             },
             "require": {
@@ -7300,7 +7300,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-05T16:05:16+00:00"
+            "time": "2026-09-07T16:41:06+00:00"
         },
         {
             "name": "symfony/var-dumper",
