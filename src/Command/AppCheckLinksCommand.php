@@ -72,11 +72,12 @@ final class AppCheckLinksCommand extends Command
                 ++$dead;
             }
             $output->writeln(\sprintf(
-                '#%d [%s] %s %s',
+                '#%d [%s] %s %s%s',
                 (int) $link->getId(),
                 $result['status'],
                 $result['httpStatus'] ?? '---',
                 $link->getUrl(),
+                null !== $result['error'] ? '  ('.$result['error'].')' : '',
             ));
         }
 
