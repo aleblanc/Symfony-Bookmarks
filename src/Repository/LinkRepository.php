@@ -49,11 +49,13 @@ final class LinkRepository extends ServiceEntityRepository
      * that instant — a daily cron then spends no requests re-checking fresh links.
      *
      * Vault-protected collections are skipped: their URL is encrypted and reads as a
-     * `[locked]` placeholder in a CLI run, so it cannot be fetched. $limit <= 0 = all.
+     * `[locked]` placeholder in a CLI run, so it cannot be fetched. "À trier"
+     * (skip_processing) folders are skipped too — health-checking is automatic
+     * processing — unless $includeIgnored is true. $limit <= 0 = all.
      *
      * @return list<Link>
      */
-    public function findForHealthCheck(int $limit = 100, ?\DateTimeImmutable $notCheckedSince = null): array
+    public function findForHealthCheck(int $limit = 100, ?\DateTimeImmutable $notCheckedSince = null, bool $includeIgnored = false): array
     {
         $qb = $this->createQueryBuilder('l')
             ->join('l.collection', 'c')
@@ -61,6 +63,9 @@ final class LinkRepository extends ServiceEntityRepository
             ->andWhere("(l.url LIKE 'http://%' OR l.url LIKE 'https://%')")
             ->orderBy('l.healthCheckedAt', 'ASC')
             ->addOrderBy('l.id', 'ASC');
+        if (!$includeIgnored) {
+            $qb->andWhere('c.skipProcessing = false');
+        }
         if (null !== $notCheckedSince) {
             $qb->andWhere('(l.healthCheckedAt IS NULL OR l.healthCheckedAt < :since)')
                 ->setParameter('since', $notCheckedSince);

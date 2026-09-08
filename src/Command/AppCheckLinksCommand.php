@@ -34,6 +34,7 @@ final class AppCheckLinksCommand extends Command
     {
         $this->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Max links to check this run (0 = all)', '100');
         $this->addOption('recheck-after', null, InputOption::VALUE_REQUIRED, 'Skip links already checked within the last N days (0 = always recheck)', '7');
+        $this->addOption('include-ignored', null, InputOption::VALUE_NONE, 'Also check links in "to sort" (ignored) folders');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -43,7 +44,11 @@ final class AppCheckLinksCommand extends Command
             ? new \DateTimeImmutable(\sprintf('-%d days', $recheckAfterDays))
             : null;
 
-        $links = $this->links->findForHealthCheck((int) $input->getOption('limit'), $notCheckedSince);
+        $links = $this->links->findForHealthCheck(
+            (int) $input->getOption('limit'),
+            $notCheckedSince,
+            (bool) $input->getOption('include-ignored'),
+        );
 
         if ([] === $links) {
             $output->writeln($recheckAfterDays > 0
