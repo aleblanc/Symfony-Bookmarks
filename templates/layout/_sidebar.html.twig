@@ -1,5 +1,8 @@
-<aside class="sidebar">
-    <div class="brand"><span class="logo">🔖</span> {{ 'app.name'|trans }}</div>
+<aside class="sidebar" id="sidebar">
+    <div class="brand" data-rail-toggle role="button" tabindex="0"
+         title="{{ 'nav.collapse_menu'|trans }}" aria-label="{{ 'nav.collapse_menu'|trans }}">
+        <span class="logo">🔖</span> {{ 'app.name'|trans }}
+    </div>
 
     {% set current = current_dashboard() %}
     <form class="switch-form" method="post" action="#" onsubmit="event.preventDefault(); const id=this.elements.dashboard.value; fetch(window.APP_BASE + '/dashboard/switch/'+id, {method:'POST'}).then(()=>location.reload());">
@@ -26,14 +29,26 @@
         <li><a href="{{ path('import_index') }}"><span class="ico">📥</span> {{ 'nav.import'|trans }}</a></li>
     </ul>
 
+    {% import '_partials/_folder_icon.html.twig' as fi %}
     {% import 'layout/_collection_tree.html.twig' as tree %}
+    {% set nodes = sidebar_collections() %}
+
+    {# Rail (collapsed) shortcut: root collections as colored folder icons.
+       Hidden on the full sidebar — the tree below takes over there. #}
+    <nav class="rail-collections" aria-label="{{ 'nav.collections'|trans }}">
+        {% for node in nodes %}
+            <a class="rail-col" href="{{ path('collections_show', {id: node.collection.id}) }}"
+               title="{{ node.collection.name }}">{{ fi.icon(node.collection) }}</a>
+        {% endfor %}
+        <a class="rail-col rail-col-add" href="{{ path('collections_index') }}" title="{{ 'sidebar.manage'|trans }}">⚙</a>
+    </nav>
+
     <details class="collapse" id="col-collections" open>
         <summary>
             <span class="chevron">▸</span>
             <span class="ico">📁</span> {{ 'nav.collections'|trans }}
             <a class="manage" href="{{ path('collections_index') }}" title="{{ 'sidebar.manage'|trans }}">⚙</a>
         </summary>
-        {% set nodes = sidebar_collections() %}
         {% if nodes is empty %}
             <ul class="nav nav-sub"><li><a href="{{ path('collections_new') }}">➕ {{ 'dashboard.create_first_collection'|trans }}</a></li></ul>
         {% else %}
@@ -103,5 +118,17 @@
                 localStorage.setItem(key, d.open ? 'open' : 'closed');
             });
         });
+        // Rail: click the brand to expand/collapse the sidebar (state persisted).
+        var railToggle = document.querySelector('[data-rail-toggle]');
+        if (railToggle) {
+            function toggleRail() {
+                var open = document.documentElement.classList.toggle('rail-open');
+                localStorage.setItem('railOpen', open ? '1' : '0');
+            }
+            railToggle.addEventListener('click', toggleRail);
+            railToggle.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleRail(); }
+            });
+        }
     </script>
 </aside>

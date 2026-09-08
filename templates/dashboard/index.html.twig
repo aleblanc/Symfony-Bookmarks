@@ -14,7 +14,7 @@
     {% if clicked is not empty %}
         <section>
             <h2>👆 {{ 'dashboard.recent_clicked'|trans }}</h2>
-            <div class="link-list">
+            <div class="link-strip">
                 {% for link in clicked %}{% include 'links/_card.html.twig' %}{% endfor %}
             </div>
         </section>
@@ -23,7 +23,7 @@
     {% if most_clicked is not empty %}
         <section>
             <h2>🔥 {{ 'dashboard.most_clicked'|trans }}</h2>
-            <div class="link-list">
+            <div class="link-strip">
                 {% for link in most_clicked %}{% include 'links/_card.html.twig' %}{% endfor %}
             </div>
         </section>
@@ -32,7 +32,7 @@
     {% if added is not empty %}
         <section>
             <h2>🆕 {{ 'dashboard.recent_added'|trans }}</h2>
-            <div class="link-list">
+            <div class="link-strip">
                 {% for link in added %}{% include 'links/_card.html.twig' %}{% endfor %}
             </div>
         </section>
@@ -43,7 +43,7 @@
             <h2>
                 <a href="{{ path('collections_show', {id: row.collection.id}) }}">{{ fi.icon(row.collection) }} {{ row.collection.name }}</a>
             </h2>
-            <div class="link-list">
+            <div class="link-strip">
                 {% for link in row.links %}{% include 'links/_card.html.twig' %}{% endfor %}
             </div>
         </section>

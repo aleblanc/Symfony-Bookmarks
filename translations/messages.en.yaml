@@ -8,6 +8,9 @@ nav:
     new_link: 'New link'
     collections: 'Collections'
     import: 'Import'
+    open_menu: 'Open menu'
+    close_menu: 'Close menu'
+    collapse_menu: 'Collapse menu'
 
 sidebar:
     dashboard: 'Dashboard'

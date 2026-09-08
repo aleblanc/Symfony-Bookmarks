@@ -9,7 +9,8 @@
     <link rel="icon" href="{{ asset('favicon.svg') }}">
     {# Base path (includes the X-Forwarded-Prefix sub-path) for hardcoded JS fetches. #}
     <script>window.APP_BASE = {{ app.request.basePath|json_encode|raw }};</script>
-    <script>(function(){var t=localStorage.getItem('theme');if(t){document.documentElement.dataset.theme=t;}})();</script>
+    <script>(function(){var t=localStorage.getItem('theme');if(t){document.documentElement.dataset.theme=t;}
+        if(localStorage.getItem('railOpen')==='1'){document.documentElement.classList.add('rail-open');}})();</script>
     <style>
         :root {
             --radius: 12px; --radius-sm: 8px; --radius-pill: 999px;
@@ -161,6 +162,20 @@
         .link-list { display: grid; grid-template-columns: 1fr; gap: 10px; }
         @media (min-width: 760px) { .link-list { grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 12px; } }
 
+        /* Swipeable folder rows (dashboard): horizontal snap strip. The next card
+           is left half-peeking so the swipe affordance is obvious on touch. */
+        .link-strip { display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden;
+            scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain; scroll-padding: 0 4px; padding: 4px 4px 14px;
+            margin: 0 -4px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+        /* min() keeps a fixed ~340px card where there's room, but shrinks to 84%
+           on a narrow phone so the next card peeks (swipe affordance). */
+        .link-strip .link-card { flex: 0 0 min(84%, 340px); scroll-snap-align: start; }
+        .link-strip::-webkit-scrollbar { height: 8px; }
+        .link-strip::-webkit-scrollbar-track { background: transparent; }
+        .link-strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+        .link-strip::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
         .link-card { display: flex; gap: 12px; background: var(--card); border: 1px solid var(--border);
             border-radius: var(--radius); padding: 10px; box-shadow: var(--shadow); transition: box-shadow .12s, transform .12s; }
         .link-card:hover { box-shadow: var(--shadow-hover); }
@@ -189,6 +204,18 @@
         .icon-btn:hover { background: var(--primary-soft); border-color: var(--primary); text-decoration: none; }
         .icon-btn .ic-svg { display: block; }
         .icon-btn--danger:hover { background: var(--danger-soft); border-color: var(--danger); }
+
+        /* Mobile top bar + off-canvas drawer — all hidden on desktop */
+        .app-topbar { display: none; }
+        .nav-backdrop { display: none; }
+        .sidebar-close { display: none; }
+        .nav-toggle { border: 1px solid var(--border); background: var(--card); color: var(--fg);
+            border-radius: var(--radius-sm); cursor: pointer; }
+        .burger, .burger::before, .burger::after { display: block; width: 20px; height: 2px;
+            background: currentColor; border-radius: 2px; }
+        .burger { position: relative; }
+        .burger::before { content: ''; position: absolute; left: 0; top: -6px; }
+        .burger::after { content: ''; position: absolute; left: 0; top: 6px; }
 
         /* Collapsible sidebar sections */
         details.collapse { margin: 2px 0; }
@@ -235,14 +262,68 @@
         .import-row input { width: 16px; height: 16px; }
         .import-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        @media (max-width: 780px) {
-            .layout { grid-template-columns: 1fr; }
-            .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
-            .main { padding: 20px 18px; }
+        /* Root-collection shortcuts shown only in the collapsed rail (see below). */
+        .rail-collections { display: none; flex-direction: column; align-items: center; gap: 4px; margin: 2px 0; }
+        .rail-col { display: flex; align-items: center; justify-content: center; width: 44px; height: 40px;
+            border-radius: var(--radius-sm); }
+        .rail-col:hover { background: var(--primary-soft); text-decoration: none; }
+        .rail-col .swatch { width: 22px; height: 22px; border-radius: 7px; box-shadow: var(--shadow); }
+        .rail-col .folder-ic { width: auto; font-size: 20px; }
+        .rail-col-add { color: var(--muted); font-size: 16px; }
+
+        /* Auto icon-rail: below 1024px the sidebar collapses to icons and expands to a
+           flyout on hover. Pure CSS, width-driven — no JS, no class. Hides scoped to
+           :not(:hover) so hovering restores the original styles. */
+        @media (max-width: 1024px) {
+            /* Rail is position:fixed (not a grid track) so the expanded panel overlays
+               content cleanly. Collapse/expand is toggled by a CLICK on the brand
+               (html.rail-open), not hover — hover proved too twitchy. Content clears
+               the collapsed rail with a left margin equal to its width. */
+            .layout { display: block; }
+            .main { margin-left: 72px; width: auto; padding: 22px 20px; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 72px; z-index: 40;
+                white-space: nowrap; overflow: hidden; transition: width .18s ease, box-shadow .18s ease; }
+            .sidebar .brand { cursor: pointer; }
+
+            /* Expanded (clicked open) */
+            .rail-open .sidebar { width: 264px; z-index: 60; box-shadow: var(--shadow-hover);
+                white-space: normal; overflow-y: auto; }
+
+            /* Collapsed (default): hide text chrome, show root-collection icon shortcuts */
+            html:not(.rail-open) .sidebar .switch-form,
+            html:not(.rail-open) .sidebar .dash-badge,
+            html:not(.rail-open) .sidebar .sidebar-search,
+            html:not(.rail-open) .sidebar > h2,
+            html:not(.rail-open) .sidebar .feature-list,
+            html:not(.rail-open) .sidebar .theme-switch,
+            html:not(.rail-open) .sidebar .manage,
+            html:not(.rail-open) .sidebar .chevron,
+            html:not(.rail-open) .sidebar .nav-sub,
+            html:not(.rail-open) .sidebar .nav-more,
+            html:not(.rail-open) .sidebar #col-collections { display: none; }
+
+            html:not(.rail-open) .sidebar .rail-collections { display: flex; }
+
+            html:not(.rail-open) .sidebar .brand { font-size: 0; justify-content: center; padding: 4px 0 12px; }
+            html:not(.rail-open) .sidebar .brand .logo { font-size: 22px; }
+            html:not(.rail-open) .sidebar .nav a,
+            html:not(.rail-open) .sidebar details.collapse > summary { font-size: 0; justify-content: center; padding: 10px 0; gap: 0; }
+            html:not(.rail-open) .sidebar .nav a .ico,
+            html:not(.rail-open) .sidebar details.collapse > summary .ico { font-size: 18px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .sidebar, .nav-backdrop { transition: none; }
         }
     </style>
 </head>
 <body>
+<header class="app-topbar">
+    <button type="button" class="nav-toggle" aria-controls="sidebar" aria-expanded="false"
+            aria-label="{{ 'nav.open_menu'|trans }}"><span class="burger" aria-hidden="true"></span></button>
+    <span class="brand-text"><span class="logo">🔖</span> {{ 'app.name'|trans }}</span>
+</header>
+<div class="nav-backdrop" data-nav-close></div>
 <div class="layout">
     {% include 'layout/_sidebar.html.twig' %}
     <main class="main">
@@ -257,6 +338,24 @@
             navigator.sendBeacon(window.APP_BASE + '/links/' + a.dataset.clickId + '/click');
         }
     }, true);
+
+    // Off-canvas sidebar drawer (mobile).
+    (function () {
+        var body = document.body, toggle = document.querySelector('.nav-toggle');
+        function setNav(open) {
+            body.classList.toggle('nav-open', open);
+            if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        if (toggle) toggle.addEventListener('click', function () { setNav(!body.classList.contains('nav-open')); });
+        document.querySelectorAll('[data-nav-close]').forEach(function (el) {
+            el.addEventListener('click', function () { setNav(false); });
+        });
+        var sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.addEventListener('click', function (e) { if (e.target.closest('a')) setNav(false); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && body.classList.contains('nav-open')) setNav(false);
+        });
+    })();
 </script>
 </body>
 </html>

@@ -8,6 +8,9 @@ nav:
     new_link: 'Nouveau lien'
     collections: 'Collections'
     import: 'Importer'
+    open_menu: 'Ouvrir le menu'
+    close_menu: 'Fermer le menu'
+    collapse_menu: 'Réduire le menu'
 
 sidebar:
     dashboard: 'Tableau de bord'
