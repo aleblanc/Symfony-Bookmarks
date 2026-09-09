@@ -164,7 +164,9 @@ final class LinkController extends AbstractController
         // a filtered list…). The form posts the current URL as return_to; only a
         // same-site path is honoured, to avoid an open redirect.
         $returnTo = (string) $request->request->get('return_to', '');
-        if (str_starts_with($returnTo, '/') && !str_starts_with($returnTo, '//')) {
+        // Same-site path only. Reject "//host" and "/\host" (browsers normalise
+        // the backslash to a slash → protocol-relative open redirect).
+        if (str_starts_with($returnTo, '/') && !str_starts_with($returnTo, '//') && !str_starts_with($returnTo, '/\\')) {
             return $this->redirect($returnTo);
         }
 

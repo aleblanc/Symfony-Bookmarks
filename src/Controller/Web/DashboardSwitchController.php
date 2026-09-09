@@ -20,8 +20,16 @@ final class DashboardSwitchController extends AbstractController
     public function switch(int $id, Request $request): RedirectResponse
     {
         $this->current->switch($id);
-        $referer = (string) $request->headers->get('Referer');
 
-        return $this->redirect('' !== $referer ? $referer : $this->generateUrl('dashboard'));
+        // Redirect back where the switch was triggered, but only to a same-site
+        // path (never the raw Referer URL) to avoid an open redirect.
+        $referer = (string) $request->headers->get('Referer');
+        $path = (string) (parse_url($referer, \PHP_URL_PATH) ?: '');
+        if ('' !== $path && str_starts_with($path, '/') && !str_starts_with($path, '//') && !str_starts_with($path, '/\\')) {
+            $query = parse_url($referer, \PHP_URL_QUERY);
+            return $this->redirect(\is_string($query) && '' !== $query ? $path.'?'.$query : $path);
+        }
+
+        return $this->redirectToRoute('dashboard');
     }
 }
