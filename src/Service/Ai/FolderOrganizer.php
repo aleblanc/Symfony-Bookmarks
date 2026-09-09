@@ -34,7 +34,7 @@ final class FolderOrganizer
     private const MAX_LINKS = 120;
 
     /** Max characters kept per title (shorter = smaller prompt, less reasoning). */
-    private const TITLE_MAX = 50;
+    private const TITLE_MAX = 80;
 
     public function __construct(
         #[Autowire(service: 'ai.agent.organizer_proposer')]
