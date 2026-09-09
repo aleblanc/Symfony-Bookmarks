@@ -10,7 +10,7 @@
                 <option value="">— {{ 'collection.no_parent'|trans }} —</option>
                 {% for c in collections %}
                     <option value="{{ c.id }}" {{ parent and parent.id == c.id ? 'selected' : '' }}>
-                        {% for a in c.ancestors %}{{ a.name }} / {% endfor %}{{ c.name }}
+                        {% for a in c.ancestors %}{{ a.name }} → {% endfor %}{{ c.name }}
                     </option>
                 {% endfor %}
             </select>

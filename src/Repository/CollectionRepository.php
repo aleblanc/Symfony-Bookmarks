@@ -32,6 +32,35 @@ final class CollectionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * All collections of a dashboard flattened in hierarchical (depth-first) order:
+     * each parent immediately followed by its children, siblings in display order.
+     * Used for the parent <select> so a deep child never appears before its parent.
+     *
+     * @return list<Collection>
+     */
+    public function findForDashboardTreeOrder(Dashboard $dashboard): array
+    {
+        $all = $this->findForDashboard($dashboard);
+
+        /** @var array<int, list<Collection>> $childrenOf */
+        $childrenOf = [];
+        foreach ($all as $c) {
+            $childrenOf[$c->getParent()?->getId() ?? 0][] = $c;
+        }
+
+        $flat = [];
+        $walk = static function (int $parentId) use (&$walk, $childrenOf, &$flat): void {
+            foreach ($childrenOf[$parentId] ?? [] as $c) {
+                $flat[] = $c;
+                $walk((int) $c->getId());
+            }
+        };
+        $walk(0);
+
+        return $flat;
+    }
+
     /** @return list<Collection> root (top-level) collections only, in display order */
     public function findRootsForDashboard(Dashboard $dashboard): array
     {

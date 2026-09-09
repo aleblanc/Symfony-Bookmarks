@@ -97,7 +97,7 @@ final class CollectionController extends AbstractController
 
         return $this->render('collections/new.html.twig', [
             'dashboard' => $dashboard,
-            'collections' => $this->collections->findForDashboard($dashboard),
+            'collections' => $this->collections->findForDashboardTreeOrder($dashboard),
             'parent' => $this->resolveParent($request->query->get('parent'), $dashboard),
         ]);
     }
@@ -114,7 +114,7 @@ final class CollectionController extends AbstractController
             $forbidden[] = $descendant->getId();
         }
         $parentChoices = array_values(array_filter(
-            $this->collections->findForDashboard($dashboard),
+            $this->collections->findForDashboardTreeOrder($dashboard),
             static fn (Collection $c): bool => !\in_array($c->getId(), $forbidden, true),
         ));
 
