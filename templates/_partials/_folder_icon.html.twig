@@ -1,4 +1,5 @@
 {% macro icon(collection) %}
-{%- set ic = collection.icon in ['', 'BM'] ? null : collection.icon -%}
-{%- if ic -%}<span class="folder-ic">{{ ic }}</span>{%- else -%}<span class="swatch" style="background:{{ collection.color }};"></span>{%- endif -%}
+{%- set ic = collection.icon in ['', 'BM'] ? '📁' : collection.icon -%}
+{%- set col = collection.color|default('#0ea5e9') -%}
+<span class="folder-ic" style="--fic: {{ col }};">{{ ic }}</span>
 {% endmacro %}
