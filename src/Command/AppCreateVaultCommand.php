@@ -44,7 +44,7 @@ final class AppCreateVaultCommand extends Command
         $vault = new Vault($name, $created['passwordHash'], $created['kdfSalt'], $created['wrappedKey']);
         $this->em->persist($vault);
         $this->em->flush();
-        $output->writeln(sprintf('Vault "%s" created with id %d', $name, (int) $vault->getId()));
+        $output->writeln(\sprintf('Vault "%s" created with id %d', $name, (int) $vault->getId()));
 
         return Command::SUCCESS;
     }

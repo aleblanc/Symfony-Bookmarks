@@ -20,7 +20,7 @@ final class TagsController extends AbstractApiController
     {
         $items = [];
         foreach ($this->tags->findAll() as $tag) {
-            /** @var Tag $tag */
+            /* @var Tag $tag */
             $items[] = ['id' => $tag->getId(), 'name' => $tag->getName()];
         }
 

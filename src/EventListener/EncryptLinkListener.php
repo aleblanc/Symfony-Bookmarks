@@ -86,7 +86,7 @@ final class EncryptLinkListener
         }
         $key = $this->session->get($vaultId);
         if (null === $key) {
-            throw new \RuntimeException(sprintf('Cannot persist link into locked vault #%d', $vaultId));
+            throw new \RuntimeException(\sprintf('Cannot persist link into locked vault #%d', $vaultId));
         }
         $link->setUrl($this->cipher->encrypt($key, $link->getUrl()));
         if (null !== $link->getName()) {
