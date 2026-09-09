@@ -75,14 +75,21 @@ final class PdfImageRenderer
             return $this->canRender = false;
         }
 
-        $pdf = tempnam(sys_get_temp_dir(), 'improbe_').'.pdf';
-        $png = tempnam(sys_get_temp_dir(), 'improbe_').'.png';
+        // tempnam() creates the base file with no extension; the .pdf/.png paths
+        // derive from it. Clean up all three, and only unlink what actually exists
+        // so a missing .png (rasterise failed) doesn't log a silenced warning.
+        $base = tempnam(sys_get_temp_dir(), 'improbe_');
+        $pdf = $base.'.pdf';
+        $png = $base.'.png';
         file_put_contents($pdf, self::PROBE_PDF);
         try {
             $this->canRender = $this->rasterise($binary, $pdf, $png, 72);
         } finally {
-            @unlink($pdf);
-            @unlink($png);
+            foreach ([$base, $pdf, $png] as $tmp) {
+                if (is_file($tmp)) {
+                    @unlink($tmp);
+                }
+            }
         }
 
         return $this->canRender;
