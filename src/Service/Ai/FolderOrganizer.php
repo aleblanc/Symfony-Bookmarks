@@ -61,12 +61,16 @@ final class FolderOrganizer
             ."\n\nRespond with JSON matching this schema:\n"
             .json_encode($this->schemaFactory->buildProperties(CategoryProposal::class), \JSON_THROW_ON_ERROR);
 
-        // Plain completion (no response_format): LM Studio rejects structured
-        // output for some models. We embed the schema in the prompt and parse the
-        // JSON out of the text ourselves — robust across any OpenAI-compatible model.
+        // Try native structured output (response_format); if the model returns a
+        // hydrated object, use it directly. Otherwise fall back to parsing the
+        // JSON out of the text — robust across any OpenAI-compatible model.
         // Cap the reply so a big folder stays well under the request timeout.
-        $raw = $this->callText($this->proposerAgent, $prompt, 1200);
+        $content = $this->callAi($this->proposerAgent, $prompt, 1200, CategoryProposal::class);
+        if ($content instanceof CategoryProposal) {
+            return $content;
+        }
 
+        $raw = \is_string($content) ? $content : '';
         try {
             /** @var CategoryProposal $proposal */
             $proposal = $this->serializer->deserialize(self::extractJson($raw), CategoryProposal::class, 'json');
@@ -92,8 +96,12 @@ final class FolderOrganizer
             ."\n\nRespond with JSON matching this schema:\n"
             .json_encode($this->schemaFactory->buildProperties(LinkAssignment::class), \JSON_THROW_ON_ERROR);
 
-        $raw = $this->callText($this->assignerAgent, $prompt, 1500);
+        $content = $this->callAi($this->assignerAgent, $prompt, 1500, LinkAssignment::class);
+        if ($content instanceof LinkAssignment) {
+            return self::keepKnownIds(array_map('intval', $content->linkIds), $list['ids']);
+        }
 
+        $raw = \is_string($content) ? $content : '';
         try {
             /** @var LinkAssignment $assignment */
             $assignment = $this->serializer->deserialize(self::extractJson($raw), LinkAssignment::class, 'json');
@@ -106,11 +114,18 @@ final class FolderOrganizer
         return self::keepKnownIds(array_map('intval', $assignment->linkIds), $list['ids']);
     }
 
-    /** Run a plain text completion and return the raw string content. */
-    private function callText(AgentInterface $agent, string $prompt, int $maxTokens): string
+    /**
+     * Call the agent and return its raw content — a hydrated object when the
+     * model honours structured output (response_format), or a string otherwise.
+     *
+     * @param class-string $responseFormat
+     */
+    private function callAi(AgentInterface $agent, string $prompt, int $maxTokens, string $responseFormat): string|object
     {
+        $options = ['max_tokens' => $maxTokens, 'response_format' => $responseFormat];
+
         try {
-            $content = $agent->call(new MessageBag(Message::ofUser($prompt)), ['max_tokens' => $maxTokens])->getContent();
+            $content = $agent->call(new MessageBag(Message::ofUser($prompt)), $options)->getContent();
         } catch (\Throwable $e) {
             // Surface the LM Studio response body: a bare "Bad Request" hides the
             // real reason (context overflow, unsupported param, model not loaded…).
@@ -123,7 +138,7 @@ final class FolderOrganizer
             throw $e;
         }
 
-        return \is_string($content) ? $content : '';
+        return \is_string($content) || \is_object($content) ? $content : '';
     }
 
     /** Dig the HTTP response body out of an exception chain, if any. */
