@@ -26,11 +26,13 @@
                                 {% for ex in cat.exampleTitles %}<li>{{ ex }}</li>{% endfor %}
                             </ul>
                         {% endif %}
-                        <form class="row" method="post" action="{{ path('collections_organize_assign', {id: collection.id}) }}" style="margin-top:12px;">
+                        <form class="row js-ai-wait" method="post" action="{{ path('collections_organize_assign', {id: collection.id}) }}"
+                              style="margin-top:12px;" data-wait-msg="{{ 'collection.organize_wait'|trans }}">
                             <input type="hidden" name="name" value="{{ cat.name }}">
                             <input type="hidden" name="description" value="{{ cat.description }}">
                             <input type="hidden" name="proposal" value="{{ proposal_json }}">
-                            <button class="btn btn-sm {{ selection == cat.name ? 'btn-primary' : '' }}" type="submit">
+                            <button class="btn btn-sm {{ selection == cat.name ? 'btn-primary' : '' }}" type="submit"
+                                    data-wait-label="⏳ {{ 'collection.organize_waiting'|trans }}">
                                 {{ 'collection.organize_pick'|trans }}
                             </button>
                         </form>

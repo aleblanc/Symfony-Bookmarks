@@ -17,8 +17,9 @@
             <a href="{{ path('collections_new', {parent: collection.id}) }}" class="btn">📁 {{ 'collection.new_subfolder'|trans }}</a>
             <a href="{{ path('collections_edit', {id: collection.id}) }}" class="btn">✏️ {{ 'collection.edit'|trans }}</a>
             {% if ai_enabled and links is not empty %}
-                <form method="post" action="{{ path('collections_organize', {id: collection.id}) }}">
-                    <button class="btn" type="submit">🪄🤖 {{ 'collection.organize'|trans }}</button>
+                <form class="js-ai-wait" method="post" action="{{ path('collections_organize', {id: collection.id}) }}"
+                      data-wait-msg="{{ 'collection.organize_wait'|trans }}">
+                    <button class="btn" type="submit" data-wait-label="⏳ {{ 'collection.organize_waiting'|trans }}">🪄🤖 {{ 'collection.organize'|trans }}</button>
                 </form>
             {% endif %}
             {% if merge_targets is not empty %}

@@ -164,6 +164,9 @@
         form.inline { display: inline; }
         .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         /* Toolbar: uniform button row; forms collapse so buttons align on one baseline */
+        .ai-wait-banner { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 1000;
+            background: var(--primary); color: var(--primary-fg); padding: 12px 22px; border-radius: var(--radius);
+            box-shadow: var(--shadow-hover); font-weight: 600; display: none; max-width: 90vw; text-align: center; }
         .flash { padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 18px; border: 1px solid var(--border); font-weight: 500; }
         .flash-error { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
         .flash-success { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
@@ -362,6 +365,26 @@
         if (a && navigator.sendBeacon) {
             navigator.sendBeacon(window.APP_BASE + '/links/' + a.dataset.clickId + '/click');
         }
+    }, true);
+
+    // Long-running AI forms: on submit, disable the button and show a wait banner.
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (!form.classList || !form.classList.contains('js-ai-wait')) { return; }
+        var btn = form.querySelector('button[type="submit"], button:not([type])');
+        if (btn) {
+            if (btn.dataset.waitLabel) { btn.textContent = btn.dataset.waitLabel; }
+            setTimeout(function () { btn.disabled = true; }, 0);
+        }
+        var banner = document.getElementById('ai-wait-banner');
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'ai-wait-banner';
+            banner.className = 'ai-wait-banner';
+            document.body.appendChild(banner);
+        }
+        banner.textContent = form.dataset.waitMsg || '⏳';
+        banner.style.display = 'block';
     }, true);
 
     // Off-canvas sidebar drawer (mobile).
