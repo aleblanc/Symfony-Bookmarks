@@ -11,11 +11,16 @@ use App\Repository\TagRepository;
 use App\Service\ChromeDetector;
 use App\Service\CurrentDashboard;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
 final class FeaturesExtension extends AbstractExtension
 {
+    /** Sidebar dead-links badge cache lifetime (seconds); bounded staleness, no explicit invalidation. */
+    private const DEAD_COUNT_TTL = 60;
+
     public function __construct(
         private readonly ChromeDetector $chrome,
         private readonly DashboardRepository $dashboards,
@@ -23,6 +28,7 @@ final class FeaturesExtension extends AbstractExtension
         private readonly CollectionRepository $collections,
         private readonly TagRepository $tags,
         private readonly LinkRepository $links,
+        private readonly CacheInterface $cache,
         #[Autowire('%env(bool:APP_AI_ENABLED)%')]
         private readonly bool $aiEnabled = false,
     ) {
@@ -47,8 +53,22 @@ final class FeaturesExtension extends AbstractExtension
             }),
             new TwigFunction('dead_links_count', function (): int {
                 $dashboard = $this->current->tryGet();
+                if (null === $dashboard) {
+                    return 0;
+                }
 
-                return null === $dashboard ? 0 : $this->links->countDeadForDashboard($dashboard);
+                // Cheap scalar, safe to cache with bounded staleness. The collection
+                // tree and tag counts are NOT cached: they return Doctrine entities,
+                // which detach when serialized into a PSR cache and would break lazy
+                // relations in templates — not worth it for sub-ms SQLite queries.
+                return $this->cache->get(
+                    'sidebar_dead_count_'.$dashboard->getId(),
+                    function (ItemInterface $item) use ($dashboard): int {
+                        $item->expiresAfter(self::DEAD_COUNT_TTL);
+
+                        return $this->links->countDeadForDashboard($dashboard);
+                    },
+                );
             }),
         ];
     }
