@@ -32,6 +32,18 @@ final class CollectionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return list<Collection> root (top-level) collections only, in display order */
+    public function findRootsForDashboard(Dashboard $dashboard): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.dashboard = :d AND c.parent IS NULL')
+            ->setParameter('d', $dashboard)
+            ->orderBy('c.position', 'ASC')
+            ->addOrderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * All descendants (children, grandchildren, …) of a collection. Used to
      * forbid moving a folder into its own subtree (which would create a cycle).

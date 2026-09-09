@@ -26,7 +26,7 @@ final class DashboardController extends AbstractController
         $dashboard = $this->current->get();
 
         $byCollection = [];
-        foreach ($this->collections->findForDashboard($dashboard) as $collection) {
+        foreach ($this->collections->findRootsForDashboard($dashboard) as $collection) {
             $recent = $this->links->findRecentForCollection($collection, 10);
             if ([] !== $recent) {
                 $byCollection[] = ['collection' => $collection, 'links' => $recent];
