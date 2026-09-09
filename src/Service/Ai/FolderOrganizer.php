@@ -85,8 +85,10 @@ final class FolderOrganizer
         // hydrated object, use it directly. Otherwise fall back to parsing the
         // JSON out of the text — robust across any OpenAI-compatible model.
         // Cap the reply so a big folder stays well under the request timeout.
-        // Higher temperature so "Regenerate" yields genuinely different proposals.
-        $content = $this->callAi($this->proposerAgent, $prompt, 1200, CategoryProposal::class, 0.8);
+        // Moderate temperature: enough that "Regenerate" varies the proposals, but
+        // low enough to avoid the degenerate output that makes LM Studio 400
+        // ("Channel Error") at high temperature.
+        $content = $this->callAi($this->proposerAgent, $prompt, 1200, CategoryProposal::class, 0.4);
         if ($content instanceof CategoryProposal) {
             return $content;
         }
@@ -150,19 +152,19 @@ final class FolderOrganizer
      */
     private function callAi(AgentInterface $agent, string $prompt, int $maxTokens, string $responseFormat, float $temperature): string|object
     {
-        $base = ['max_tokens' => $maxTokens, 'temperature' => $temperature];
-
         try {
-            return $this->rawCall($agent, $prompt, $base + ['response_format' => $responseFormat]);
+            return $this->rawCall($agent, $prompt, ['max_tokens' => $maxTokens, 'temperature' => $temperature, 'response_format' => $responseFormat]);
         } catch (\Throwable $e) {
-            $this->aiLogger->warning('organizer: structured output failed, retrying as plain completion', [
+            $this->aiLogger->warning('organizer: structured/high-temp call failed, retrying plain at low temperature', [
                 'error' => $e->getMessage(),
                 'body' => self::httpBody($e),
             ]);
         }
 
+        // Retry as a plain completion at a low, safe temperature: removes both the
+        // structured-output and the high-temperature failure modes.
         try {
-            return $this->rawCall($agent, $prompt, $base);
+            return $this->rawCall($agent, $prompt, ['max_tokens' => $maxTokens, 'temperature' => min($temperature, 0.2)]);
         } catch (\Throwable $e) {
             $this->aiLogger->error('organizer: LM Studio call failed (structured and plain)', [
                 'error' => $e->getMessage(),

@@ -76,9 +76,10 @@ final class CollectionOrganizeController extends AbstractController
         $categories = $this->decodeCategories($proposalJson);
 
         // Each "Regenerate" bumps the attempt counter, which raises the temperature
-        // so the retry explores a different selection (capped at 0.9).
+        // so the retry explores a different selection. Capped at 0.6: higher makes
+        // this VL model emit degenerate output that LM Studio rejects (Channel Error).
         $attempt = max(0, $request->request->getInt('attempt'));
-        $temperature = min(0.2 + 0.25 * $attempt, 0.9);
+        $temperature = min(0.2 + 0.2 * $attempt, 0.6);
 
         $start = microtime(true);
         try {
