@@ -135,6 +135,7 @@ collection:
     move_down: 'Move down'
     move_top: 'Move to top'
     move_bottom: 'Move to bottom'
+    move_middle: 'Move to middle'
     edit: 'Edit'
     none: 'No collections yet.'
     view_links: 'View links'

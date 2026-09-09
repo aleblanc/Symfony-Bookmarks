@@ -174,6 +174,7 @@ final class CollectionController extends AbstractController
                 'down' => $index + 1,
                 'top' => 0,
                 'bottom' => $last,
+                'middle' => intdiv($last, 2),
                 default => $index,
             };
             $target = max(0, min($last, $target));
