@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Ai;
 
 use App\Entity\Collection;
+use App\Entity\Link;
 use App\Repository\CollectionRepository;
 use App\Repository\LinkRepository;
 use App\Service\Ai\Schema\CategoryProposal;
@@ -67,13 +68,26 @@ final class FolderOrganizer
         $all = $this->links->findForCollection($collection);
         $links = \array_slice($all, 0, self::MAX_LINKS);
         if (\count($all) > self::MAX_LINKS) {
-            $this->aiLogger->warning('organizer: link list capped', [
+            $this->aiLogger->warning('organizer: proposer link list capped', [
                 'collection' => $collection->getId(),
                 'total' => \count($all),
                 'sent' => self::MAX_LINKS,
             ]);
         }
 
+        return $this->formatLines($links);
+    }
+
+    /**
+     * Format a given batch of links into the compact "#<id> <title>" lines the
+     * model reads, plus the list of their ids (for validating the reply).
+     *
+     * @param list<Link> $links
+     *
+     * @return array{lines: string, ids: list<int>}
+     */
+    private function formatLines(array $links): array
+    {
         $lines = [];
         $ids = [];
         foreach ($links as $link) {
@@ -135,22 +149,45 @@ final class FolderOrganizer
     /**
      * Phase 2: ask the LLM which of the collection's links belong in the named target.
      *
+     * Unlike phase 1 (which only needs a sample to discover categories), assignment
+     * must see EVERY link, so we process the whole collection in chunks of MAX_LINKS
+     * and merge the selected ids — one model call per chunk.
+     *
      * @return list<int> validated link ids (guaranteed subset of the collection)
      */
     public function assignLinks(Collection $collection, string $categoryName, string $categoryDescription, float $temperature = 0.2): array
     {
-        $list = $this->buildBookmarkList($collection);
-        $prompt = 'Target folder: '.$categoryName."\nDescription: ".$categoryDescription
-            ."\n\nBookmarks:\n".$list['lines']
-            ."\n\nRespond with JSON matching this schema:\n"
-            .json_encode($this->schemaFactory->buildProperties(LinkAssignment::class), \JSON_THROW_ON_ERROR)
-            .self::NO_THINK;
+        $selected = [];
+        foreach (array_chunk($this->links->findForCollection($collection), self::MAX_LINKS) as $chunk) {
+            $list = $this->formatLines($chunk);
+            $prompt = 'Target folder: '.$categoryName."\nDescription: ".$categoryDescription
+                ."\n\nBookmarks:\n".$list['lines']
+                ."\n\nRespond with JSON matching this schema:\n"
+                .json_encode($this->schemaFactory->buildProperties(LinkAssignment::class), \JSON_THROW_ON_ERROR)
+                .self::NO_THINK;
 
-        // Low temperature by default (stable assignment); the controller raises it
-        // on each "Regenerate" so a retry explores a different selection.
-        $content = $this->callAi($this->assignerAgent, $prompt, 2000, LinkAssignment::class, $temperature);
+            // Low temperature by default (stable assignment); the controller raises
+            // it on each "Regenerate" so a retry explores a different selection.
+            $content = $this->callAi($this->assignerAgent, $prompt, 2000, LinkAssignment::class, $temperature);
+
+            foreach (self::keepKnownIds($this->decodeAssignment($content), $list['ids']) as $id) {
+                $selected[] = $id;
+            }
+        }
+
+        return $selected;
+    }
+
+    /**
+     * Raw link ids from an assigner reply — a hydrated object (structured output)
+     * or JSON parsed from text.
+     *
+     * @return list<int>
+     */
+    private function decodeAssignment(string|object $content): array
+    {
         if ($content instanceof LinkAssignment) {
-            return self::keepKnownIds(array_map('intval', $content->linkIds), $list['ids']);
+            return array_map('intval', $content->linkIds);
         }
 
         $raw = \is_string($content) ? $content : '';
@@ -163,7 +200,7 @@ final class FolderOrganizer
             return [];
         }
 
-        return self::keepKnownIds(array_map('intval', $assignment->linkIds), $list['ids']);
+        return array_map('intval', $assignment->linkIds);
     }
 
     /**
