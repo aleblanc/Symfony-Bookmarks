@@ -13,7 +13,7 @@ final class CategoryProposal
      * @param list<ProposedCategory> $categories
      */
     public function __construct(
-        #[Schema(description: '3 to 4 sub-folders that partition the bookmarks by topic.', minItems: 3, maxItems: 4)]
+        #[Schema(description: '5 to 6 sub-folders that partition the bookmarks by topic.', minItems: 5, maxItems: 6)]
         public array $categories = [],
     ) {
     }

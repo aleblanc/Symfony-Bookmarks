@@ -65,7 +65,7 @@ final class FolderOrganizer
         // output for some models. We embed the schema in the prompt and parse the
         // JSON out of the text ourselves — robust across any OpenAI-compatible model.
         // Cap the reply so a big folder stays well under the request timeout.
-        $raw = $this->callText($this->proposerAgent, $prompt, 800);
+        $raw = $this->callText($this->proposerAgent, $prompt, 1200);
 
         try {
             /** @var CategoryProposal $proposal */

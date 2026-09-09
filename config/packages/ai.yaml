@@ -38,7 +38,7 @@ ai:
             prompt: |
                 You reorganize a messy bookmark folder into coherent sub-folders.
                 You receive a numbered list of bookmarks ("#<id> <title>").
-                Propose ONLY 3 to 4 broad sub-folders that partition them by topic.
+                Propose ONLY 5 to 6 broad sub-folders that partition them by topic.
                 For each sub-folder give: a short name (same language as the titles),
                 a very short one-sentence description, and 2 example titles taken
                 verbatim from the list. Keep it concise.
