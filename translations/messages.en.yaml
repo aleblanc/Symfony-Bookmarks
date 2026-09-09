@@ -156,6 +156,8 @@ collection:
     organize_count: '%count% link(s) suggested'
     organize_elapsed: 'AI responded in %s% s'
     organize_waiting: 'Analyzing…'
+    organize_retry: 'Regenerate'
+    organize_retry_hint: 'Run the AI again for different sub-folder proposals'
     organize_wait: '⏳ AI is analyzing — this can take a few minutes. Do not close the page.'
     organize_none_selected: 'The AI kept no links for this folder. Try another suggestion above.'
     organize_folder_name: 'Name of the folder to create'

@@ -70,7 +70,8 @@ final class FolderOrganizer
         // hydrated object, use it directly. Otherwise fall back to parsing the
         // JSON out of the text — robust across any OpenAI-compatible model.
         // Cap the reply so a big folder stays well under the request timeout.
-        $content = $this->callAi($this->proposerAgent, $prompt, 1200, CategoryProposal::class);
+        // Higher temperature so "Regenerate" yields genuinely different proposals.
+        $content = $this->callAi($this->proposerAgent, $prompt, 1200, CategoryProposal::class, 0.8);
         if ($content instanceof CategoryProposal) {
             return $content;
         }
@@ -101,7 +102,8 @@ final class FolderOrganizer
             ."\n\nRespond with JSON matching this schema:\n"
             .json_encode($this->schemaFactory->buildProperties(LinkAssignment::class), \JSON_THROW_ON_ERROR);
 
-        $content = $this->callAi($this->assignerAgent, $prompt, 1500, LinkAssignment::class);
+        // Low temperature: assignment should be stable, not creative.
+        $content = $this->callAi($this->assignerAgent, $prompt, 1500, LinkAssignment::class, 0.2);
         if ($content instanceof LinkAssignment) {
             return self::keepKnownIds(array_map('intval', $content->linkIds), $list['ids']);
         }
@@ -125,9 +127,9 @@ final class FolderOrganizer
      *
      * @param class-string $responseFormat
      */
-    private function callAi(AgentInterface $agent, string $prompt, int $maxTokens, string $responseFormat): string|object
+    private function callAi(AgentInterface $agent, string $prompt, int $maxTokens, string $responseFormat, float $temperature): string|object
     {
-        $options = ['max_tokens' => $maxTokens, 'response_format' => $responseFormat];
+        $options = ['max_tokens' => $maxTokens, 'response_format' => $responseFormat, 'temperature' => $temperature];
 
         try {
             $content = $agent->call(new MessageBag(Message::ofUser($prompt)), $options)->getContent();

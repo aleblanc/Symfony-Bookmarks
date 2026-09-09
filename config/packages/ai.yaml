@@ -36,12 +36,16 @@ ai:
             platform: 'ai.platform.lmstudio'
             model: '%env(APP_AI_TAG_MODEL)%'
             prompt: |
-                You reorganize a messy bookmark folder into coherent sub-folders.
+                You are a taxonomist reorganizing a messy bookmark folder.
                 You receive a numbered list of bookmarks ("#<id> <title>").
-                Propose ONLY 5 to 6 broad sub-folders that partition them by topic.
-                For each sub-folder give: a short name (same language as the titles),
-                a very short one-sentence description, and 2 example titles taken
-                verbatim from the list. Keep it concise.
+                Design 5 to 6 sub-folders that form a clean partition: mutually exclusive
+                (no bookmark could reasonably fit two) and collectively exhaustive (every
+                bookmark has an obvious home). Prefer folders of comparable size; do NOT create
+                a "Misc"/"Other" catch-all unless a handful of items truly share nothing.
+                Derive the folders from the actual content — never from a generic template.
+                For each: a short scannable name in the language of the titles, a one-sentence
+                description of its boundary (what belongs vs. what doesn't), and 2 example
+                titles copied verbatim from the list.
                 Answer strictly as JSON matching the provided schema. No prose, no code fences.
 
         organizer_assigner:

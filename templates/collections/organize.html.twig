@@ -3,7 +3,16 @@
 {% block body %}
     <header class="top">
         <h1>🪄🤖 {{ 'collection.organize_title'|trans }}</h1>
-        <a class="btn btn-sm" href="{{ path('collections_show', {id: collection.id}) }}">{{ 'common.back'|trans }}</a>
+        <div class="row">
+            {% if categories is not empty %}
+                <form class="js-ai-wait" method="post" action="{{ path('collections_organize', {id: collection.id}) }}"
+                      data-wait-msg="{{ 'collection.organize_wait'|trans }}">
+                    <button class="btn btn-sm" type="submit" title="{{ 'collection.organize_retry_hint'|trans }}"
+                            data-wait-label="⏳ {{ 'collection.organize_waiting'|trans }}">🔄 {{ 'collection.organize_retry'|trans }}</button>
+                </form>
+            {% endif %}
+            <a class="btn btn-sm" href="{{ path('collections_show', {id: collection.id}) }}">{{ 'common.back'|trans }}</a>
+        </div>
     </header>
     <p class="muted">{{ 'collection.organize_intro'|trans({'%folder%': collection.name}) }}</p>
     {% if elapsed is defined and elapsed %}
