@@ -64,7 +64,8 @@ final class FolderOrganizer
         // Plain completion (no response_format): LM Studio rejects structured
         // output for some models. We embed the schema in the prompt and parse the
         // JSON out of the text ourselves — robust across any OpenAI-compatible model.
-        $raw = $this->callText($this->proposerAgent, $prompt);
+        // Cap the reply so a big folder stays well under the request timeout.
+        $raw = $this->callText($this->proposerAgent, $prompt, 800);
 
         try {
             /** @var CategoryProposal $proposal */
@@ -91,7 +92,7 @@ final class FolderOrganizer
             ."\n\nRespond with JSON matching this schema:\n"
             .json_encode($this->schemaFactory->buildProperties(LinkAssignment::class), \JSON_THROW_ON_ERROR);
 
-        $raw = $this->callText($this->assignerAgent, $prompt);
+        $raw = $this->callText($this->assignerAgent, $prompt, 1500);
 
         try {
             /** @var LinkAssignment $assignment */
@@ -106,10 +107,10 @@ final class FolderOrganizer
     }
 
     /** Run a plain text completion and return the raw string content. */
-    private function callText(AgentInterface $agent, string $prompt): string
+    private function callText(AgentInterface $agent, string $prompt, int $maxTokens): string
     {
         try {
-            $content = $agent->call(new MessageBag(Message::ofUser($prompt)))->getContent();
+            $content = $agent->call(new MessageBag(Message::ofUser($prompt)), ['max_tokens' => $maxTokens])->getContent();
         } catch (\Throwable $e) {
             // Surface the LM Studio response body: a bare "Bad Request" hides the
             // real reason (context overflow, unsupported param, model not loaded…).

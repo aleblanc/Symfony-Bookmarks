@@ -17,7 +17,7 @@ final class ProposedCategory
         public string $name = '',
         #[Schema(description: 'One short sentence describing what belongs in this sub-folder.')]
         public string $description = '',
-        #[Schema(description: '2 to 3 example bookmark titles, taken verbatim from the provided list.', minItems: 2, maxItems: 3)]
+        #[Schema(description: '2 example bookmark titles, taken verbatim from the provided list.', minItems: 2, maxItems: 2)]
         public array $exampleTitles = [],
     ) {
     }
