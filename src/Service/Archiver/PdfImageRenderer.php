@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Archiver;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Process;
 
 /**
@@ -32,6 +33,7 @@ final class PdfImageRenderer
      * @param list<string>|null $extraCandidates for tests
      */
     public function __construct(
+        #[Autowire('%env(APP_CONVERT_PATH)%')]
         private readonly string $overridePath = '',
         ?array $extraCandidates = null,
     ) {

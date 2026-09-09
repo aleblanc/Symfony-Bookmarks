@@ -9,6 +9,7 @@ use App\Repository\LinkRepository;
 use App\Service\Ai\FolderOrganizer;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -20,6 +21,7 @@ final class CollectionOrganizeController extends AbstractController
         private readonly CollectionRepository $collections,
         private readonly LinkRepository $links,
         private readonly FolderOrganizer $organizer,
+        #[Autowire(service: 'monolog.logger.ai')]
         private readonly LoggerInterface $aiLogger,
         private readonly TranslatorInterface $translator,
     ) {

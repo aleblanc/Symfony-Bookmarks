@@ -27,6 +27,7 @@ final class DashboardSwitchController extends AbstractController
         $path = (string) (parse_url($referer, \PHP_URL_PATH) ?: '');
         if ('' !== $path && str_starts_with($path, '/') && !str_starts_with($path, '//') && !str_starts_with($path, '/\\')) {
             $query = parse_url($referer, \PHP_URL_QUERY);
+
             return $this->redirect(\is_string($query) && '' !== $query ? $path.'?'.$query : $path);
         }
 

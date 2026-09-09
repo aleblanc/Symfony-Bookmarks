@@ -9,6 +9,8 @@ use App\Entity\Link;
 use App\Service\Favicon\FaviconFetcher;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -21,12 +23,15 @@ final class ArchiveRunner
      */
     public function __construct(
         private readonly ReadableExtractor $readable,
+        #[AutowireIterator('app.archiver')]
         private readonly iterable $archivers,
         private readonly EntityManagerInterface $em,
+        #[Autowire(service: 'monolog.logger.archive')]
         private readonly LoggerInterface $logger,
         private readonly FaviconFetcher $favicon,
         private readonly PreviewImageFetcher $preview,
         private readonly PdfImageRenderer $pdfRenderer,
+        #[Autowire('%env(resolve:APP_ARCHIVE_DIR)%')]
         private readonly string $archiveDir,
         ?HttpClientInterface $http = null,
     ) {

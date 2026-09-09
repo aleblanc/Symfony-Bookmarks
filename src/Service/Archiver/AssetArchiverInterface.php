@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service\Archiver;
 
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+
+#[AutoconfigureTag('app.archiver')]
 interface AssetArchiverInterface
 {
     public function isEnabled(): bool;

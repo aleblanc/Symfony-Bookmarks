@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+
 final class ChromeDetector
 {
     /** @var list<string> */
@@ -15,6 +17,7 @@ final class ChromeDetector
      * @param list<string>|null $extraCandidates for tests
      */
     public function __construct(
+        #[Autowire('%env(APP_CHROME_PATH)%')]
         private readonly string $overridePath = '',
         ?array $extraCandidates = null,
     ) {

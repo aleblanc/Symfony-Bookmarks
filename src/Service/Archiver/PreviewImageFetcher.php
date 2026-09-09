@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Archiver;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -26,6 +27,7 @@ final class PreviewImageFetcher
     private HttpClientInterface $http;
 
     public function __construct(
+        #[Autowire('%env(resolve:APP_ARCHIVE_DIR)%')]
         private readonly string $archiveDir,
         ?HttpClientInterface $http = null,
     ) {

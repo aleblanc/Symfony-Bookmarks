@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Ai;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /** Lightweight reachability check for the remote LM Studio server. */
@@ -11,7 +12,9 @@ final class AiServerProbe
 {
     public function __construct(
         private readonly HttpClientInterface $httpClient,
+        #[Autowire('%env(LM_STUDIO_HOST_URL)%')]
         private readonly string $hostUrl,
+        #[Autowire('%env(bool:APP_AI_ENABLED)%')]
         private readonly bool $enabled,
     ) {
     }

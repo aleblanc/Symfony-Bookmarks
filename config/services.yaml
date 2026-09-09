@@ -3,9 +3,10 @@
 # This file is the entry point to configure your own services.
 # Files in the packages/ subdirectory configure your dependencies.
 # See also https://symfony.com/doc/current/service_container/import.html
+#
+# Per-service wiring lives next to the code as attributes (#[Autowire],
+# #[AutowireIterator], #[AutoconfigureTag], #[AsMiddleware]) — see the classes.
 
-# Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
 
 services:
@@ -18,100 +19,3 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
-
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
-
-    App\EventSubscriber\ApiTokenSubscriber:
-        arguments:
-            $expectedToken: '%env(APP_API_TOKEN)%'
-
-    # Enforce SQLite foreign keys (ON DELETE CASCADE) on every connection
-    App\Doctrine\SqliteForeignKeysMiddleware:
-        tags:
-            - { name: doctrine.middleware }
-
-    App\Service\ChromeDetector:
-        arguments:
-            $overridePath: '%env(APP_CHROME_PATH)%'
-
-    App\Service\Archiver\GhostscriptDetector:
-        arguments:
-            $overridePath: '%env(APP_GHOSTSCRIPT_PATH)%'
-
-    App\Service\Archiver\PdfArchiver:
-        arguments:
-            $compressQuality: '%env(APP_PDF_COMPRESS_QUALITY)%'
-            $logger: '@monolog.logger.archive'
-
-    App\Command\AppCompressPdfsCommand:
-        arguments:
-            $archiveDir: '%env(resolve:APP_ARCHIVE_DIR)%'
-
-    App\Service\Archiver\ArchiveRunner:
-        arguments:
-            $archiveDir: '%env(resolve:APP_ARCHIVE_DIR)%'
-            $archivers: !tagged_iterator app.archiver
-            $logger: '@monolog.logger.archive'
-
-    App\Service\Favicon\FaviconFetcher:
-        arguments:
-            $publicDir: '%kernel.project_dir%/public'
-
-    App\Service\Archiver\PreviewImageFetcher:
-        arguments:
-            $archiveDir: '%env(resolve:APP_ARCHIVE_DIR)%'
-
-    App\Service\Archiver\PdfImageRenderer:
-        arguments:
-            $overridePath: '%env(APP_CONVERT_PATH)%'
-
-    App\Command\AppAiTagPendingCommand:
-        arguments:
-            $enabled: '%env(bool:APP_AI_ENABLED)%'
-            $aiLogger: '@monolog.logger.ai'
-            $callDelayMs: '%env(int:APP_AI_CALL_DELAY_MS)%'
-
-    App\Command\AppAiSummarizePendingCommand:
-        arguments:
-            $enabled: '%env(bool:APP_AI_ENABLED)%'
-            $aiLogger: '@monolog.logger.ai'
-            $callDelayMs: '%env(int:APP_AI_CALL_DELAY_MS)%'
-
-    App\Service\Ai\AutoTagger:
-        arguments:
-            $taggerAgent: '@ai.agent.tagger'
-            $tagLanguage: '%env(APP_AI_TAG_LANG)%'
-
-    App\Service\Ai\AutoSummarizer:
-        arguments:
-            $summarizerAgent: '@ai.agent.summarizer'
-            $language: '%env(APP_AI_TAG_LANG)%'
-
-    App\Service\Ai\FolderOrganizer:
-        arguments:
-            $proposerAgent: '@ai.agent.organizer_proposer'
-            $assignerAgent: '@ai.agent.organizer_assigner'
-            $schemaFactory: '@ai.platform.json_schema_factory'
-            $aiLogger: '@monolog.logger.ai'
-
-    App\Controller\Web\CollectionController:
-        arguments:
-            $aiEnabled: '%env(bool:APP_AI_ENABLED)%'
-
-    App\Controller\Web\CollectionOrganizeController:
-        arguments:
-            $aiLogger: '@monolog.logger.ai'
-
-    App\Service\Ai\AiServerProbe:
-        arguments:
-            $hostUrl: '%env(LM_STUDIO_HOST_URL)%'
-            $enabled: '%env(bool:APP_AI_ENABLED)%'
-
-    App\Twig\FeaturesExtension:
-        arguments:
-            $aiEnabled: '%env(bool:APP_AI_ENABLED)%'
-
-    _instanceof:
-        App\Service\Archiver\AssetArchiverInterface:
-            tags: ['app.archiver']

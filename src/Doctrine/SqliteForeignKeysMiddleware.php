@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Doctrine;
 
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsMiddleware;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Driver\Middleware;
@@ -18,6 +19,7 @@ use Doctrine\DBAL\Driver\Middleware\AbstractDriverMiddleware;
  * This middleware issues `PRAGMA foreign_keys = ON` on every new connection so
  * the database enforces the cascade the schema already asks for.
  */
+#[AsMiddleware]
 final class SqliteForeignKeysMiddleware implements Middleware
 {
     public function wrap(Driver $driver): Driver

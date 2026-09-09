@@ -10,6 +10,7 @@ use App\Repository\LinkRepository;
 use App\Repository\TagRepository;
 use App\Service\ChromeDetector;
 use App\Service\CurrentDashboard;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -22,6 +23,7 @@ final class FeaturesExtension extends AbstractExtension
         private readonly CollectionRepository $collections,
         private readonly TagRepository $tags,
         private readonly LinkRepository $links,
+        #[Autowire('%env(bool:APP_AI_ENABLED)%')]
         private readonly bool $aiEnabled = false,
     ) {
     }

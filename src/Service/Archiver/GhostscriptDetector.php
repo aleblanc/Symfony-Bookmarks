@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Service\Archiver;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+
 /**
  * Locates the Ghostscript (`gs`) binary the same way {@see \App\Service\ChromeDetector}
  * finds Chromium: a fixed candidate list, an optional env override, cached resolution.
@@ -20,6 +22,7 @@ final class GhostscriptDetector
      * @param list<string>|null $extraCandidates for tests
      */
     public function __construct(
+        #[Autowire('%env(APP_GHOSTSCRIPT_PATH)%')]
         private readonly string $overridePath = '',
         ?array $extraCandidates = null,
     ) {

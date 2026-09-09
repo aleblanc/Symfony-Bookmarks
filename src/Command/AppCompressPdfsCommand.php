@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 #[AsCommand(
     name: 'app:compress-pdfs',
@@ -25,6 +26,7 @@ final class AppCompressPdfsCommand extends Command
         private readonly PdfCompressor $compressor,
         private readonly ArchiveAssetRepository $assets,
         private readonly EntityManagerInterface $em,
+        #[Autowire('%env(resolve:APP_ARCHIVE_DIR)%')]
         private readonly string $archiveDir,
     ) {
         parent::__construct();

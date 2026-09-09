@@ -7,6 +7,7 @@ namespace App\Service\Ai;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final class AutoTagger
 {
@@ -17,7 +18,9 @@ final class AutoTagger
     ];
 
     public function __construct(
+        #[Autowire(service: 'ai.agent.tagger')]
         private readonly AgentInterface $taggerAgent,
+        #[Autowire('%env(APP_AI_TAG_LANG)%')]
         private readonly string $tagLanguage = 'fr',
     ) {
     }

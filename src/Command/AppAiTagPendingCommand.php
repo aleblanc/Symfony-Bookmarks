@@ -16,6 +16,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 #[AsCommand(name: 'app:ai-tag-pending', description: 'Auto-tag links with ai_status = pending via the configured LLM agent')]
 #[AsCronTask('*/10 * * * *', description: 'AI-tag pending links')]
@@ -26,8 +27,11 @@ final class AppAiTagPendingCommand extends Command
         private readonly TagRepository $tagRepository,
         private readonly AutoTagger $tagger,
         private readonly EntityManagerInterface $em,
+        #[Autowire(service: 'monolog.logger.ai')]
         private readonly LoggerInterface $aiLogger,
+        #[Autowire('%env(bool:APP_AI_ENABLED)%')]
         private readonly bool $enabled,
+        #[Autowire('%env(int:APP_AI_CALL_DELAY_MS)%')]
         private readonly int $callDelayMs = 0,
     ) {
         parent::__construct();

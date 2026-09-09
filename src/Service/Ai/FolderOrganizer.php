@@ -15,19 +15,24 @@ use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Platform\Contract\JsonSchema\Factory as JsonSchemaFactory;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 
 final class FolderOrganizer
 {
     public function __construct(
+        #[Autowire(service: 'ai.agent.organizer_proposer')]
         private readonly AgentInterface $proposerAgent,
+        #[Autowire(service: 'ai.agent.organizer_assigner')]
         private readonly AgentInterface $assignerAgent,
+        #[Autowire(service: 'ai.platform.json_schema_factory')]
         private readonly JsonSchemaFactory $schemaFactory,
         private readonly SerializerInterface $serializer,
         private readonly LinkRepository $links,
         private readonly CollectionRepository $collections,
         private readonly EntityManagerInterface $em,
+        #[Autowire(service: 'monolog.logger.ai')]
         private readonly LoggerInterface $aiLogger,
     ) {
     }

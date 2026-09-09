@@ -7,6 +7,7 @@ namespace App\Service\Archiver;
 use App\Entity\ArchiveAsset;
 use App\Service\ChromeDetector;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Process;
 
 final class PdfArchiver implements AssetArchiverInterface
@@ -14,7 +15,9 @@ final class PdfArchiver implements AssetArchiverInterface
     public function __construct(
         private readonly ChromeDetector $chrome,
         private readonly PdfCompressor $compressor,
+        #[Autowire(service: 'monolog.logger.archive')]
         private readonly LoggerInterface $logger,
+        #[Autowire('%env(APP_PDF_COMPRESS_QUALITY)%')]
         private readonly string $compressQuality = 'ebook',
     ) {
     }

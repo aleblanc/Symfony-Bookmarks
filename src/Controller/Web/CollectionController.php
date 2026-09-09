@@ -11,6 +11,7 @@ use App\Repository\LinkRepository;
 use App\Service\CurrentDashboard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,6 +24,7 @@ final class CollectionController extends AbstractController
         private readonly LinkRepository $links,
         private readonly CurrentDashboard $current,
         private readonly EntityManagerInterface $em,
+        #[Autowire('%env(bool:APP_AI_ENABLED)%')]
         private readonly bool $aiEnabled = false,
     ) {
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Favicon;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -12,6 +13,7 @@ final class FaviconFetcher
     private HttpClientInterface $http;
 
     public function __construct(
+        #[Autowire('%kernel.project_dir%/public')]
         private readonly string $publicDir,
         ?HttpClientInterface $http = null,
     ) {

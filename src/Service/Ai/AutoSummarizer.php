@@ -7,13 +7,16 @@ namespace App\Service\Ai;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final class AutoSummarizer
 {
     private const LANGUAGES = ['fr' => 'French', 'en' => 'English'];
 
     public function __construct(
+        #[Autowire(service: 'ai.agent.summarizer')]
         private readonly AgentInterface $summarizerAgent,
+        #[Autowire('%env(APP_AI_TAG_LANG)%')]
         private readonly string $language = 'fr',
     ) {
     }
