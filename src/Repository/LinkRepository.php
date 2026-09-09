@@ -93,7 +93,7 @@ final class LinkRepository extends ServiceEntityRepository
     /** @return list<Link> dead links (last check was 404/410) for the dashboard, sorted by URL */
     public function findDeadForDashboard(Dashboard $dashboard): array
     {
-        return $this->createQueryBuilder('l')
+        return $this->hydrateCards($this->createQueryBuilder('l')
             ->join('l.collection', 'c')
             ->andWhere('c.dashboard = :d')
             ->andWhere('l.healthStatus = :dead')
@@ -101,13 +101,13 @@ final class LinkRepository extends ServiceEntityRepository
             ->setParameter('dead', Link::HEALTH_DEAD)
             ->orderBy('l.url', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult());
     }
 
     /** @return list<Link> unreachable links (last check failed at transport level) for the dashboard */
     public function findUnreachableForDashboard(Dashboard $dashboard): array
     {
-        return $this->createQueryBuilder('l')
+        return $this->hydrateCards($this->createQueryBuilder('l')
             ->join('l.collection', 'c')
             ->andWhere('c.dashboard = :d')
             ->andWhere('l.healthStatus = :err')
@@ -115,7 +115,7 @@ final class LinkRepository extends ServiceEntityRepository
             ->setParameter('err', Link::HEALTH_ERROR)
             ->orderBy('l.url', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult());
     }
 
     public function countDeadForDashboard(Dashboard $dashboard): int
@@ -226,7 +226,7 @@ final class LinkRepository extends ServiceEntityRepository
             $qb->andWhere('l.id '.('ASC' === $order ? '>' : '<').' :cursor')->setParameter('cursor', $cursor);
         }
 
-        return $qb->getQuery()->getResult();
+        return $this->hydrateCards($qb->getQuery()->getResult());
     }
 
     /** Records a click via a direct UPDATE (bypasses the encrypt lifecycle listener). */
@@ -246,20 +246,20 @@ final class LinkRepository extends ServiceEntityRepository
     /** @return list<Link> most recently clicked links of a dashboard */
     public function findRecentlyClicked(Dashboard $dashboard, int $limit = 8): array
     {
-        return $this->createQueryBuilder('l')
+        return $this->hydrateCards($this->createQueryBuilder('l')
             ->join('l.collection', 'c')
             ->andWhere('c.dashboard = :d AND l.lastClickedAt IS NOT NULL')
             ->setParameter('d', $dashboard)
             ->orderBy('l.lastClickedAt', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
-            ->getResult();
+            ->getResult());
     }
 
     /** @return list<Link> most clicked links of a dashboard */
     public function findMostClicked(Dashboard $dashboard, int $limit = 8): array
     {
-        return $this->createQueryBuilder('l')
+        return $this->hydrateCards($this->createQueryBuilder('l')
             ->join('l.collection', 'c')
             ->andWhere('c.dashboard = :d AND l.clickCount > 0')
             ->setParameter('d', $dashboard)
@@ -267,19 +267,19 @@ final class LinkRepository extends ServiceEntityRepository
             ->addOrderBy('l.lastClickedAt', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
-            ->getResult();
+            ->getResult());
     }
 
     /** @return list<Link> most recently added links of a collection */
     public function findRecentForCollection(Collection $collection, int $limit = 4): array
     {
-        return $this->createQueryBuilder('l')
+        return $this->hydrateCards($this->createQueryBuilder('l')
             ->andWhere('l.collection = :c')
             ->setParameter('c', $collection)
             ->orderBy('l.id', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
-            ->getResult();
+            ->getResult());
     }
 
     /**
@@ -298,7 +298,7 @@ final class LinkRepository extends ServiceEntityRepository
             $qb->setMaxResults($limit);
         }
 
-        return $qb->getQuery()->getResult();
+        return $this->hydrateCards($qb->getQuery()->getResult());
     }
 
     /**
@@ -317,7 +317,7 @@ final class LinkRepository extends ServiceEntityRepository
             $qb->setMaxResults($limit);
         }
 
-        return $qb->getQuery()->getResult();
+        return $this->hydrateCards($qb->getQuery()->getResult());
     }
 
     /**
@@ -331,11 +331,42 @@ final class LinkRepository extends ServiceEntityRepository
             return [];
         }
 
-        return $this->createQueryBuilder('l')
+        return $this->hydrateCards($this->createQueryBuilder('l')
             ->andWhere('l.id IN (:ids)')
             ->setParameter('ids', $ids)
             ->orderBy('l.id', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult());
+    }
+
+    /**
+     * Batch-load the tags and assets of the given links so rendering a list of
+     * cards (`links/_card.html.twig` reads `link.tags` and `link.getAsset()`)
+     * does not trigger ~3 lazy queries per card. Two extra queries total instead
+     * of 3×N. Kept as separate joins to avoid a tags×assets cartesian product.
+     * The links are already managed, so Doctrine populates their collections in
+     * the identity map; the returned array preserves the input order.
+     *
+     * @param list<Link> $links
+     *
+     * @return list<Link>
+     */
+    private function hydrateCards(array $links): array
+    {
+        if ([] === $links) {
+            return $links;
+        }
+
+        $this->createQueryBuilder('l')
+            ->leftJoin('l.tags', 't')->addSelect('t')
+            ->andWhere('l IN (:links)')->setParameter('links', $links)
+            ->getQuery()->getResult();
+
+        $this->createQueryBuilder('l')
+            ->leftJoin('l.assets', 'a')->addSelect('a')
+            ->andWhere('l IN (:links)')->setParameter('links', $links)
+            ->getQuery()->getResult();
+
+        return $links;
     }
 }
