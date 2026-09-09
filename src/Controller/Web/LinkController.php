@@ -64,7 +64,7 @@ final class LinkController extends AbstractController
     public function new(Request $request): Response
     {
         $dashboard = $this->current->get();
-        $collections = $this->collections->findForDashboard($dashboard);
+        $collections = $this->collections->findForDashboardTreeOrder($dashboard);
         if ($request->isMethod('POST')) {
             $url = trim((string) $request->request->get('url', ''));
             $collectionId = (int) $request->request->get('collection', 0);
@@ -94,7 +94,7 @@ final class LinkController extends AbstractController
     {
         $link = $this->links->find($id) ?? throw $this->createNotFoundException();
         $dashboard = $this->current->get();
-        $collections = $this->collections->findForDashboard($dashboard);
+        $collections = $this->collections->findForDashboardTreeOrder($dashboard);
 
         if ($request->isMethod('POST')) {
             $url = trim((string) $request->request->get('url', ''));

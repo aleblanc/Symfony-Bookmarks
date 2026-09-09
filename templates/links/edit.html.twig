@@ -9,7 +9,7 @@
             <input class="input" type="text" name="name" value="{{ link.name }}"></label>
         <label class="field"><span>{{ 'link.field_collection'|trans }}</span>
             <select class="input" name="collection" required>
-                {% for c in collections %}<option value="{{ c.id }}" {{ c.id == link.collection.id ? 'selected' : '' }}>{% for a in c.ancestors %}{{ a.name }} / {% endfor %}{{ c.name }}</option>{% endfor %}
+                {% for c in collections %}<option value="{{ c.id }}" {{ c.id == link.collection.id ? 'selected' : '' }}>{% for a in c.ancestors %}{{ a.name }} → {% endfor %}{{ c.name }}</option>{% endfor %}
             </select>
         </label>
         {% if link.isDead %}
