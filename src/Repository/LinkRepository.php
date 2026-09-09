@@ -292,7 +292,8 @@ final class LinkRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('l')
             ->andWhere('l.collection = :c')
             ->setParameter('c', $collection)
-            ->orderBy('l.id', 'ASC');
+            ->orderBy('l.clickCount', 'DESC')
+            ->addOrderBy('l.id', 'DESC');
         if (null !== $limit) {
             $qb->setMaxResults($limit);
         }
