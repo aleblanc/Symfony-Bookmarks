@@ -30,6 +30,10 @@ final class CollectionOrganizeController extends AbstractController
     {
         $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
 
+        // LLM generation over a large folder can take well over PHP's default
+        // 30s max_execution_time. This is a deliberate, user-triggered action.
+        set_time_limit(180);
+
         try {
             $proposal = $this->organizer->proposeCategories($collection);
         } catch (\Throwable $e) {
@@ -62,6 +66,8 @@ final class CollectionOrganizeController extends AbstractController
         if ('' === $name) {
             return $this->redirectToRoute('collections_show', ['id' => $id]);
         }
+
+        set_time_limit(180);
 
         // Phase-1 proposals are carried in a hidden field so we NEVER re-run the
         // expensive phase-1 analysis when the user tries another folder.
