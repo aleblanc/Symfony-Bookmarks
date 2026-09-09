@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use App\Repository\CollectionRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CollectionRepository::class)]
 #[ORM\Table(name: 'collections')]
@@ -17,12 +18,16 @@ class Collection
     private ?int $id = null;
 
     #[ORM\Column(length: 128)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 128)]
     private string $name;
 
     #[ORM\Column(length: 500, nullable: true)]
+    #[Assert\Length(max: 500)]
     private ?string $description = null;
 
     #[ORM\Column(length: 16)]
+    #[Assert\CssColor([Assert\CssColor::HEX_LONG, Assert\CssColor::HEX_SHORT])]
     private string $color = '#0ea5e9';
 
     #[ORM\Column(length: 4)]

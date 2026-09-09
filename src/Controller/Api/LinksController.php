@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class LinksController extends AbstractApiController
 {
@@ -21,6 +22,7 @@ final class LinksController extends AbstractApiController
         private readonly CollectionRepository $collections,
         private readonly LinkSearch $search,
         private readonly EntityManagerInterface $em,
+        private readonly ValidatorInterface $validator,
     ) {
     }
 
@@ -70,10 +72,6 @@ final class LinksController extends AbstractApiController
         if (!\is_array($body)) {
             return $this->fail('invalid json');
         }
-        $url = trim((string) ($body['url'] ?? ''));
-        if ('' === $url || false === filter_var($url, \FILTER_VALIDATE_URL)) {
-            return $this->fail('valid url required');
-        }
         $collectionId = $body['collection']['id'] ?? $body['collectionId'] ?? null;
         $collection = null !== $collectionId
             ? $this->collections->find((int) $collectionId)
@@ -81,13 +79,19 @@ final class LinksController extends AbstractApiController
         if (null === $collection) {
             return $this->fail('no collection available');
         }
-        $link = new Link($url, $collection);
+        $link = new Link(trim((string) ($body['url'] ?? '')), $collection);
         if (!empty($body['name'])) {
             $link->setName((string) $body['name']);
         }
         if (!empty($body['description'])) {
             $link->setDescription((string) $body['description']);
         }
+
+        // Validate against the entity's #[Assert] constraints (shared with the Web UI).
+        foreach ($this->validator->validate($link) as $error) {
+            return $this->fail((string) $error->getMessage());
+        }
+
         $this->em->persist($link);
         $this->em->flush();
 
@@ -111,6 +115,11 @@ final class LinksController extends AbstractApiController
         if (\array_key_exists('url', $body)) {
             $link->setUrl((string) $body['url']);
         }
+
+        foreach ($this->validator->validate($link) as $error) {
+            return $this->fail((string) $error->getMessage());
+        }
+
         $this->em->flush();
 
         return $this->ok($this->serialize($link));

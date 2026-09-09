@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class LinkController extends AbstractController
 {
@@ -28,6 +29,7 @@ final class LinkController extends AbstractController
         private readonly LinkSearch $search,
         private readonly EntityManagerInterface $em,
         private readonly ArchiveAssetRepository $assets,
+        private readonly ValidatorInterface $validator,
     ) {
     }
 
@@ -66,19 +68,22 @@ final class LinkController extends AbstractController
         $dashboard = $this->current->get();
         $collections = $this->collections->findForDashboardTreeOrder($dashboard);
         if ($request->isMethod('POST')) {
-            $url = trim($request->request->getString('url'));
             $collectionId = $request->request->getInt('collection');
             $collection = 0 === $collectionId ? null : $this->collections->find($collectionId);
-            if ('' !== $url && null !== $collection && false !== filter_var($url, \FILTER_VALIDATE_URL)) {
-                $link = new Link($url, $collection);
+            if (null === $collection) {
+                $this->addFlash('error', 'link.need_collection');
+            } else {
+                $link = new Link(trim($request->request->getString('url')), $collection);
                 $name = trim($request->request->getString('name'));
                 if ('' !== $name) {
                     $link->setName($name);
                 }
-                $this->em->persist($link);
-                $this->em->flush();
+                if ($this->isValid($link)) {
+                    $this->em->persist($link);
+                    $this->em->flush();
 
-                return $this->redirectToRoute('links_index');
+                    return $this->redirectToRoute('links_index');
+                }
             }
         }
 
@@ -96,24 +101,27 @@ final class LinkController extends AbstractController
         $collections = $this->collections->findForDashboardTreeOrder($dashboard);
 
         if ($request->isMethod('POST')) {
-            $url = trim($request->request->getString('url'));
             $collectionId = $request->request->getInt('collection');
             $collection = 0 === $collectionId ? null : $this->collections->find($collectionId);
-            if ('' !== $url && null !== $collection && false !== filter_var($url, \FILTER_VALIDATE_URL)) {
-                $link->setUrl($url);
+            if (null === $collection) {
+                $this->addFlash('error', 'link.need_collection');
+            } else {
+                $link->setUrl(trim($request->request->getString('url')));
                 $link->setCollection($collection);
                 $name = trim($request->request->getString('name'));
                 $link->setName('' !== $name ? $name : null);
 
-                // Editing "un-deadifies" the link: clear the health verdict so it drops
-                // out of the dead list and is re-checked fresh on the next run.
-                $link->setHealthStatus(Link::HEALTH_UNKNOWN);
-                $link->setHttpStatus(null);
-                $link->setHealthCheckedAt(null);
+                if ($this->isValid($link)) {
+                    // Editing "un-deadifies" the link: clear the health verdict so it drops
+                    // out of the dead list and is re-checked fresh on the next run.
+                    $link->setHealthStatus(Link::HEALTH_UNKNOWN);
+                    $link->setHttpStatus(null);
+                    $link->setHealthCheckedAt(null);
 
-                $this->em->flush();
+                    $this->em->flush();
 
-                return $this->redirectToRoute('links_show', ['id' => $link->getId()]);
+                    return $this->redirectToRoute('links_show', ['id' => $link->getId()]);
+                }
             }
         }
 
@@ -186,5 +194,16 @@ final class LinkController extends AbstractController
         $this->em->flush();
 
         return $this->redirectToRoute('links_show', ['id' => $link->getId()]);
+    }
+
+    /** Validate the entity against its #[Assert] constraints; flash each violation. */
+    private function isValid(Link $link): bool
+    {
+        $errors = $this->validator->validate($link);
+        foreach ($errors as $error) {
+            $this->addFlash('error', $error->getMessage());
+        }
+
+        return 0 === \count($errors);
     }
 }

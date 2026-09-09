@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class CollectionController extends AbstractController
 {
@@ -25,6 +26,7 @@ final class CollectionController extends AbstractController
         private readonly LinkRepository $links,
         private readonly CurrentDashboard $current,
         private readonly EntityManagerInterface $em,
+        private readonly ValidatorInterface $validator,
         #[Autowire('%env(bool:APP_AI_ENABLED)%')]
         private readonly bool $aiEnabled = false,
     ) {
@@ -88,13 +90,15 @@ final class CollectionController extends AbstractController
                 $parent = $this->resolveParent($request->request->get('parent'), $dashboard);
                 $collection->setParent($parent);
                 $collection->setSkipProcessing($request->request->getBoolean('skip_processing'));
-                $this->em->persist($collection);
-                $this->em->flush();
+                if ($this->isValid($collection)) {
+                    $this->em->persist($collection);
+                    $this->em->flush();
 
-                return $this->redirectToRoute(
-                    null !== $parent ? 'collections_show' : 'collections_index',
-                    null !== $parent ? ['id' => $parent->getId()] : [],
-                );
+                    return $this->redirectToRoute(
+                        null !== $parent ? 'collections_show' : 'collections_index',
+                        null !== $parent ? ['id' => $parent->getId()] : [],
+                    );
+                }
             }
         }
 
@@ -140,9 +144,11 @@ final class CollectionController extends AbstractController
                 }
                 $collection->setParent($parent);
                 $collection->setSkipProcessing($request->request->getBoolean('skip_processing'));
-                $this->em->flush();
+                if ($this->isValid($collection)) {
+                    $this->em->flush();
 
-                return $this->redirectToRoute('collections_show', ['id' => $collection->getId()]);
+                    return $this->redirectToRoute('collections_show', ['id' => $collection->getId()]);
+                }
             }
         }
 
@@ -255,6 +261,17 @@ final class CollectionController extends AbstractController
             $this->deleteRecursively($child);
         }
         $this->em->remove($collection);
+    }
+
+    /** Validate the entity against its #[Assert] constraints; flash each violation. */
+    private function isValid(Collection $collection): bool
+    {
+        $errors = $this->validator->validate($collection);
+        foreach ($errors as $error) {
+            $this->addFlash('error', $error->getMessage());
+        }
+
+        return 0 === \count($errors);
     }
 
     private function resolveParent(mixed $rawId, Dashboard $dashboard): ?Collection

@@ -8,6 +8,7 @@ use App\Repository\LinkRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection as DoctrineCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LinkRepository::class)]
 #[ORM\Table(name: 'links')]
@@ -46,9 +47,13 @@ class Link
     private ?int $id = null;
 
     #[ORM\Column(length: 2048)]
+    #[Assert\NotBlank]
+    #[Assert\Url(protocols: ['http', 'https'])]
+    #[Assert\Length(max: 2048)]
     private string $url;
 
     #[ORM\Column(length: 500, nullable: true)]
+    #[Assert\Length(max: 500)]
     private ?string $name = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
