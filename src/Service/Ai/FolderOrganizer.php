@@ -30,6 +30,12 @@ final class FolderOrganizer
      */
     private const NO_THINK = "\n\n/no_think";
 
+    /** Max bookmarks sent to the model (~130-item threshold before Channel Error). */
+    private const MAX_LINKS = 120;
+
+    /** Max characters kept per title (shorter = smaller prompt, less reasoning). */
+    private const TITLE_MAX = 50;
+
     public function __construct(
         #[Autowire(service: 'ai.agent.organizer_proposer')]
         private readonly AgentInterface $proposerAgent,
@@ -49,13 +55,28 @@ final class FolderOrganizer
     /**
      * Compact, token-cheap representation of a collection's links for the LLM.
      *
+     * Capped at MAX_LINKS: past ~130 items this VL model spends its whole token
+     * budget reasoning and never emits the final answer, which LM Studio rejects
+     * with a "Channel Error" 400. Beyond the cap, links are left out (the user can
+     * still file them by hand); the overflow is logged, never silently dropped.
+     *
      * @return array{lines: string, ids: list<int>}
      */
     public function buildBookmarkList(Collection $collection): array
     {
+        $all = $this->links->findForCollection($collection);
+        $links = \array_slice($all, 0, self::MAX_LINKS);
+        if (\count($all) > self::MAX_LINKS) {
+            $this->aiLogger->warning('organizer: link list capped', [
+                'collection' => $collection->getId(),
+                'total' => \count($all),
+                'sent' => self::MAX_LINKS,
+            ]);
+        }
+
         $lines = [];
         $ids = [];
-        foreach ($this->links->findForCollection($collection) as $link) {
+        foreach ($links as $link) {
             $id = (int) $link->getId();
             $title = trim((string) ($link->getName() ?? '')) ?: $link->getUrl();
             $lines[] = '#'.$id.' '.self::sanitizeTitle($title);
@@ -79,7 +100,7 @@ final class FolderOrganizer
         $title = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $title) ?? $title;
         $title = preg_replace('/\s+/u', ' ', $title) ?? $title;
 
-        return trim(mb_substr(trim($title), 0, 80));
+        return trim(mb_substr(trim($title), 0, self::TITLE_MAX));
     }
 
     /** Phase 1: ask the LLM to propose sub-folders for this collection. */
