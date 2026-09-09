@@ -21,6 +21,15 @@ use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 
 final class FolderOrganizer
 {
+    /**
+     * Qwen3's soft switch to disable its reasoning mode for this turn. Without it,
+     * on a large folder the model spends its whole token budget "thinking" and
+     * never emits the final answer channel — LM Studio then 400s with a
+     * "Channel Error". Appended to every organizer prompt; harmless on models
+     * that don't recognise it.
+     */
+    private const NO_THINK = "\n\n/no_think";
+
     public function __construct(
         #[Autowire(service: 'ai.agent.organizer_proposer')]
         private readonly AgentInterface $proposerAgent,
@@ -79,16 +88,12 @@ final class FolderOrganizer
         $list = $this->buildBookmarkList($collection);
         $prompt = "Bookmarks to organize:\n".$list['lines']
             ."\n\nRespond with JSON matching this schema:\n"
-            .json_encode($this->schemaFactory->buildProperties(CategoryProposal::class), \JSON_THROW_ON_ERROR);
+            .json_encode($this->schemaFactory->buildProperties(CategoryProposal::class), \JSON_THROW_ON_ERROR)
+            .self::NO_THINK;
 
-        // Try native structured output (response_format); if the model returns a
-        // hydrated object, use it directly. Otherwise fall back to parsing the
-        // JSON out of the text — robust across any OpenAI-compatible model.
-        // Cap the reply so a big folder stays well under the request timeout.
-        // Moderate temperature: enough that "Regenerate" varies the proposals, but
-        // low enough to avoid the degenerate output that makes LM Studio 400
-        // ("Channel Error") at high temperature.
-        $content = $this->callAi($this->proposerAgent, $prompt, 1200, CategoryProposal::class, 0.4);
+        // Moderate temperature so "Regenerate" varies the proposals without pushing
+        // the model into degenerate output.
+        $content = $this->callAi($this->proposerAgent, $prompt, 2000, CategoryProposal::class, 0.4);
         if ($content instanceof CategoryProposal) {
             return $content;
         }
@@ -117,11 +122,12 @@ final class FolderOrganizer
         $prompt = 'Target folder: '.$categoryName."\nDescription: ".$categoryDescription
             ."\n\nBookmarks:\n".$list['lines']
             ."\n\nRespond with JSON matching this schema:\n"
-            .json_encode($this->schemaFactory->buildProperties(LinkAssignment::class), \JSON_THROW_ON_ERROR);
+            .json_encode($this->schemaFactory->buildProperties(LinkAssignment::class), \JSON_THROW_ON_ERROR)
+            .self::NO_THINK;
 
         // Low temperature by default (stable assignment); the controller raises it
         // on each "Regenerate" so a retry explores a different selection.
-        $content = $this->callAi($this->assignerAgent, $prompt, 1500, LinkAssignment::class, $temperature);
+        $content = $this->callAi($this->assignerAgent, $prompt, 2000, LinkAssignment::class, $temperature);
         if ($content instanceof LinkAssignment) {
             return self::keepKnownIds(array_map('intval', $content->linkIds), $list['ids']);
         }
