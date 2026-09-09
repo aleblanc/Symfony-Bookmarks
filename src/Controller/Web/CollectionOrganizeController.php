@@ -12,6 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class CollectionOrganizeController extends AbstractController
 {
@@ -20,6 +21,7 @@ final class CollectionOrganizeController extends AbstractController
         private readonly LinkRepository $links,
         private readonly FolderOrganizer $organizer,
         private readonly LoggerInterface $aiLogger,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -32,7 +34,7 @@ final class CollectionOrganizeController extends AbstractController
             $proposal = $this->organizer->proposeCategories($collection);
         } catch (\Throwable $e) {
             $this->aiLogger->error('organizer propose failed', ['collection' => $id, 'exception' => $e->getMessage()]);
-            $this->addFlash('error', 'collection.organize_failed');
+            $this->addFlash('error', $this->translator->trans('collection.organize_failed').' — '.$e->getMessage());
 
             return $this->redirectToRoute('collections_show', ['id' => $id]);
         }
@@ -70,7 +72,7 @@ final class CollectionOrganizeController extends AbstractController
             $ids = $this->organizer->assignLinks($collection, $name, $description);
         } catch (\Throwable $e) {
             $this->aiLogger->error('organizer assign failed', ['collection' => $id, 'exception' => $e->getMessage()]);
-            $this->addFlash('error', 'collection.organize_failed');
+            $this->addFlash('error', $this->translator->trans('collection.organize_failed').' — '.$e->getMessage());
 
             return $this->redirectToRoute('collections_show', ['id' => $id]);
         }
