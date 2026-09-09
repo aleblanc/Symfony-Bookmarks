@@ -44,7 +44,9 @@ final class FolderOrganizer
         foreach ($this->links->findForCollection($collection) as $link) {
             $id = (int) $link->getId();
             $title = trim((string) ($link->getName() ?? '')) ?: $link->getUrl();
-            $lines[] = '#'.$id.' '.$title;
+            // Keep the prompt compact: long titles inflate the token count and
+            // leave less room for the model's JSON reply within its context window.
+            $lines[] = '#'.$id.' '.mb_substr($title, 0, 80);
             $ids[] = $id;
         }
 
