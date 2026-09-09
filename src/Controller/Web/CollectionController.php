@@ -23,6 +23,7 @@ final class CollectionController extends AbstractController
         private readonly LinkRepository $links,
         private readonly CurrentDashboard $current,
         private readonly EntityManagerInterface $em,
+        private readonly bool $aiEnabled = false,
     ) {
     }
 
@@ -58,6 +59,7 @@ final class CollectionController extends AbstractController
             'children' => $this->collections->findChildren($collection),
             'links' => $this->links->findForCollection($collection),
             'merge_targets' => $mergeTargets,
+            'ai_enabled' => $this->aiEnabled,
         ]);
     }
 

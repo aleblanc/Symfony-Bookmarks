@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+{% block title %}🪄🤖 {{ 'collection.organize_title'|trans }} — {{ collection.name }}{% endblock %}
+{% block body %}
+    <header class="top">
+        <h1>🪄🤖 {{ 'collection.organize_title'|trans }}</h1>
+        <a class="btn btn-sm" href="{{ path('collections_show', {id: collection.id}) }}">{{ 'common.back'|trans }}</a>
+    </header>
+    <p class="muted">{{ 'collection.organize_intro'|trans({'%folder%': collection.name}) }}</p>
+
+    {% if categories is empty %}
+        <p class="muted">{{ 'collection.organize_empty'|trans }}</p>
+    {% else %}
+        {# Phase 1 — proposals stay on top; clicking one runs phase 2 below without re-analysing. #}
+        <section>
+            <h2>{{ 'collection.organize_proposals'|trans }}</h2>
+            <div class="cards">
+                {% for cat in categories %}
+                    <article class="card">
+                        <h3 style="margin:0 0 6px;">{{ cat.name }}</h3>
+                        {% if cat.description %}<p class="muted">{{ cat.description }}</p>{% endif %}
+                        {% if cat.exampleTitles is not empty %}
+                            <ul class="muted" style="margin:6px 0 0; padding-left:18px;">
+                                {% for ex in cat.exampleTitles %}<li>{{ ex }}</li>{% endfor %}
+                            </ul>
+                        {% endif %}
+                        <form class="row" method="post" action="{{ path('collections_organize_assign', {id: collection.id}) }}" style="margin-top:12px;">
+                            <input type="hidden" name="name" value="{{ cat.name }}">
+                            <input type="hidden" name="description" value="{{ cat.description }}">
+                            <input type="hidden" name="proposal" value="{{ proposal_json }}">
+                            <button class="btn btn-sm {{ selection == cat.name ? 'btn-primary' : '' }}" type="submit">
+                                {{ 'collection.organize_pick'|trans }}
+                            </button>
+                        </form>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {# Phase 2 — result for the picked folder, shown below the proposals. #}
+    {% if selection is not null %}
+        <section style="margin-top:24px;">
+            <h2>{{ 'collection.organize_review'|trans({'%folder%': selection}) }}</h2>
+            {% if selected_links is empty %}
+                <p class="muted">{{ 'collection.organize_none_selected'|trans }}</p>
+            {% else %}
+                <p class="muted">{{ 'collection.organize_count'|trans({'%count%': selected_links|length}) }}</p>
+                <form method="post" action="{{ path('collections_organize_apply', {id: collection.id}) }}">
+                    <label class="field"><span>{{ 'collection.organize_folder_name'|trans }}</span>
+                        <input class="input" type="text" name="name" value="{{ selection }}" required style="max-width:320px;"></label>
+                    <div class="cards" style="margin-top:12px;">
+                        {% for link in selected_links %}
+                            <label class="card field-check" style="display:flex; gap:8px; align-items:center;">
+                                <input type="checkbox" name="link_ids[]" value="{{ link.id }}" checked>
+                                <span>{{ link.name ?: link.url }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <button class="btn btn-primary" type="submit" style="margin-top:12px;">
+                        {{ 'collection.organize_apply'|trans }}
+                    </button>
+                </form>
+            {% endif %}
+        </section>
+    {% endif %}
+{% endblock %}

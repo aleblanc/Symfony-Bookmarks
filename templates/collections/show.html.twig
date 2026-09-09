@@ -66,6 +66,11 @@
                 <button class="btn btn-sm" type="submit">🔀 {{ 'collection.merge'|trans }}</button>
             </form>
         {% endif %}
+        {% if ai_enabled and links is not empty %}
+            <form class="inline" method="post" action="{{ path('collections_organize', {id: collection.id}) }}">
+                <button class="btn btn-sm" type="submit" title="{{ 'collection.organize'|trans }}">🪄🤖 {{ 'collection.organize'|trans }}</button>
+            </form>
+        {% endif %}
         <form class="inline" method="post" action="{{ path('collections_delete', {id: collection.id}) }}" onsubmit="return confirm('{{ 'collection.confirm_delete'|trans }}');">
             <button class="btn btn-sm btn-danger" type="submit">{{ 'common.delete'|trans }}</button>
         </form>

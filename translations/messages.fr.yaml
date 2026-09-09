@@ -32,7 +32,7 @@ sidebar:
 
 theme:
     day: 'Jour'
-    sepia: 'Sépia'
+    sepia: 'Chaud'
     night: 'Nuit'
 
 common:
@@ -143,6 +143,18 @@ collection:
     merge: 'Fusionner'
     merge_into: 'Fusionner dans…'
     confirm_merge: 'Fusionner ce dossier dans le dossier choisi ? Ses liens et sous-dossiers y seront déplacés, puis ce dossier sera supprimé.'
+    organize: 'Ranger avec l''IA'
+    organize_title: 'Ranger le dossier avec l''IA'
+    organize_intro: 'Sous-dossiers proposés pour « %folder% ». Clique sur l''un pour voir quels liens y mettre ; tu peux en essayer plusieurs.'
+    organize_proposals: 'Sous-dossiers proposés'
+    organize_pick: 'Voir les liens'
+    organize_review: 'Liens proposés pour « %folder% »'
+    organize_count: '%count% lien(s) proposé(s)'
+    organize_none_selected: 'L''IA n''a retenu aucun lien pour ce dossier. Essaie une autre proposition ci-dessus.'
+    organize_folder_name: 'Nom du dossier à créer'
+    organize_apply: 'Créer le dossier et y déplacer les liens'
+    organize_empty: 'Aucune suggestion.'
+    organize_failed: 'Le service IA est indisponible. Réessaie plus tard.'
     field_name: 'Nom'
     field_parent: 'Dossier parent'
     no_parent: 'Racine (aucun parent)'

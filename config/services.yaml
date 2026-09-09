@@ -88,6 +88,17 @@ services:
             $summarizerAgent: '@ai.agent.summarizer'
             $language: '%env(APP_AI_TAG_LANG)%'
 
+    App\Service\Ai\FolderOrganizer:
+        arguments:
+            $proposerAgent: '@ai.agent.organizer_proposer'
+            $assignerAgent: '@ai.agent.organizer_assigner'
+            $schemaFactory: '@ai.platform.json_schema_factory'
+            $aiLogger: '@monolog.logger.ai'
+
+    App\Controller\Web\CollectionController:
+        arguments:
+            $aiEnabled: '%env(bool:APP_AI_ENABLED)%'
+
     _instanceof:
         App\Service\Archiver\AssetArchiverInterface:
             tags: ['app.archiver']
