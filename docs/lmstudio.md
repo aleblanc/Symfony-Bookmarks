@@ -25,6 +25,13 @@ for the folder organizer**:
 more headroom). A Qwen3-VL-8B in Q4 easily supports this; the model itself
 advertises support up to 262144 tokens.
 
+> Once the context is large enough, the organizer also uses LM Studio's native
+> **structured output** (`response_format` / JSON schema), which is *faster* and
+> guarantees valid JSON. The code keeps a text-parsing fallback, so a model that
+> doesn't support structured output still works — it just needs the room to
+> generate the full reply. The model's `output-structured` capability must be
+> declared in `config/packages/ai.yaml` (already set for `qwen3-vl-8b-instruct`).
+
 ## Where to change it (LM Studio 0.3.x)
 
 The context length is a **load-time** setting, so it is edited either in the
