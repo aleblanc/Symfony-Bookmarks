@@ -20,6 +20,14 @@ lien : requête HTTP, si le lien est HS (404, timeout, DNS, 5xx…) le marquer c
 
 ## 2. Section « À trier » + catégorisation IA
 
+> **Partiellement implémenté (2026-09-09)** : rangement en masse d'un dossier
+> existant via le bouton 🪄🤖 « Ranger avec l'IA » (agents `organizer_proposer`
+> / `organizer_assigner`, service `FolderOrganizer`, contrôleur
+> `CollectionOrganizeController`). Page unique : propositions de sous-dossiers en
+> haut (réessayables sans relancer l'analyse), liens proposés + application en
+> dessous. Reste à faire : la file « À trier » automatique pour les liens sans
+> collection.
+
 Un **dossier / statut spécial « À trier »** pour les liens sans collection
 pertinente (ou tout juste ajoutés via l'extension), avec une **IA qui tourne et
 propose un nom de catégorie existante** (une collection déjà créée) où ranger le

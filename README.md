@@ -40,6 +40,7 @@ Goals:
 - **Nested collections** with manual ordering: reorder siblings via first / up / middle (🎯) / down / last buttons. The dashboard shows only top-level folders; folder pickers list folders in hierarchical (tree) order so a deep sub-folder never appears before its parent.
 - **Per-folder appearance**: pick an emoji icon (searchable picker, ~80 icons) and a color — the icon is rendered in a chip tinted with the folder's color.
 - **Smart link ordering**: the dashboard surfaces recently-clicked, most-clicked and newest links; inside a collection, links are listed most-clicked first, then most-recently-added.
+- **AI folder organizer**: on a collection, "🪄🤖 Organize with AI" proposes sub-folders (with example links), then — for a chosen folder — lists which links to move; the proposals stay on screen so you can try several folders, and you review before applying (creates the sub-folder + moves the links). Uses the same remote LM Studio stack, gated by `APP_AI_ENABLED`.
 - Runtime detection of Chromium: features gracefully disable in the UI when tooling is absent.
 - Encrypted vault protecting selected collections (URL + title + description + text ciphered at rest).
 - Web UI in Twig (no npm build required — CSS is inline).
