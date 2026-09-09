@@ -126,18 +126,30 @@ final class FolderOrganizer
      * Call the agent and return its raw content — a hydrated object when the
      * model honours structured output (response_format), or a string otherwise.
      *
+     * LM Studio's grammar-constrained structured output intermittently returns
+     * 400 (especially at higher temperature). We try it first (fast, enforced)
+     * and, on any failure, retry once as a plain completion — which the callers
+     * already parse from text. Only a double failure surfaces to the user.
+     *
      * @param class-string $responseFormat
      */
     private function callAi(AgentInterface $agent, string $prompt, int $maxTokens, string $responseFormat, float $temperature): string|object
     {
-        $options = ['max_tokens' => $maxTokens, 'response_format' => $responseFormat, 'temperature' => $temperature];
+        $base = ['max_tokens' => $maxTokens, 'temperature' => $temperature];
 
         try {
-            $content = $agent->call(new MessageBag(Message::ofUser($prompt)), $options)->getContent();
+            return $this->rawCall($agent, $prompt, $base + ['response_format' => $responseFormat]);
         } catch (\Throwable $e) {
-            // Surface the LM Studio response body: a bare "Bad Request" hides the
-            // real reason (context overflow, unsupported param, model not loaded…).
-            $this->aiLogger->error('organizer: LM Studio call failed', [
+            $this->aiLogger->warning('organizer: structured output failed, retrying as plain completion', [
+                'error' => $e->getMessage(),
+                'body' => self::httpBody($e),
+            ]);
+        }
+
+        try {
+            return $this->rawCall($agent, $prompt, $base);
+        } catch (\Throwable $e) {
+            $this->aiLogger->error('organizer: LM Studio call failed (structured and plain)', [
                 'error' => $e->getMessage(),
                 'body' => self::httpBody($e),
                 'prompt_chars' => \strlen($prompt),
@@ -145,6 +157,14 @@ final class FolderOrganizer
 
             throw $e;
         }
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     */
+    private function rawCall(AgentInterface $agent, string $prompt, array $options): string|object
+    {
+        $content = $agent->call(new MessageBag(Message::ofUser($prompt)), $options)->getContent();
 
         return \is_string($content) || \is_object($content) ? $content : '';
     }
