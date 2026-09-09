@@ -154,6 +154,7 @@ collection:
     organize_pick: 'Voir les liens'
     organize_review: 'Liens proposés pour « %folder% »'
     organize_count: '%count% lien(s) proposé(s)'
+    organize_elapsed: 'Réponse de l''IA en %s% s'
     organize_none_selected: 'L''IA n''a retenu aucun lien pour ce dossier. Essaie une autre proposition ci-dessus.'
     organize_folder_name: 'Nom du dossier à créer'
     organize_apply: 'Créer le dossier et y déplacer les liens'

@@ -34,6 +34,7 @@ final class CollectionOrganizeController extends AbstractController
         // 30s max_execution_time. This is a deliberate, user-triggered action.
         set_time_limit(180);
 
+        $start = microtime(true);
         try {
             $proposal = $this->organizer->proposeCategories($collection);
         } catch (\Throwable $e) {
@@ -42,6 +43,7 @@ final class CollectionOrganizeController extends AbstractController
 
             return $this->redirectToRoute('collections_show', ['id' => $id]);
         }
+        $elapsed = microtime(true) - $start;
 
         $categories = array_map(
             static fn ($c): array => ['name' => $c->name, 'description' => $c->description, 'exampleTitles' => $c->exampleTitles],
@@ -54,6 +56,7 @@ final class CollectionOrganizeController extends AbstractController
             'proposal_json' => json_encode($categories, \JSON_THROW_ON_ERROR),
             'selection' => null,
             'selected_links' => [],
+            'elapsed' => $elapsed,
         ]);
     }
 
@@ -74,6 +77,7 @@ final class CollectionOrganizeController extends AbstractController
         $proposalJson = (string) $request->request->get('proposal', '[]');
         $categories = $this->decodeCategories($proposalJson);
 
+        $start = microtime(true);
         try {
             $ids = $this->organizer->assignLinks($collection, $name, $description);
         } catch (\Throwable $e) {
@@ -82,6 +86,7 @@ final class CollectionOrganizeController extends AbstractController
 
             return $this->redirectToRoute('collections_show', ['id' => $id]);
         }
+        $elapsed = microtime(true) - $start;
 
         $idSet = array_fill_keys($ids, true);
         $selectedLinks = [];
@@ -97,6 +102,7 @@ final class CollectionOrganizeController extends AbstractController
             'proposal_json' => $proposalJson,
             'selection' => $name,
             'selected_links' => $selectedLinks,
+            'elapsed' => $elapsed,
         ]);
     }
 

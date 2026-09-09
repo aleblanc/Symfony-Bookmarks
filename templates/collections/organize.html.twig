@@ -6,6 +6,9 @@
         <a class="btn btn-sm" href="{{ path('collections_show', {id: collection.id}) }}">{{ 'common.back'|trans }}</a>
     </header>
     <p class="muted">{{ 'collection.organize_intro'|trans({'%folder%': collection.name}) }}</p>
+    {% if elapsed is defined and elapsed %}
+        <p class="muted" style="margin-top:-8px;">⏱️ {{ 'collection.organize_elapsed'|trans({'%s%': elapsed|number_format(1)}) }}</p>
+    {% endif %}
 
     {% if categories is empty %}
         <p class="muted">{{ 'collection.organize_empty'|trans }}</p>

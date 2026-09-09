@@ -154,6 +154,7 @@ collection:
     organize_pick: 'See links'
     organize_review: 'Links suggested for "%folder%"'
     organize_count: '%count% link(s) suggested'
+    organize_elapsed: 'AI responded in %s% s'
     organize_none_selected: 'The AI kept no links for this folder. Try another suggestion above.'
     organize_folder_name: 'Name of the folder to create'
     organize_apply: 'Create the folder and move the links'
