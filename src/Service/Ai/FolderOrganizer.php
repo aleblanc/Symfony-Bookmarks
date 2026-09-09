@@ -16,6 +16,7 @@ use Symfony\AI\Platform\Contract\JsonSchema\Factory as JsonSchemaFactory;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 
 final class FolderOrganizer
 {
@@ -105,9 +106,37 @@ final class FolderOrganizer
     /** Run a plain text completion and return the raw string content. */
     private function callText(AgentInterface $agent, string $prompt): string
     {
-        $content = $agent->call(new MessageBag(Message::ofUser($prompt)))->getContent();
+        try {
+            $content = $agent->call(new MessageBag(Message::ofUser($prompt)))->getContent();
+        } catch (\Throwable $e) {
+            // Surface the LM Studio response body: a bare "Bad Request" hides the
+            // real reason (context overflow, unsupported param, model not loaded…).
+            $this->aiLogger->error('organizer: LM Studio call failed', [
+                'error' => $e->getMessage(),
+                'body' => self::httpBody($e),
+                'prompt_chars' => \strlen($prompt),
+            ]);
+
+            throw $e;
+        }
 
         return \is_string($content) ? $content : '';
+    }
+
+    /** Dig the HTTP response body out of an exception chain, if any. */
+    private static function httpBody(\Throwable $e): ?string
+    {
+        for ($cursor = $e; null !== $cursor; $cursor = $cursor->getPrevious()) {
+            if ($cursor instanceof HttpExceptionInterface) {
+                try {
+                    return mb_substr($cursor->getResponse()->getContent(false), 0, 1000);
+                } catch (\Throwable) {
+                    return null;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
