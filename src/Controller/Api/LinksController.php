@@ -17,6 +17,9 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class LinksController extends AbstractApiController
 {
+    /** Max links returned per page by the list endpoint (Linkwarden envelope). */
+    private const PAGE_SIZE = 20;
+
     public function __construct(
         private readonly LinkRepository $links,
         private readonly CollectionRepository $collections,
@@ -62,7 +65,7 @@ final class LinksController extends AbstractApiController
             $items[] = $this->serialize($link);
         }
 
-        return $this->ok(\array_slice($items, 0, 20));
+        return $this->ok(\array_slice($items, 0, self::PAGE_SIZE));
     }
 
     #[Route('/api/v1/links', name: 'api_links_create', methods: ['POST'])]
@@ -75,7 +78,7 @@ final class LinksController extends AbstractApiController
         $collectionId = $body['collection']['id'] ?? $body['collectionId'] ?? null;
         $collection = null !== $collectionId
             ? $this->collections->find((int) $collectionId)
-            : $this->collections->findOneBy([], ['id' => 'ASC']);
+            : $this->collections->findDefaultCollection();
         if (null === $collection) {
             return $this->fail('no collection available');
         }

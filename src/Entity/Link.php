@@ -79,7 +79,7 @@ class Link
     private DoctrineCollection $tags;
 
     /** @var DoctrineCollection<int, ArchiveAsset> */
-    #[ORM\OneToMany(targetEntity: ArchiveAsset::class, mappedBy: 'link')]
+    #[ORM\OneToMany(targetEntity: ArchiveAsset::class, mappedBy: 'link', orphanRemoval: true)]
     private DoctrineCollection $assets;
 
     #[ORM\Column(length: 16)]

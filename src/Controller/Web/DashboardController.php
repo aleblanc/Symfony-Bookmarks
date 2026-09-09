@@ -13,6 +13,12 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class DashboardController extends AbstractController
 {
+    /** Links shown in each dashboard highlight strip (recent / most-clicked / newest). */
+    private const STRIP_LIMIT = 8;
+
+    /** Links previewed under each folder on the dashboard. */
+    private const PER_FOLDER_LIMIT = 10;
+
     public function __construct(
         private readonly CurrentDashboard $current,
         private readonly LinkRepository $links,
@@ -27,7 +33,7 @@ final class DashboardController extends AbstractController
 
         $byCollection = [];
         foreach ($this->collections->findRootsForDashboard($dashboard) as $collection) {
-            $recent = $this->links->findRecentForCollection($collection, 10);
+            $recent = $this->links->findRecentForCollection($collection, self::PER_FOLDER_LIMIT);
             if ([] !== $recent) {
                 $byCollection[] = ['collection' => $collection, 'links' => $recent];
             }
@@ -35,9 +41,9 @@ final class DashboardController extends AbstractController
 
         return $this->render('dashboard/index.html.twig', [
             'dashboard' => $dashboard,
-            'clicked' => $this->links->findRecentlyClicked($dashboard, 8),
-            'most_clicked' => $this->links->findMostClicked($dashboard, 8),
-            'added' => $this->links->findForDashboard($dashboard, 8, null, 'DESC'),
+            'clicked' => $this->links->findRecentlyClicked($dashboard, self::STRIP_LIMIT),
+            'most_clicked' => $this->links->findMostClicked($dashboard, self::STRIP_LIMIT),
+            'added' => $this->links->findForDashboard($dashboard, self::STRIP_LIMIT, null, 'DESC'),
             'by_collection' => $byCollection,
         ]);
     }

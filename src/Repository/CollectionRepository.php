@@ -20,6 +20,15 @@ final class CollectionRepository extends ServiceEntityRepository
         parent::__construct($registry, Collection::class);
     }
 
+    /**
+     * The fallback collection used when a link is created without an explicit
+     * target (e.g. the browser extension): the oldest collection by id.
+     */
+    public function findDefaultCollection(): ?Collection
+    {
+        return $this->findOneBy([], ['id' => 'ASC']);
+    }
+
     /** @return list<Collection> */
     public function findForDashboard(Dashboard $dashboard): array
     {

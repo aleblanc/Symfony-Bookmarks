@@ -21,6 +21,9 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class LinkController extends AbstractController
 {
+    /** Links shown per page on the main list. */
+    private const LIST_LIMIT = 50;
+
     public function __construct(
         private readonly LinkRepository $links,
         private readonly CollectionRepository $collections,
@@ -51,7 +54,7 @@ final class LinkController extends AbstractController
             $tag = $this->tags->find($tagId);
             $links = null === $tag ? [] : $this->links->findForTag($tag);
         } else {
-            $links = $this->links->findForDashboard($dashboard, 50, null, 'ASC');
+            $links = $this->links->findForDashboard($dashboard, self::LIST_LIMIT, null, 'ASC');
         }
 
         return $this->render('links/index.html.twig', [
