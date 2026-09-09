@@ -107,6 +107,7 @@ services:
         arguments:
             $hostUrl: '%env(LM_STUDIO_HOST_URL)%'
             $enabled: '%env(bool:APP_AI_ENABLED)%'
+            $model: '%env(APP_AI_TAG_MODEL)%'
 
     App\Twig\FeaturesExtension:
         arguments:
