@@ -37,6 +37,9 @@ Goals:
 - SQLite storage with **FTS5** full-text search on links.
 - Two dashboards (Perso / Pro) — every list / search is scoped to the active dashboard.
 - Collections, tags, favicons, "readable" text extraction (pure PHP, no browser).
+- **Nested collections** with manual ordering: reorder siblings via first / up / middle (🎯) / down / last buttons. The dashboard shows only top-level folders; folder pickers list folders in hierarchical (tree) order so a deep sub-folder never appears before its parent.
+- **Per-folder appearance**: pick an emoji icon (searchable picker, ~80 icons) and a color — the icon is rendered in a chip tinted with the folder's color.
+- **Smart link ordering**: the dashboard surfaces recently-clicked, most-clicked and newest links; inside a collection, links are listed most-clicked first, then most-recently-added.
 - Runtime detection of Chromium: features gracefully disable in the UI when tooling is absent.
 - Encrypted vault protecting selected collections (URL + title + description + text ciphered at rest).
 - Web UI in Twig (no npm build required — CSS is inline).
@@ -316,7 +319,7 @@ Links land as `status=pending` so the archival cron will pick them up.
 
 ## Screenshots
 
-**Dashboard** — recently clicked and most clicked links, then each collection with its latest items:
+**Dashboard** — recently clicked, most clicked and newest links, then each top-level collection with its latest items:
 
 ![Dashboard](docs/screenshot-dashboard.png)
 
