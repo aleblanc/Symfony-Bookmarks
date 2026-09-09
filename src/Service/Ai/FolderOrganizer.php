@@ -49,13 +49,28 @@ final class FolderOrganizer
         foreach ($this->links->findForCollection($collection) as $link) {
             $id = (int) $link->getId();
             $title = trim((string) ($link->getName() ?? '')) ?: $link->getUrl();
-            // Keep the prompt compact: long titles inflate the token count and
-            // leave less room for the model's JSON reply within its context window.
-            $lines[] = '#'.$id.' '.mb_substr($title, 0, 80);
+            $lines[] = '#'.$id.' '.self::sanitizeTitle($title);
             $ids[] = $id;
         }
 
         return ['lines' => implode("\n", $lines), 'ids' => $ids];
+    }
+
+    /**
+     * Strip anything in a bookmark title that could corrupt the model's chat
+     * template and trigger LM Studio's "Channel Error" 400: special/control
+     * tokens (`<|im_start|>`, `<|...|>`), reasoning tags (`<think>`), and control
+     * characters. Also collapse whitespace and cap the length to keep the prompt
+     * compact (long titles eat the context budget the JSON reply needs).
+     */
+    private static function sanitizeTitle(string $title): string
+    {
+        $title = preg_replace('/<\|[^|]*\|>/u', ' ', $title) ?? $title;
+        $title = preg_replace('#</?think>#iu', ' ', $title) ?? $title;
+        $title = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $title) ?? $title;
+        $title = preg_replace('/\s+/u', ' ', $title) ?? $title;
+
+        return trim(mb_substr(trim($title), 0, 80));
     }
 
     /** Phase 1: ask the LLM to propose sub-folders for this collection. */
