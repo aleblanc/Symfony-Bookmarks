@@ -18,4 +18,19 @@ final class FolderOrganizerTest extends TestCase
     {
         self::assertSame([9, 3], FolderOrganizer::keepKnownIds([9, 3], [3, 7, 9]));
     }
+
+    public function testExtractJsonStripsCodeFences(): void
+    {
+        self::assertSame('{"a":1}', FolderOrganizer::extractJson("```json\n{\"a\":1}\n```"));
+    }
+
+    public function testExtractJsonPullsObjectOutOfProse(): void
+    {
+        self::assertSame('{"a":1}', FolderOrganizer::extractJson('Sure! Here it is: {"a":1} — hope that helps'));
+    }
+
+    public function testExtractJsonReturnsTrimmedWhenNoBraces(): void
+    {
+        self::assertSame('no json here', FolderOrganizer::extractJson('  no json here  '));
+    }
 }

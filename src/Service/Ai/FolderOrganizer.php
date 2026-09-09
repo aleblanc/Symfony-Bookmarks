@@ -15,6 +15,7 @@ use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Platform\Contract\JsonSchema\Factory as JsonSchemaFactory;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
+use Symfony\Component\Serializer\SerializerInterface;
 
 final class FolderOrganizer
 {
@@ -22,6 +23,7 @@ final class FolderOrganizer
         private readonly AgentInterface $proposerAgent,
         private readonly AgentInterface $assignerAgent,
         private readonly JsonSchemaFactory $schemaFactory,
+        private readonly SerializerInterface $serializer,
         private readonly LinkRepository $links,
         private readonly CollectionRepository $collections,
         private readonly EntityManagerInterface $em,
@@ -56,17 +58,21 @@ final class FolderOrganizer
             ."\n\nRespond with JSON matching this schema:\n"
             .json_encode($this->schemaFactory->buildProperties(CategoryProposal::class), \JSON_THROW_ON_ERROR);
 
-        $result = $this->proposerAgent
-            ->call(new MessageBag(Message::ofUser($prompt)), ['response_format' => CategoryProposal::class])
-            ->getContent();
+        // Plain completion (no response_format): LM Studio rejects structured
+        // output for some models. We embed the schema in the prompt and parse the
+        // JSON out of the text ourselves — robust across any OpenAI-compatible model.
+        $raw = $this->callText($this->proposerAgent, $prompt);
 
-        if (!$result instanceof CategoryProposal) {
-            $this->aiLogger->warning('organizer: proposer returned unexpected content', ['type' => get_debug_type($result)]);
+        try {
+            /** @var CategoryProposal $proposal */
+            $proposal = $this->serializer->deserialize(self::extractJson($raw), CategoryProposal::class, 'json');
+        } catch (\Throwable $e) {
+            $this->aiLogger->warning('organizer: could not parse proposal', ['error' => $e->getMessage(), 'raw' => mb_substr($raw, 0, 300)]);
 
             return new CategoryProposal([]);
         }
 
-        return $result;
+        return $proposal;
     }
 
     /**
@@ -82,17 +88,46 @@ final class FolderOrganizer
             ."\n\nRespond with JSON matching this schema:\n"
             .json_encode($this->schemaFactory->buildProperties(LinkAssignment::class), \JSON_THROW_ON_ERROR);
 
-        $result = $this->assignerAgent
-            ->call(new MessageBag(Message::ofUser($prompt)), ['response_format' => LinkAssignment::class])
-            ->getContent();
+        $raw = $this->callText($this->assignerAgent, $prompt);
 
-        if (!$result instanceof LinkAssignment) {
-            $this->aiLogger->warning('organizer: assigner returned unexpected content', ['type' => get_debug_type($result)]);
+        try {
+            /** @var LinkAssignment $assignment */
+            $assignment = $this->serializer->deserialize(self::extractJson($raw), LinkAssignment::class, 'json');
+        } catch (\Throwable $e) {
+            $this->aiLogger->warning('organizer: could not parse assignment', ['error' => $e->getMessage(), 'raw' => mb_substr($raw, 0, 300)]);
 
             return [];
         }
 
-        return self::keepKnownIds(array_map('intval', $result->linkIds), $list['ids']);
+        return self::keepKnownIds(array_map('intval', $assignment->linkIds), $list['ids']);
+    }
+
+    /** Run a plain text completion and return the raw string content. */
+    private function callText(AgentInterface $agent, string $prompt): string
+    {
+        $content = $agent->call(new MessageBag(Message::ofUser($prompt)))->getContent();
+
+        return \is_string($content) ? $content : '';
+    }
+
+    /**
+     * Extract the JSON object from a model reply that may be fenced (```json …```)
+     * or wrapped in prose. Falls back to the first {...} span.
+     */
+    public static function extractJson(string $raw): string
+    {
+        $raw = trim($raw);
+        if (str_starts_with($raw, '```')) {
+            $raw = (string) preg_replace('/^```(?:json)?\s*|\s*```$/i', '', $raw);
+            $raw = trim($raw);
+        }
+        $start = strpos($raw, '{');
+        $end = strrpos($raw, '}');
+        if (false !== $start && false !== $end && $end > $start) {
+            return substr($raw, $start, $end - $start + 1);
+        }
+
+        return $raw;
     }
 
     /**
