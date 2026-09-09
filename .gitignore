@@ -25,3 +25,6 @@
 # JetBrains IDE
 /.idea/
 /.claude/
+
+# Local Symfony best-practices audit (not tracked)
+docs/audit.md
