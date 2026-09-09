@@ -52,8 +52,12 @@ ai:
             platform: 'ai.platform.lmstudio'
             model: '%env(APP_AI_TAG_MODEL)%'
             prompt: |
-                You assign bookmarks to a single target sub-folder.
-                You receive the target folder (name + description) and a numbered list
-                of bookmarks ("#<id> <title>"). Return the ids of the bookmarks that
-                belong in that folder. Use only ids that appear in the list; omit the rest.
+                You assign bookmarks to a single target sub-folder, with strict precision.
+                You receive the target folder (name + description) and a numbered list of
+                bookmarks ("#<id> <title>"). Return the ids of the bookmarks that clearly and
+                PRIMARILY belong in this folder — judged from concrete signals in the title
+                (technology, domain, named entity) that match the folder's name and boundary
+                description. When a bookmark only vaguely relates, or could fit several folders,
+                OMIT it. Better to leave a link out than to misfile it. Use only ids that appear
+                in the list.
                 Answer strictly as JSON matching the provided schema. No prose, no code fences.

@@ -54,11 +54,23 @@
     {# Phase 2 — result for the picked folder, shown below the proposals. #}
     {% if selection is not null %}
         <section style="margin-top:24px;">
-            <h2>{{ 'collection.organize_review'|trans({'%folder%': selection}) }}</h2>
+            <div class="row" style="justify-content:space-between; align-items:baseline;">
+                <h2>{{ 'collection.organize_review'|trans({'%folder%': selection}) }}</h2>
+                {# Regenerate the assignment with a higher temperature (attempt + 1). #}
+                <form class="js-ai-wait" method="post" action="{{ path('collections_organize_assign', {id: collection.id}) }}"
+                      data-wait-msg="{{ 'collection.organize_wait'|trans }}">
+                    <input type="hidden" name="name" value="{{ selection }}">
+                    <input type="hidden" name="description" value="{{ selection_description|default('') }}">
+                    <input type="hidden" name="proposal" value="{{ proposal_json }}">
+                    <input type="hidden" name="attempt" value="{{ (attempt|default(0)) + 1 }}">
+                    <button class="btn btn-sm" type="submit" title="{{ 'collection.organize_retry_hint'|trans }}"
+                            data-wait-label="⏳ {{ 'collection.organize_waiting'|trans }}">🔄 {{ 'collection.organize_retry'|trans }}</button>
+                </form>
+            </div>
             {% if selected_links is empty %}
                 <p class="muted">{{ 'collection.organize_none_selected'|trans }}</p>
             {% else %}
-                <p class="muted">{{ 'collection.organize_count'|trans({'%count%': selected_links|length}) }}</p>
+                <p class="muted">{{ 'collection.organize_count'|trans({'%count%': selected_links|length}) }}{% if (attempt|default(0)) > 0 %} · {{ 'collection.organize_attempt'|trans({'%n%': attempt + 1, '%temp%': temperature|default(0.2)|number_format(1)}) }}{% endif %}</p>
                 <form method="post" action="{{ path('collections_organize_apply', {id: collection.id}) }}">
                     <label class="field"><span>{{ 'collection.organize_folder_name'|trans }}</span>
                         <input class="input" type="text" name="name" value="{{ selection }}" required style="max-width:320px;"></label>

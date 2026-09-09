@@ -158,6 +158,7 @@ collection:
     organize_waiting: 'Analyse…'
     organize_retry: 'Régénérer'
     organize_retry_hint: 'Relancer l''IA pour d''autres propositions de sous-dossiers'
+    organize_attempt: 'essai %n% (température %temp%)'
     organize_wait: '⏳ Analyse par l''IA en cours — cela peut prendre quelques minutes. Ne ferme pas la page.'
     organize_none_selected: 'L''IA n''a retenu aucun lien pour ce dossier. Essaie une autre proposition ci-dessus.'
     organize_folder_name: 'Nom du dossier à créer'

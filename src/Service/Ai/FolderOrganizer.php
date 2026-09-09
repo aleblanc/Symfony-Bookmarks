@@ -94,7 +94,7 @@ final class FolderOrganizer
      *
      * @return list<int> validated link ids (guaranteed subset of the collection)
      */
-    public function assignLinks(Collection $collection, string $categoryName, string $categoryDescription): array
+    public function assignLinks(Collection $collection, string $categoryName, string $categoryDescription, float $temperature = 0.2): array
     {
         $list = $this->buildBookmarkList($collection);
         $prompt = 'Target folder: '.$categoryName."\nDescription: ".$categoryDescription
@@ -102,8 +102,9 @@ final class FolderOrganizer
             ."\n\nRespond with JSON matching this schema:\n"
             .json_encode($this->schemaFactory->buildProperties(LinkAssignment::class), \JSON_THROW_ON_ERROR);
 
-        // Low temperature: assignment should be stable, not creative.
-        $content = $this->callAi($this->assignerAgent, $prompt, 1500, LinkAssignment::class, 0.2);
+        // Low temperature by default (stable assignment); the controller raises it
+        // on each "Regenerate" so a retry explores a different selection.
+        $content = $this->callAi($this->assignerAgent, $prompt, 1500, LinkAssignment::class, $temperature);
         if ($content instanceof LinkAssignment) {
             return self::keepKnownIds(array_map('intval', $content->linkIds), $list['ids']);
         }

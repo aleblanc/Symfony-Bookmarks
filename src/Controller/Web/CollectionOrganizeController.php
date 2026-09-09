@@ -75,9 +75,14 @@ final class CollectionOrganizeController extends AbstractController
         $proposalJson = $request->request->getString('proposal', '[]');
         $categories = $this->decodeCategories($proposalJson);
 
+        // Each "Regenerate" bumps the attempt counter, which raises the temperature
+        // so the retry explores a different selection (capped at 0.9).
+        $attempt = max(0, $request->request->getInt('attempt'));
+        $temperature = min(0.2 + 0.25 * $attempt, 0.9);
+
         $start = microtime(true);
         try {
-            $ids = $this->organizer->assignLinks($collection, $name, $description);
+            $ids = $this->organizer->assignLinks($collection, $name, $description, $temperature);
         } catch (\Throwable $e) {
             $this->aiLogger->error('organizer assign failed', ['collection' => $collection->getId(), 'exception' => $e->getMessage()]);
             $this->addFlash('error', $this->translator->trans('collection.organize_failed').' — '.$e->getMessage());
@@ -99,8 +104,11 @@ final class CollectionOrganizeController extends AbstractController
             'categories' => $categories,
             'proposal_json' => $proposalJson,
             'selection' => $name,
+            'selection_description' => $description,
             'selected_links' => $selectedLinks,
             'elapsed' => $elapsed,
+            'attempt' => $attempt,
+            'temperature' => $temperature,
         ]);
     }
 
