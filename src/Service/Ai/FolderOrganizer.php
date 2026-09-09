@@ -31,9 +31,6 @@ final class FolderOrganizer
      */
     private const NO_THINK = "\n\n/no_think";
 
-    /** Max bookmarks sent to the model (~130-item threshold before Channel Error). */
-    private const MAX_LINKS = 120;
-
     /** Max characters kept per title (shorter = smaller prompt, less reasoning). */
     private const TITLE_MAX = 80;
 
@@ -50,13 +47,17 @@ final class FolderOrganizer
         private readonly EntityManagerInterface $em,
         #[Autowire(service: 'monolog.logger.ai')]
         private readonly LoggerInterface $aiLogger,
+        // Max bookmarks per model request: phase-1 sample size and phase-2 chunk
+        // size. Above ~130, qwen3 reasoning overflows → LM Studio "Channel Error".
+        #[Autowire('%env(int:APP_AI_CHUNK_LINKS)%')]
+        private readonly int $chunkLinks = 120,
     ) {
     }
 
     /**
      * Compact, token-cheap representation of a collection's links for the LLM.
      *
-     * Capped at MAX_LINKS: past ~130 items this VL model spends its whole token
+     * Capped at chunkLinks: past ~130 items this VL model spends its whole token
      * budget reasoning and never emits the final answer, which LM Studio rejects
      * with a "Channel Error" 400. Beyond the cap, links are left out (the user can
      * still file them by hand); the overflow is logged, never silently dropped.
@@ -66,12 +67,12 @@ final class FolderOrganizer
     public function buildBookmarkList(Collection $collection): array
     {
         $all = $this->links->findForCollection($collection);
-        $links = \array_slice($all, 0, self::MAX_LINKS);
-        if (\count($all) > self::MAX_LINKS) {
+        $links = \array_slice($all, 0, $this->chunkLinks);
+        if (\count($all) > $this->chunkLinks) {
             $this->aiLogger->warning('organizer: proposer link list capped', [
                 'collection' => $collection->getId(),
                 'total' => \count($all),
-                'sent' => self::MAX_LINKS,
+                'sent' => $this->chunkLinks,
             ]);
         }
 
@@ -150,15 +151,15 @@ final class FolderOrganizer
      * Phase 2: ask the LLM which of the collection's links belong in the named target.
      *
      * Unlike phase 1 (which only needs a sample to discover categories), assignment
-     * must see EVERY link, so we process the whole collection in chunks of MAX_LINKS
-     * and merge the selected ids — one model call per chunk.
+     * must see EVERY link, so we process the whole collection in chunks of
+     * chunkLinks and merge the selected ids — one model call per chunk.
      *
      * @return list<int> validated link ids (guaranteed subset of the collection)
      */
     public function assignLinks(Collection $collection, string $categoryName, string $categoryDescription, float $temperature = 0.2): array
     {
         $selected = [];
-        foreach (array_chunk($this->links->findForCollection($collection), self::MAX_LINKS) as $chunk) {
+        foreach (array_chunk($this->links->findForCollection($collection), $this->chunkLinks) as $chunk) {
             $list = $this->formatLines($chunk);
             $prompt = 'Target folder: '.$categoryName."\nDescription: ".$categoryDescription
                 ."\n\nBookmarks:\n".$list['lines']
