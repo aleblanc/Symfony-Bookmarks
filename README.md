@@ -284,6 +284,8 @@ The app calls a **remote** LM Studio through `symfony/ai-bundle`. Nothing is dow
 
 The prompts live in `config/packages/ai.yaml` under `ai.agent.tagger.prompt` and `ai.agent.summarizer.prompt` — tweak them freely.
 
+> **Important for the AI folder organizer**: load the model with a **context length of at least `8192`** in LM Studio, otherwise organizing a large folder fails with `Bad Request`. See **[docs/lmstudio.md](docs/lmstudio.md)** for where to set it.
+
 Any OpenAI-compatible endpoint works — swap `LM_STUDIO_HOST_URL` for your Ollama / vLLM / cloud endpoint (adjust the platform block in `ai.yaml` accordingly).
 
 ---
@@ -310,6 +312,7 @@ Links land as `status=pending` so the archival cron will pick them up.
 
 - [Architecture](docs/architecture.md) — data flow and the no-broker cron design.
 - [Browser extension setup](docs/browser-extension.md) — connecting the Linkwarden extension.
+- [LM Studio setup](docs/lmstudio.md) — remote AI server config; **context length** required for the folder organizer.
 - [Encrypted vault](docs/encrypted-vault.md) — per-collection at-rest encryption.
 - [Development](docs/development.md) — dev server, workers, tests and quality gates.
 - [Troubleshooting](docs/troubleshooting.md) — common symptoms and fixes.
