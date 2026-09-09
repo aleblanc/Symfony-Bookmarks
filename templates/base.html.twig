@@ -163,6 +163,20 @@
         .theme-switch button.active { opacity: 1; border-color: var(--primary); background: var(--primary-soft); }
         form.inline { display: inline; }
         .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        /* Toolbar: uniform button row; forms collapse so buttons align on one baseline */
+        .flash { padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 18px; border: 1px solid var(--border); font-weight: 500; }
+        .flash-error { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+        .flash-success { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .toolbar > form { display: flex; margin: 0; }
+        /* Native <details> dropdown (no JS) used for the merge picker */
+        details.menu { position: relative; display: inline-flex; }
+        details.menu > summary { list-style: none; cursor: pointer; }
+        details.menu > summary::-webkit-details-marker { display: none; }
+        details.menu > summary::marker { content: ''; }
+        .menu-panel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30;
+            background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-hover); padding: 12px; min-width: 260px; display: grid; gap: 8px; }
 
         /* Link cards — compact media-object, mobile-first */
         .link-list { display: grid; grid-template-columns: 1fr; gap: 10px; }
@@ -333,6 +347,11 @@
 <div class="layout">
     {% include 'layout/_sidebar.html.twig' %}
     <main class="main">
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash flash-{{ type }}">{{ (message starts with 'collection.') or (message starts with 'link.') ? message|trans : message }}</div>
+            {% endfor %}
+        {% endfor %}
         {% block body %}{% endblock %}
     </main>
 </div>

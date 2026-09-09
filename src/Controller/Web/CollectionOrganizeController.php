@@ -7,6 +7,7 @@ namespace App\Controller\Web;
 use App\Repository\CollectionRepository;
 use App\Repository\LinkRepository;
 use App\Service\Ai\FolderOrganizer;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +19,7 @@ final class CollectionOrganizeController extends AbstractController
         private readonly CollectionRepository $collections,
         private readonly LinkRepository $links,
         private readonly FolderOrganizer $organizer,
+        private readonly LoggerInterface $aiLogger,
     ) {
     }
 
@@ -28,7 +30,8 @@ final class CollectionOrganizeController extends AbstractController
 
         try {
             $proposal = $this->organizer->proposeCategories($collection);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            $this->aiLogger->error('organizer propose failed', ['collection' => $id, 'exception' => $e->getMessage()]);
             $this->addFlash('error', 'collection.organize_failed');
 
             return $this->redirectToRoute('collections_show', ['id' => $id]);
@@ -65,7 +68,8 @@ final class CollectionOrganizeController extends AbstractController
 
         try {
             $ids = $this->organizer->assignLinks($collection, $name, $description);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            $this->aiLogger->error('organizer assign failed', ['collection' => $id, 'exception' => $e->getMessage()]);
             $this->addFlash('error', 'collection.organize_failed');
 
             return $this->redirectToRoute('collections_show', ['id' => $id]);

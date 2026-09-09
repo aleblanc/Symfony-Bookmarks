@@ -99,6 +99,10 @@ services:
         arguments:
             $aiEnabled: '%env(bool:APP_AI_ENABLED)%'
 
+    App\Controller\Web\CollectionOrganizeController:
+        arguments:
+            $aiLogger: '@monolog.logger.ai'
+
     _instanceof:
         App\Service\Archiver\AssetArchiverInterface:
             tags: ['app.archiver']

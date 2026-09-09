@@ -17,6 +17,7 @@ ai:
                     - input-image
                     - output-text
                     - output-streaming
+                    - output-structured
     agent:
         tagger:
             platform: 'ai.platform.lmstudio'
