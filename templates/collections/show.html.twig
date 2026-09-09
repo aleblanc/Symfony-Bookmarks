@@ -12,10 +12,28 @@
 
     <header class="top">
         <h1>{{ fi.icon(collection) }} {{ collection.name }}</h1>
-        <div class="row">
-            <a href="{{ path('collections_edit', {id: collection.id}) }}" class="btn">✏️ {{ 'collection.edit'|trans }}</a>
-            <a href="{{ path('collections_new', {parent: collection.id}) }}" class="btn">➕ {{ 'collection.new_subfolder'|trans }}</a>
+        <div class="row" style="flex-wrap:wrap; gap:8px;">
             <a href="{{ path('links_new', {collection: collection.id}) }}" class="btn btn-primary">➕ {{ 'link.new'|trans }}</a>
+            <a href="{{ path('collections_new', {parent: collection.id}) }}" class="btn">📁 {{ 'collection.new_subfolder'|trans }}</a>
+            <a href="{{ path('collections_edit', {id: collection.id}) }}" class="btn">✏️ {{ 'collection.edit'|trans }}</a>
+            {% if ai_enabled and links is not empty %}
+                <form class="inline" method="post" action="{{ path('collections_organize', {id: collection.id}) }}">
+                    <button class="btn" type="submit" title="{{ 'collection.organize'|trans }}">🪄🤖 {{ 'collection.organize'|trans }}</button>
+                </form>
+            {% endif %}
+            {% if merge_targets is not empty %}
+                <form class="row" method="post" action="{{ path('collections_merge', {id: collection.id}) }}"
+                      onsubmit="return confirm('{{ 'collection.confirm_merge'|trans }}');" style="gap:8px;">
+                    <select class="input" name="target" required style="max-width:240px;">
+                        <option value="">— {{ 'collection.merge_into'|trans }} —</option>
+                        {% for c in merge_targets %}<option value="{{ c.id }}">{% for a in c.ancestors %}{{ a.name }} → {% endfor %}{{ c.name }}</option>{% endfor %}
+                    </select>
+                    <button class="btn" type="submit">🔀 {{ 'collection.merge'|trans }}</button>
+                </form>
+            {% endif %}
+            <form class="inline" method="post" action="{{ path('collections_delete', {id: collection.id}) }}" onsubmit="return confirm('{{ 'collection.confirm_delete'|trans }}');">
+                <button class="btn btn-danger" type="submit">🗑️ {{ 'common.delete'|trans }}</button>
+            </form>
         </div>
     </header>
     {% if collection.description %}<p class="muted">{{ collection.description }}</p>{% endif %}
@@ -55,24 +73,4 @@
         {% endif %}
     </section>
 
-    <div class="row" style="margin-top:24px; gap:16px;">
-        {% if merge_targets is not empty %}
-            <form class="row" method="post" action="{{ path('collections_merge', {id: collection.id}) }}"
-                  onsubmit="return confirm('{{ 'collection.confirm_merge'|trans }}');">
-                <select class="input" name="target" required style="max-width:280px;">
-                    <option value="">— {{ 'collection.merge_into'|trans }} —</option>
-                    {% for c in merge_targets %}<option value="{{ c.id }}">{% for a in c.ancestors %}{{ a.name }} / {% endfor %}{{ c.name }}</option>{% endfor %}
-                </select>
-                <button class="btn btn-sm" type="submit">🔀 {{ 'collection.merge'|trans }}</button>
-            </form>
-        {% endif %}
-        {% if ai_enabled and links is not empty %}
-            <form class="inline" method="post" action="{{ path('collections_organize', {id: collection.id}) }}">
-                <button class="btn btn-sm" type="submit" title="{{ 'collection.organize'|trans }}">🪄🤖 {{ 'collection.organize'|trans }}</button>
-            </form>
-        {% endif %}
-        <form class="inline" method="post" action="{{ path('collections_delete', {id: collection.id}) }}" onsubmit="return confirm('{{ 'collection.confirm_delete'|trans }}');">
-            <button class="btn btn-sm btn-danger" type="submit">{{ 'common.delete'|trans }}</button>
-        </form>
-    </div>
 {% endblock %}
