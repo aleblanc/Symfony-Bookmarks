@@ -89,7 +89,47 @@
         <li>{{ 'sidebar.feature.singlefile'|trans }} <span class="pill {{ feat.singlefile ? 'on' : 'off' }}">{{ (feat.singlefile ? 'sidebar.yes' : 'sidebar.no')|trans }}</span></li>
         <li>{{ 'sidebar.feature.screenshot'|trans }} <span class="pill {{ feat.screenshot ? 'on' : 'off' }}">{{ (feat.screenshot ? 'sidebar.yes' : 'sidebar.no')|trans }}</span></li>
         <li>{{ 'sidebar.feature.pdf'|trans }}        <span class="pill {{ feat.pdf ? 'on' : 'off' }}">{{ (feat.pdf ? 'sidebar.yes' : 'sidebar.no')|trans }}</span></li>
+        <li>
+            {{ 'sidebar.feature.ai'|trans }}
+            <span style="display:inline-flex; gap:6px; align-items:center;">
+                <span class="pill {{ ai_enabled() ? 'on' : 'off' }}">{{ (ai_enabled() ? 'sidebar.yes' : 'sidebar.no')|trans }}</span>
+                <button type="button" id="ai-test-btn" class="btn btn-sm"
+                        title="{{ 'sidebar.ai_test'|trans }}"
+                        data-up="{{ 'sidebar.ai_up'|trans }}" data-down="{{ 'sidebar.ai_down'|trans }}"
+                        style="padding:2px 7px;">🔌</button>
+            </span>
+        </li>
+        <li id="ai-test-result" class="muted" style="display:none; justify-content:flex-start;"></li>
     </ul>
+    <script>
+        (function () {
+            var btn = document.getElementById('ai-test-btn');
+            if (!btn) { return; }
+            var res = document.getElementById('ai-test-result');
+            btn.addEventListener('click', function () {
+                btn.disabled = true;
+                res.style.display = 'flex';
+                res.style.color = 'var(--muted)';
+                res.textContent = '⏳ …';
+                fetch((window.APP_BASE || '') + '/ai/health', { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (d.ok) {
+                            res.style.color = 'var(--ok)';
+                            res.textContent = '✅ ' + btn.dataset.up + ' (' + d.models + ')';
+                        } else {
+                            res.style.color = 'var(--danger)';
+                            res.textContent = '❌ ' + btn.dataset.down + (d.error ? ' — ' + d.error : '');
+                        }
+                    })
+                    .catch(function (e) {
+                        res.style.color = 'var(--danger)';
+                        res.textContent = '❌ ' + btn.dataset.down + ' — ' + e;
+                    })
+                    .finally(function () { btn.disabled = false; });
+            });
+        })();
+    </script>
 
     <h2>{{ 'sidebar.theme'|trans }}</h2>
     <div class="theme-switch" role="group">

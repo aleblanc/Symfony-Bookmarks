@@ -27,6 +27,10 @@ sidebar:
         singlefile: 'Single-file'
         screenshot: 'Screenshot'
         pdf: 'PDF'
+        ai: 'AI server'
+    ai_test: 'Test the LM Studio connection'
+    ai_up: 'reachable'
+    ai_down: 'unreachable'
     'yes': 'yes'
     'no': 'no'
 

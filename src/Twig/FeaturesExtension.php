@@ -22,6 +22,7 @@ final class FeaturesExtension extends AbstractExtension
         private readonly CollectionRepository $collections,
         private readonly TagRepository $tags,
         private readonly LinkRepository $links,
+        private readonly bool $aiEnabled = false,
     ) {
     }
 
@@ -29,6 +30,7 @@ final class FeaturesExtension extends AbstractExtension
     {
         return [
             new TwigFunction('archive_features', fn (): array => $this->chrome->availableFeatures()),
+            new TwigFunction('ai_enabled', fn (): bool => $this->aiEnabled),
             new TwigFunction('all_dashboards', fn (): array => $this->dashboards->findAllOrdered()),
             new TwigFunction('current_dashboard', fn () => $this->current->tryGet()),
             new TwigFunction('sidebar_collections', function (): array {

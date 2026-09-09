@@ -103,6 +103,15 @@ services:
         arguments:
             $aiLogger: '@monolog.logger.ai'
 
+    App\Service\Ai\AiServerProbe:
+        arguments:
+            $hostUrl: '%env(LM_STUDIO_HOST_URL)%'
+            $enabled: '%env(bool:APP_AI_ENABLED)%'
+
+    App\Twig\FeaturesExtension:
+        arguments:
+            $aiEnabled: '%env(bool:APP_AI_ENABLED)%'
+
     _instanceof:
         App\Service\Archiver\AssetArchiverInterface:
             tags: ['app.archiver']

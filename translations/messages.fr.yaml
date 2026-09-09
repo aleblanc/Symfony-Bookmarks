@@ -27,6 +27,10 @@ sidebar:
         singlefile: 'Page complète'
         screenshot: 'Capture'
         pdf: 'PDF'
+        ai: 'Serveur IA'
+    ai_test: 'Tester la connexion à LM Studio'
+    ai_up: 'joignable'
+    ai_down: 'injoignable'
     'yes': 'oui'
     'no': 'non'
 
