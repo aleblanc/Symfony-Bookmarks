@@ -30,3 +30,25 @@ ai:
             platform: 'ai.platform.lmstudio'
             model: '%env(APP_AI_SUMMARY_MODEL)%'
             prompt: 'Summarize the given article concisely. The output language is set by the caller.'
+
+        organizer_proposer:
+            platform: 'ai.platform.lmstudio'
+            model: '%env(APP_AI_TAG_MODEL)%'
+            prompt: |
+                You reorganize a messy bookmark folder into coherent sub-folders.
+                You receive a numbered list of bookmarks ("#<id> <title>").
+                Propose between 3 and 12 sub-folders that partition them by topic.
+                For each sub-folder give: a short name (same language as the titles),
+                a one-sentence description, and 2 to 3 example titles taken verbatim
+                from the list. Every bookmark should plausibly fit one sub-folder.
+                Answer strictly as JSON matching the provided schema. No prose, no code fences.
+
+        organizer_assigner:
+            platform: 'ai.platform.lmstudio'
+            model: '%env(APP_AI_TAG_MODEL)%'
+            prompt: |
+                You assign bookmarks to a single target sub-folder.
+                You receive the target folder (name + description) and a numbered list
+                of bookmarks ("#<id> <title>"). Return the ids of the bookmarks that
+                belong in that folder. Use only ids that appear in the list; omit the rest.
+                Answer strictly as JSON matching the provided schema. No prose, no code fences.
