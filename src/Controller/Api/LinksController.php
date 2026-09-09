@@ -156,6 +156,9 @@ final class LinksController extends AbstractApiController
             'description' => $link->getDescription(),
             'type' => 'url',
             'createdAt' => $link->getCreatedAt()->format(\DATE_ATOM),
+            // The Link entity has no updatedAt column; the Linkwarden envelope
+            // requires the field, so we shim it with createdAt. Add a real
+            // updatedAt column (with a PreUpdate listener) if a consumer needs it.
             'updatedAt' => $link->getCreatedAt()->format(\DATE_ATOM),
             'collection' => [
                 'id' => $collection->getId(),
