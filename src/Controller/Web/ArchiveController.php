@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Web;
 
 use App\Entity\ArchiveAsset;
-use App\Repository\ArchiveAssetRepository;
-use App\Repository\LinkRepository;
+use App\Entity\Link;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -26,8 +25,6 @@ final class ArchiveController extends AbstractController
     ];
 
     public function __construct(
-        private readonly ArchiveAssetRepository $assets,
-        private readonly LinkRepository $links,
         #[Autowire('%env(resolve:APP_ARCHIVE_DIR)%')]
         private readonly string $archiveDir,
     ) {
@@ -38,10 +35,8 @@ final class ArchiveController extends AbstractController
      * non-public var/archives directory.
      */
     #[Route('/archives/{id}', name: 'archive_asset_serve', methods: ['GET'])]
-    public function serve(int $id): Response
+    public function serve(ArchiveAsset $asset): Response
     {
-        $asset = $this->assets->find($id) ?? throw $this->createNotFoundException();
-
         return $this->streamFile($asset->getRelativePath(), match ($asset->getKind()) {
             ArchiveAsset::KIND_PDF => 'application/pdf',
             ArchiveAsset::KIND_SCREENSHOT => 'image/png',
@@ -54,9 +49,8 @@ final class ArchiveController extends AbstractController
      * Streams the downloaded preview thumbnail (og:image) for a link.
      */
     #[Route('/links/{id}/preview', name: 'link_preview', methods: ['GET'])]
-    public function preview(int $id): Response
+    public function preview(Link $link): Response
     {
-        $link = $this->links->find($id) ?? throw $this->createNotFoundException();
         $relative = $link->getPreviewImage();
         if (null === $relative) {
             throw $this->createNotFoundException();

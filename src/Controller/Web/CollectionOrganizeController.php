@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Web;
 
-use App\Repository\CollectionRepository;
+use App\Entity\Collection;
 use App\Repository\LinkRepository;
 use App\Service\Ai\FolderOrganizer;
 use Psr\Log\LoggerInterface;
@@ -18,7 +18,6 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 final class CollectionOrganizeController extends AbstractController
 {
     public function __construct(
-        private readonly CollectionRepository $collections,
         private readonly LinkRepository $links,
         private readonly FolderOrganizer $organizer,
         #[Autowire(service: 'monolog.logger.ai')]
@@ -28,10 +27,8 @@ final class CollectionOrganizeController extends AbstractController
     }
 
     #[Route('/collections/{id}/organize', name: 'collections_organize', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function propose(int $id): Response
+    public function propose(Collection $collection): Response
     {
-        $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
-
         // LLM generation over a large folder can take well over PHP's default
         // 30s max_execution_time. This is a deliberate, user-triggered action.
         set_time_limit(180);
@@ -40,10 +37,10 @@ final class CollectionOrganizeController extends AbstractController
         try {
             $proposal = $this->organizer->proposeCategories($collection);
         } catch (\Throwable $e) {
-            $this->aiLogger->error('organizer propose failed', ['collection' => $id, 'exception' => $e->getMessage()]);
+            $this->aiLogger->error('organizer propose failed', ['collection' => $collection->getId(), 'exception' => $e->getMessage()]);
             $this->addFlash('error', $this->translator->trans('collection.organize_failed').' — '.$e->getMessage());
 
-            return $this->redirectToRoute('collections_show', ['id' => $id]);
+            return $this->redirectToRoute('collections_show', ['id' => $collection->getId()]);
         }
         $elapsed = microtime(true) - $start;
 
@@ -63,30 +60,29 @@ final class CollectionOrganizeController extends AbstractController
     }
 
     #[Route('/collections/{id}/organize/assign', name: 'collections_organize_assign', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function assign(int $id, Request $request): Response
+    public function assign(Collection $collection, Request $request): Response
     {
-        $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
-        $name = trim((string) $request->request->get('name', ''));
-        $description = trim((string) $request->request->get('description', ''));
+        $name = trim($request->request->getString('name'));
+        $description = trim($request->request->getString('description'));
         if ('' === $name) {
-            return $this->redirectToRoute('collections_show', ['id' => $id]);
+            return $this->redirectToRoute('collections_show', ['id' => $collection->getId()]);
         }
 
         set_time_limit(180);
 
         // Phase-1 proposals are carried in a hidden field so we NEVER re-run the
         // expensive phase-1 analysis when the user tries another folder.
-        $proposalJson = (string) $request->request->get('proposal', '[]');
+        $proposalJson = $request->request->getString('proposal', '[]');
         $categories = $this->decodeCategories($proposalJson);
 
         $start = microtime(true);
         try {
             $ids = $this->organizer->assignLinks($collection, $name, $description);
         } catch (\Throwable $e) {
-            $this->aiLogger->error('organizer assign failed', ['collection' => $id, 'exception' => $e->getMessage()]);
+            $this->aiLogger->error('organizer assign failed', ['collection' => $collection->getId(), 'exception' => $e->getMessage()]);
             $this->addFlash('error', $this->translator->trans('collection.organize_failed').' — '.$e->getMessage());
 
-            return $this->redirectToRoute('collections_show', ['id' => $id]);
+            return $this->redirectToRoute('collections_show', ['id' => $collection->getId()]);
         }
         $elapsed = microtime(true) - $start;
 
@@ -109,15 +105,14 @@ final class CollectionOrganizeController extends AbstractController
     }
 
     #[Route('/collections/{id}/organize/apply', name: 'collections_organize_apply', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function apply(int $id, Request $request): Response
+    public function apply(Collection $collection, Request $request): Response
     {
-        $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
-        $name = trim((string) $request->request->get('name', ''));
+        $name = trim($request->request->getString('name'));
         /** @var list<int> $linkIds */
         $linkIds = array_map('intval', (array) $request->request->all('link_ids'));
 
         if ('' === $name || [] === $linkIds) {
-            return $this->redirectToRoute('collections_show', ['id' => $id]);
+            return $this->redirectToRoute('collections_show', ['id' => $collection->getId()]);
         }
 
         $child = $this->organizer->applyCategory($collection, $name, $linkIds);

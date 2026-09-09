@@ -35,18 +35,18 @@ final class LinkController extends AbstractController
     public function index(Request $request): Response
     {
         $dashboard = $this->current->get();
-        $collectionId = $request->query->get('collection');
-        $tagId = $request->query->get('tag');
-        $q = trim((string) $request->query->get('q', ''));
+        $collectionId = $request->query->has('collection') ? $request->query->getInt('collection') : null;
+        $tagId = $request->query->has('tag') ? $request->query->getInt('tag') : null;
+        $q = trim($request->query->getString('q'));
 
         if ('' !== $q) {
             $ids = $this->search->ftsIds($q);
             $links = $this->links->findByIds($ids);
         } elseif (null !== $collectionId) {
-            $collection = $this->collections->find((int) $collectionId);
+            $collection = $this->collections->find($collectionId);
             $links = null === $collection ? [] : $this->links->findForCollection($collection);
         } elseif (null !== $tagId) {
-            $tag = $this->tags->find((int) $tagId);
+            $tag = $this->tags->find($tagId);
             $links = null === $tag ? [] : $this->links->findForTag($tag);
         } else {
             $links = $this->links->findForDashboard($dashboard, 50, null, 'ASC');
@@ -66,12 +66,12 @@ final class LinkController extends AbstractController
         $dashboard = $this->current->get();
         $collections = $this->collections->findForDashboardTreeOrder($dashboard);
         if ($request->isMethod('POST')) {
-            $url = trim((string) $request->request->get('url', ''));
-            $collectionId = (int) $request->request->get('collection', 0);
+            $url = trim($request->request->getString('url'));
+            $collectionId = $request->request->getInt('collection');
             $collection = 0 === $collectionId ? null : $this->collections->find($collectionId);
             if ('' !== $url && null !== $collection && false !== filter_var($url, \FILTER_VALIDATE_URL)) {
                 $link = new Link($url, $collection);
-                $name = trim((string) $request->request->get('name', ''));
+                $name = trim($request->request->getString('name'));
                 if ('' !== $name) {
                     $link->setName($name);
                 }
@@ -85,25 +85,24 @@ final class LinkController extends AbstractController
         return $this->render('links/new.html.twig', [
             'dashboard' => $dashboard,
             'collections' => $collections,
-            'preselect' => null !== $request->query->get('collection') ? (int) $request->query->get('collection') : null,
+            'preselect' => $request->query->has('collection') ? $request->query->getInt('collection') : null,
         ]);
     }
 
     #[Route('/links/{id}/edit', name: 'links_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request): Response
+    public function edit(Link $link, Request $request): Response
     {
-        $link = $this->links->find($id) ?? throw $this->createNotFoundException();
         $dashboard = $this->current->get();
         $collections = $this->collections->findForDashboardTreeOrder($dashboard);
 
         if ($request->isMethod('POST')) {
-            $url = trim((string) $request->request->get('url', ''));
-            $collectionId = (int) $request->request->get('collection', 0);
+            $url = trim($request->request->getString('url'));
+            $collectionId = $request->request->getInt('collection');
             $collection = 0 === $collectionId ? null : $this->collections->find($collectionId);
             if ('' !== $url && null !== $collection && false !== filter_var($url, \FILTER_VALIDATE_URL)) {
                 $link->setUrl($url);
                 $link->setCollection($collection);
-                $name = trim((string) $request->request->get('name', ''));
+                $name = trim($request->request->getString('name'));
                 $link->setName('' !== $name ? $name : null);
 
                 // Editing "un-deadifies" the link: clear the health verdict so it drops
@@ -138,10 +137,8 @@ final class LinkController extends AbstractController
     }
 
     #[Route('/links/{id}', name: 'links_show', methods: ['GET'])]
-    public function show(int $id): Response
+    public function show(Link $link): Response
     {
-        $link = $this->links->find($id) ?? throw $this->createNotFoundException();
-
         return $this->render('links/show.html.twig', [
             'link' => $link,
             'assets' => $this->assets->findForLink($link),
@@ -149,9 +146,8 @@ final class LinkController extends AbstractController
     }
 
     #[Route('/links/{id}/delete', name: 'links_delete', methods: ['POST'])]
-    public function delete(int $id, Request $request): Response
+    public function delete(Link $link, Request $request): Response
     {
-        $link = $this->links->find($id) ?? throw $this->createNotFoundException();
         $this->em->remove($link);
         $this->em->flush();
 
@@ -163,7 +159,7 @@ final class LinkController extends AbstractController
         // Stay on the page the deletion was triggered from (dashboard, a collection,
         // a filtered list…). The form posts the current URL as return_to; only a
         // same-site path is honoured, to avoid an open redirect.
-        $returnTo = (string) $request->request->get('return_to', '');
+        $returnTo = $request->request->getString('return_to');
         // Same-site path only. Reject "//host" and "/\host" (browsers normalise
         // the backslash to a slash → protocol-relative open redirect).
         if (str_starts_with($returnTo, '/') && !str_starts_with($returnTo, '//') && !str_starts_with($returnTo, '/\\')) {
@@ -182,14 +178,13 @@ final class LinkController extends AbstractController
     }
 
     #[Route('/links/{id}/rearchive', name: 'links_rearchive', methods: ['POST'])]
-    public function reArchive(int $id): RedirectResponse
+    public function reArchive(Link $link): RedirectResponse
     {
-        $link = $this->links->find($id) ?? throw $this->createNotFoundException();
         $link->setStatus(Link::STATUS_PENDING);
         $link->setAiStatus(Link::AI_PENDING);
         $link->setLastError(null);
         $this->em->flush();
 
-        return $this->redirectToRoute('links_show', ['id' => $id]);
+        return $this->redirectToRoute('links_show', ['id' => $link->getId()]);
     }
 }

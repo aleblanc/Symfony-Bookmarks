@@ -10,6 +10,7 @@ use App\Repository\CollectionRepository;
 use App\Repository\LinkRepository;
 use App\Service\CurrentDashboard;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -41,10 +42,8 @@ final class CollectionController extends AbstractController
     }
 
     #[Route('/collections/{id}', name: 'collections_show', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function show(int $id): Response
+    public function show(Collection $collection): Response
     {
-        $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
-
         // Merge targets: every other folder of the dashboard, minus this one and its
         // descendants (merging into a descendant would delete it via the cascade).
         $forbidden = [$collection->getId()];
@@ -71,18 +70,18 @@ final class CollectionController extends AbstractController
         $dashboard = $this->current->get();
 
         if ($request->isMethod('POST')) {
-            $name = trim((string) $request->request->get('name', ''));
+            $name = trim($request->request->getString('name'));
             if ('' !== $name) {
                 $collection = new Collection($name, $dashboard);
-                $description = trim((string) $request->request->get('description', ''));
+                $description = trim($request->request->getString('description'));
                 if ('' !== $description) {
                     $collection->setDescription($description);
                 }
-                $color = trim((string) $request->request->get('color', ''));
+                $color = trim($request->request->getString('color'));
                 if ('' !== $color) {
                     $collection->setColor($color);
                 }
-                $icon = trim((string) $request->request->get('icon', ''));
+                $icon = trim($request->request->getString('icon'));
                 if ('' !== $icon) {
                     $collection->setIcon($icon);
                 }
@@ -107,9 +106,8 @@ final class CollectionController extends AbstractController
     }
 
     #[Route('/collections/{id}/edit', name: 'collections_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request): Response
+    public function edit(Collection $collection, Request $request): Response
     {
-        $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
         $dashboard = $collection->getDashboard();
 
         // A folder cannot be moved under itself or one of its descendants.
@@ -123,15 +121,15 @@ final class CollectionController extends AbstractController
         ));
 
         if ($request->isMethod('POST')) {
-            $name = trim((string) $request->request->get('name', ''));
+            $name = trim($request->request->getString('name'));
             if ('' !== $name) {
                 $collection->setName($name);
-                $collection->setDescription(trim((string) $request->request->get('description', '')) ?: null);
-                $color = trim((string) $request->request->get('color', ''));
+                $collection->setDescription(trim($request->request->getString('description')) ?: null);
+                $color = trim($request->request->getString('color'));
                 if ('' !== $color) {
                     $collection->setColor($color);
                 }
-                $icon = trim((string) $request->request->get('icon', ''));
+                $icon = trim($request->request->getString('icon'));
                 if ('' !== $icon) {
                     $collection->setIcon($icon);
                 }
@@ -155,10 +153,9 @@ final class CollectionController extends AbstractController
     }
 
     #[Route('/collections/{id}/move', name: 'collections_move', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function move(int $id, Request $request): RedirectResponse
+    public function move(Collection $collection, Request $request): RedirectResponse
     {
-        $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
-        $direction = (string) $request->request->get('direction');
+        $direction = $request->request->getString('direction');
 
         // Reorder within the sibling group (same parent). Take the ordered list, move
         // this folder to its target slot, then renumber 0..n. Handles up/down (±1) and
@@ -200,10 +197,9 @@ final class CollectionController extends AbstractController
     }
 
     #[Route('/collections/{id}/merge', name: 'collections_merge', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function merge(int $id, Request $request): RedirectResponse
+    public function merge(#[MapEntity(id: 'id')] Collection $source, Request $request): RedirectResponse
     {
-        $source = $this->collections->find($id) ?? throw $this->createNotFoundException();
-        $targetId = (int) $request->request->get('target', 0);
+        $targetId = $request->request->getInt('target');
         $target = $targetId > 0 ? $this->collections->find($targetId) : null;
 
         // Guard: a real, different folder in the same dashboard, not a descendant of
@@ -240,9 +236,8 @@ final class CollectionController extends AbstractController
     }
 
     #[Route('/collections/{id}/delete', name: 'collections_delete', methods: ['POST'])]
-    public function delete(int $id): RedirectResponse
+    public function delete(Collection $collection): RedirectResponse
     {
-        $collection = $this->collections->find($id) ?? throw $this->createNotFoundException();
         $parent = $collection->getParent();
         // parent_id has no DB-level FK (SQLite ALTER limit), so remove descendants
         // ourselves; each collection's links cascade via their enforced FK.
