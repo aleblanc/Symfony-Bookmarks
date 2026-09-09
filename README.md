@@ -335,9 +335,13 @@ Links land as `status=pending` so the archival cron will pick them up.
 
 ![Link detail](docs/screenshot-link.png)
 
-**AI folder organizer** — "🪄🤖 Organize with AI" proposes sub-folders for a messy folder (with example links and the AI response time); pick one to review which links to move:
+**AI folder organizer — step 1** — "🪄🤖 Organize with AI" proposes sub-folders for a messy folder (with example links and the AI response time):
 
-![AI folder organizer](docs/screenshot-ai-organizer.png)
+![AI folder organizer — proposals](docs/screenshot-ai-organizer.png)
+
+**AI folder organizer — step 2** — pick a proposed folder and the AI lists which links belong in it (pre-checked); review, then create the folder and move them:
+
+![AI folder organizer — link assignment](docs/screenshot-ai-organizer-2.png)
 
 ---
 
