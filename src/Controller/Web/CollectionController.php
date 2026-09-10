@@ -53,7 +53,7 @@ final class CollectionController extends AbstractController
             $forbidden[] = $descendant->getId();
         }
         $mergeTargets = array_values(array_filter(
-            $this->collections->findForDashboard($collection->getDashboard()),
+            $this->collections->findForDashboardTreeOrder($collection->getDashboard()),
             static fn (Collection $c): bool => !\in_array($c->getId(), $forbidden, true),
         ));
 
