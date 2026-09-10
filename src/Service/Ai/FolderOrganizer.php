@@ -66,17 +66,28 @@ final class FolderOrganizer
      */
     public function buildBookmarkList(Collection $collection): array
     {
+        $size = $this->chunkSize();
         $all = $this->links->findForCollection($collection);
-        $links = \array_slice($all, 0, $this->chunkLinks);
-        if (\count($all) > $this->chunkLinks) {
+        $links = \array_slice($all, 0, $size);
+        if (\count($all) > $size) {
             $this->aiLogger->warning('organizer: proposer link list capped', [
                 'collection' => $collection->getId(),
                 'total' => \count($all),
-                'sent' => $this->chunkLinks,
+                'sent' => $size,
             ]);
         }
 
         return $this->formatLines($links);
+    }
+
+    /**
+     * Positive chunk/sample size (env value clamped to >= 1).
+     *
+     * @return int<1, max>
+     */
+    private function chunkSize(): int
+    {
+        return max(1, $this->chunkLinks);
     }
 
     /**
@@ -159,7 +170,7 @@ final class FolderOrganizer
     public function assignLinks(Collection $collection, string $categoryName, string $categoryDescription, float $temperature = 0.2): array
     {
         $selected = [];
-        foreach (array_chunk($this->links->findForCollection($collection), $this->chunkLinks) as $chunk) {
+        foreach (array_chunk($this->links->findForCollection($collection), $this->chunkSize()) as $chunk) {
             $list = $this->formatLines($chunk);
             $prompt = 'Target folder: '.$categoryName."\nDescription: ".$categoryDescription
                 ."\n\nBookmarks:\n".$list['lines']

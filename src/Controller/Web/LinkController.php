@@ -188,6 +188,25 @@ final class LinkController extends AbstractController
         return new Response('', Response::HTTP_NO_CONTENT);
     }
 
+    #[Route('/links/{id}/favorite', name: 'links_favorite', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function toggleFavorite(Link $link, Request $request): Response
+    {
+        $link->setFavorite(!$link->isFavorite());
+        $this->em->flush();
+
+        if ($request->isXmlHttpRequest()) {
+            return new Response('', Response::HTTP_NO_CONTENT);
+        }
+
+        // Return to the page the toggle was triggered from (same-site path only).
+        $returnTo = $request->request->getString('return_to');
+        if (str_starts_with($returnTo, '/') && !str_starts_with($returnTo, '//') && !str_starts_with($returnTo, '/\\')) {
+            return $this->redirect($returnTo);
+        }
+
+        return $this->redirectToRoute('links_index');
+    }
+
     #[Route('/links/{id}/rearchive', name: 'links_rearchive', methods: ['POST'])]
     public function reArchive(Link $link): RedirectResponse
     {

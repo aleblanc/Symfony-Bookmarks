@@ -75,6 +75,7 @@ status:
 dashboard:
     title: 'Dashboard'
     recent_links: 'Recent links'
+    favorites: 'Favorites'
     recent_clicked: 'Recently clicked'
     most_clicked: 'Most clicked'
     recent_added: 'Recently added'
@@ -93,6 +94,8 @@ link:
     fulltext_placeholder: 'Full-text search…'
     none_match: 'No links match.'
     untitled: 'Untitled'
+    favorite_add: 'Add to favorites'
+    favorite_remove: 'Remove from favorites'
     need_collection: 'You need a collection first.'
     create_one: 'Create one'
     field_url: 'URL'

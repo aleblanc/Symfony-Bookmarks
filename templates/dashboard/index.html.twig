@@ -7,8 +7,17 @@
         <a href="{{ path('links_new') }}" class="btn btn-primary">➕ {{ 'link.new'|trans }}</a>
     </header>
 
-    {% if clicked is empty and most_clicked is empty and added is empty and by_collection is empty %}
+    {% if favorites is empty and clicked is empty and most_clicked is empty and added is empty and by_collection is empty %}
         <p class="muted">{{ 'dashboard.empty'|trans }}</p>
+    {% endif %}
+
+    {% if favorites is not empty %}
+        <section>
+            <h2>⭐ {{ 'dashboard.favorites'|trans }}</h2>
+            <div class="link-strip">
+                {% for link in favorites %}{% include 'links/_card.html.twig' %}{% endfor %}
+            </div>
+        </section>
     {% endif %}
 
     {% if clicked is not empty %}

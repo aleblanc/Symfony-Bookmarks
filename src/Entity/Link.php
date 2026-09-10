@@ -100,6 +100,9 @@ class Link
     #[ORM\Column]
     private bool $isEncrypted = false;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $favorite = false;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -300,6 +303,16 @@ class Link
     public function setEncrypted(bool $isEncrypted): void
     {
         $this->isEncrypted = $isEncrypted;
+    }
+
+    public function isFavorite(): bool
+    {
+        return $this->favorite;
+    }
+
+    public function setFavorite(bool $favorite): void
+    {
+        $this->favorite = $favorite;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

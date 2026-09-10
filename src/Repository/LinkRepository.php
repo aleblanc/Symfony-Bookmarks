@@ -243,6 +243,19 @@ final class LinkRepository extends ServiceEntityRepository
             ->execute();
     }
 
+    /** @return list<Link> favorite links of a dashboard, newest first */
+    public function findFavoritesForDashboard(Dashboard $dashboard, int $limit = 12): array
+    {
+        return $this->hydrateCards($this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d AND l.favorite = true')
+            ->setParameter('d', $dashboard)
+            ->orderBy('l.id', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult());
+    }
+
     /** @return list<Link> most recently clicked links of a dashboard */
     public function findRecentlyClicked(Dashboard $dashboard, int $limit = 8): array
     {

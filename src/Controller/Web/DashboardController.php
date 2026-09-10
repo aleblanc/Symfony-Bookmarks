@@ -13,6 +13,9 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class DashboardController extends AbstractController
 {
+    /** Favorite links listed first on the dashboard. */
+    private const FAVORITES_LIMIT = 12;
+
     /** Links shown in each dashboard highlight strip (recent / most-clicked / newest). */
     private const STRIP_LIMIT = 8;
 
@@ -41,6 +44,7 @@ final class DashboardController extends AbstractController
 
         return $this->render('dashboard/index.html.twig', [
             'dashboard' => $dashboard,
+            'favorites' => $this->links->findFavoritesForDashboard($dashboard, self::FAVORITES_LIMIT),
             'clicked' => $this->links->findRecentlyClicked($dashboard, self::STRIP_LIMIT),
             'most_clicked' => $this->links->findMostClicked($dashboard, self::STRIP_LIMIT),
             'added' => $this->links->findForDashboard($dashboard, self::STRIP_LIMIT, null, 'DESC'),

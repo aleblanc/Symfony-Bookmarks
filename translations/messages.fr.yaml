@@ -75,6 +75,7 @@ status:
 dashboard:
     title: 'Tableau de bord'
     recent_links: 'Liens récents'
+    favorites: 'Favoris'
     recent_clicked: 'Derniers liens cliqués'
     most_clicked: 'Liens les plus cliqués'
     recent_added: 'Derniers liens ajoutés'
@@ -93,6 +94,8 @@ link:
     fulltext_placeholder: 'Recherche plein texte…'
     none_match: 'Aucun lien ne correspond.'
     untitled: 'Sans titre'
+    favorite_add: 'Ajouter aux favoris'
+    favorite_remove: 'Retirer des favoris'
     need_collection: 'Vous devez d''abord créer une collection.'
     create_one: 'En créer une'
     field_url: 'URL'
