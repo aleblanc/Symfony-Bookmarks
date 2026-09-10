@@ -85,7 +85,8 @@ final class LinkController extends AbstractController
                     $this->em->persist($link);
                     $this->em->flush();
 
-                    return $this->redirectToRoute('links_index');
+                    // Land back in the folder the link was added to, not the global list.
+                    return $this->redirectToRoute('collections_show', ['id' => $collection->getId()]);
                 }
             }
         }
