@@ -141,7 +141,9 @@ final class LinkRepository extends ServiceEntityRepository
             ->andWhere('l.status = :s')
             ->andWhere('c.skipProcessing = false')
             ->setParameter('s', Link::STATUS_PENDING)
-            ->orderBy('l.id', 'ASC')
+            // Newest first: a link you just added gets its title/preview before the
+            // older backlog.
+            ->orderBy('l.id', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
