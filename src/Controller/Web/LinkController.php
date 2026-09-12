@@ -60,7 +60,7 @@ final class LinkController extends AbstractController
         return $this->render('links/index.html.twig', [
             'dashboard' => $dashboard,
             'links' => $links,
-            'collections' => $this->collections->findForDashboard($dashboard),
+            'collections' => $this->collections->findForDashboardTreeOrder($dashboard),
             'query' => $q,
         ]);
     }
@@ -149,6 +149,52 @@ final class LinkController extends AbstractController
         ]);
     }
 
+    /**
+     * Bulk-move the ticked search results into a collection of the current
+     * dashboard. Links belonging to another dashboard are silently skipped so a
+     * forged id can never move something out of scope.
+     */
+    #[Route('/links/bulk/move', name: 'links_bulk_move', methods: ['POST'])]
+    public function bulkMove(Request $request): Response
+    {
+        $dashboard = $this->current->get();
+        $target = $this->collections->find($request->request->getInt('collection'));
+        if (null === $target || $target->getDashboard() !== $dashboard) {
+            $this->addFlash('error', 'link.bulk_need_folder');
+
+            return $this->safeReturn($request);
+        }
+
+        foreach ($this->links->findByIds($this->bulkIds($request)) as $link) {
+            if ($link->getCollection()->getDashboard() === $dashboard) {
+                $link->setCollection($target);
+            }
+        }
+        $this->em->flush();
+        $this->addFlash('success', 'link.bulk_moved');
+
+        return $this->safeReturn($request);
+    }
+
+    /**
+     * Bulk-delete the ticked search results (own dashboard only). The confirm
+     * step lives client-side; this endpoint just performs the deletion.
+     */
+    #[Route('/links/bulk/delete', name: 'links_bulk_delete', methods: ['POST'])]
+    public function bulkDelete(Request $request): Response
+    {
+        $dashboard = $this->current->get();
+        foreach ($this->links->findByIds($this->bulkIds($request)) as $link) {
+            if ($link->getCollection()->getDashboard() === $dashboard) {
+                $this->em->remove($link);
+            }
+        }
+        $this->em->flush();
+        $this->addFlash('success', 'link.bulk_deleted');
+
+        return $this->safeReturn($request);
+    }
+
     #[Route('/links/{id}', name: 'links_show', methods: ['GET'])]
     public function show(Link $link): Response
     {
@@ -229,5 +275,32 @@ final class LinkController extends AbstractController
         }
 
         return 0 === \count($errors);
+    }
+
+    /**
+     * The ticked link ids from a bulk form, as positive integers.
+     *
+     * @return list<int>
+     */
+    private function bulkIds(Request $request): array
+    {
+        return array_values(array_filter(
+            array_map('intval', $request->request->all('ids')),
+            static fn (int $id): bool => $id > 0,
+        ));
+    }
+
+    /**
+     * Redirect back to the page the bulk action was triggered from (the search
+     * results). Same-site path only, to avoid an open redirect — mirrors delete().
+     */
+    private function safeReturn(Request $request): Response
+    {
+        $returnTo = $request->request->getString('return_to');
+        if (str_starts_with($returnTo, '/') && !str_starts_with($returnTo, '//') && !str_starts_with($returnTo, '/\\')) {
+            return $this->redirect($returnTo);
+        }
+
+        return $this->redirectToRoute('links_index');
     }
 }

@@ -11,6 +11,71 @@
     </form>
     {% if links is empty %}
         <p class="muted">{{ 'link.none_match'|trans }}</p>
+    {% elseif query %}
+        {# Search results: each card gets a checkbox and a bulk toolbar sits at the end. #}
+        <div class="row" style="margin-bottom:10px;">
+            <label class="row" style="gap:6px;align-items:center;">
+                <input type="checkbox" id="bulk-all"> <span class="muted">{{ 'bulk.select_all'|trans }}</span>
+            </label>
+        </div>
+        <div class="link-list" id="bulk-list">
+            {% for link in links %}{% include 'links/_card.html.twig' with {bulk_select: true} %}{% endfor %}
+        </div>
+
+        <form class="card card-form bulk-bar" method="post"
+              data-move-url="{{ path('links_bulk_move') }}"
+              data-delete-url="{{ path('links_bulk_delete') }}">
+            <input type="hidden" name="return_to" value="{{ app.request.basePath }}{{ app.request.pathInfo }}{% if app.request.queryString %}?{{ app.request.queryString }}{% endif %}">
+            <span class="muted" id="bulk-count">{{ 'bulk.count'|trans({'%count%': 0}) }}</span>
+            <select class="input" name="collection" id="bulk-collection" style="max-width:340px;">
+                {% for c in collections %}<option value="{{ c.id }}">{% for a in c.ancestors %}{{ a.name }} → {% endfor %}{{ c.name }}</option>{% endfor %}
+            </select>
+            <button type="button" class="btn btn-primary" id="bulk-move">📁 {{ 'bulk.move'|trans }}</button>
+            <button type="button" class="btn btn-danger" id="bulk-delete">🗑️ {{ 'bulk.delete'|trans }}</button>
+        </form>
+
+        <script>
+            (function () {
+                var form = document.querySelector('.bulk-bar');
+                if (!form) { return; }
+                var countEl = document.getElementById('bulk-count');
+                var countTpl = {{ 'bulk.count'|trans({'%count%': '@@'})|json_encode|raw }};
+                function checked() { return Array.prototype.slice.call(document.querySelectorAll('.bulk-cb:checked')); }
+                function refresh() { countEl.textContent = countTpl.replace('@@', checked().length); }
+
+                document.getElementById('bulk-list').addEventListener('change', function (e) {
+                    if (e.target.classList.contains('bulk-cb')) { refresh(); }
+                });
+                document.getElementById('bulk-all').addEventListener('change', function () {
+                    var v = this.checked;
+                    document.querySelectorAll('.bulk-cb').forEach(function (c) { c.checked = v; });
+                    refresh();
+                });
+
+                function submitTo(url, ids) {
+                    form.action = url;
+                    form.querySelectorAll('input[name="ids[]"]').forEach(function (n) { n.remove(); });
+                    ids.forEach(function (cb) {
+                        var h = document.createElement('input');
+                        h.type = 'hidden'; h.name = 'ids[]'; h.value = cb.value;
+                        form.appendChild(h);
+                    });
+                    form.submit();
+                }
+
+                document.getElementById('bulk-move').addEventListener('click', function () {
+                    var ids = checked();
+                    if (!ids.length) { alert({{ 'bulk.none_selected'|trans|json_encode|raw }}); return; }
+                    submitTo(form.dataset.moveUrl, ids);
+                });
+                document.getElementById('bulk-delete').addEventListener('click', function () {
+                    var ids = checked();
+                    if (!ids.length) { alert({{ 'bulk.none_selected'|trans|json_encode|raw }}); return; }
+                    if (!confirm(countTpl.replace('@@', ids.length) + '\n' + {{ 'bulk.confirm_delete'|trans|json_encode|raw }})) { return; }
+                    submitTo(form.dataset.deleteUrl, ids);
+                });
+            })();
+        </script>
     {% else %}
         <div class="link-list">
             {% for link in links %}{% include 'links/_card.html.twig' %}{% endfor %}

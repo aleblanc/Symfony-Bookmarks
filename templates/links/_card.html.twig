@@ -1,5 +1,10 @@
 {% import '_partials/_folder_icon.html.twig' as fi %}
 <article class="link-card">
+    {% if bulk_select|default(false) %}
+        <label class="bulk-check" title="{{ 'bulk.select_one'|trans }}">
+            <input type="checkbox" class="bulk-cb" value="{{ link.id }}">
+        </label>
+    {% endif %}
     <a class="link-thumb" href="{{ link.url }}" target="_blank" rel="noopener" data-click-id="{{ link.id }}"
        {% if not link.previewImage %}style="background: linear-gradient(135deg, {{ link.collection.color }}22, {{ link.collection.color }}66);"{% endif %}>
         {% if link.previewImage %}

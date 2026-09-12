@@ -63,6 +63,15 @@ dead:
     duplicates_title: 'Duplicates'
     duplicates_intro: 'Links pointing to the same URL (compared lower-cased, ignoring a trailing slash). Each panel groups the copies with their folder so you can delete the redundant ones.'
 
+bulk:
+    select_all: 'Select all'
+    select_one: 'Select this link'
+    count: '%count% selected'
+    move: 'Move to folder'
+    delete: 'Delete selected'
+    none_selected: 'Select at least one link first.'
+    confirm_delete: 'Delete them permanently? This cannot be undone.'
+
 status:
     label: 'status'
     ai_label: 'AI'
@@ -98,6 +107,9 @@ link:
     untitled: 'Untitled'
     favorite_add: 'Add to favorites'
     favorite_remove: 'Remove from favorites'
+    bulk_moved: 'Selected links moved.'
+    bulk_deleted: 'Selected links deleted.'
+    bulk_need_folder: 'Pick a destination folder first.'
     need_collection: 'You need a collection first.'
     create_one: 'Create one'
     field_url: 'URL'

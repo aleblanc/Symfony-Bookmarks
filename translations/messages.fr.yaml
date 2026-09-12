@@ -63,6 +63,15 @@ dead:
     duplicates_title: 'Doublons'
     duplicates_intro: 'Liens pointant vers la même URL (comparée en minuscules, sans le / final). Chaque volet regroupe les copies avec leur dossier pour vous permettre de supprimer celles en trop.'
 
+bulk:
+    select_all: 'Tout sélectionner'
+    select_one: 'Sélectionner ce lien'
+    count: '%count% sélectionné(s)'
+    move: 'Déplacer dans le dossier'
+    delete: 'Supprimer la sélection'
+    none_selected: 'Sélectionnez au moins un lien.'
+    confirm_delete: 'Les supprimer définitivement ? Cette action est irréversible.'
+
 status:
     label: 'statut'
     ai_label: 'IA'
@@ -98,6 +107,9 @@ link:
     untitled: 'Sans titre'
     favorite_add: 'Ajouter aux favoris'
     favorite_remove: 'Retirer des favoris'
+    bulk_moved: 'Liens sélectionnés déplacés.'
+    bulk_deleted: 'Liens sélectionnés supprimés.'
+    bulk_need_folder: 'Choisissez d''abord un dossier de destination.'
     need_collection: 'Vous devez d''abord créer une collection.'
     create_one: 'En créer une'
     field_url: 'URL'
