@@ -29,7 +29,7 @@ final class AppAiSummarizePendingCommand extends Command
         private readonly LoggerInterface $aiLogger,
         #[Autowire('%env(bool:APP_AI_ENABLED)%')]
         private readonly bool $enabled,
-        #[Autowire('%env(int:APP_AI_CALL_DELAY_MS)%')]
+        #[Autowire('%env(int:APP_AI_SUMMARY_CALL_DELAY_MS)%')]
         private readonly int $callDelayMs = 0,
     ) {
         parent::__construct();
