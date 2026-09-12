@@ -99,3 +99,18 @@ de télécharger la vidéo via `yt-dlp`**.
   fichier dans `var/archives/<id>/` comme un `ArchiveAsset` (nouveau `KIND_VIDEO`),
   servi par la route d'archive existante.
 - Attention : usage perso / légalité selon les sources ; garder ça opt-in et local.
+
+## 5. Accès aux liens depuis la barre d'adresse de Firefox
+
+Trouver une solution pour **incorporer les liens de Symfony-Bookmarks dans la
+barre d'adresse de Firefox** — pouvoir taper quelques lettres dans l'URL bar et
+voir remonter en suggestions les marque-pages stockés dans l'app (par exemple
+via une extension dédiée).
+
+- Piste principale : **extension WebExtension** utilisant l'API `omnibox` (un
+  mot-clé déclencheur, ex. `bm <recherche>`, qui interroge l'API
+  `/api/v1/*` et propose les résultats dans la barre d'adresse).
+- Alternative sans extension : un **moteur de recherche personnalisé** (OpenSearch
+  / mot-clé de recherche Firefox) pointant sur une route de recherche de l'app.
+- À creuser : réutiliser le token Bearer existant pour l'auth, et une route API
+  de recherche légère renvoyant titre + URL.
