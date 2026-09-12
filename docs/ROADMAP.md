@@ -114,3 +114,30 @@ via une extension dédiée).
   / mot-clé de recherche Firefox) pointant sur une route de recherche de l'app.
 - À creuser : réutiliser le token Bearer existant pour l'auth, et une route API
   de recherche légère renvoyant titre + URL.
+
+## 6. Synchronisation avec les marque-pages Firefox
+
+Une **extension WebExtension** qui synchronise les marque-pages du navigateur avec
+la base de Symfony-Bookmarks : elle utilise l'**API `bookmarks` de Firefox** d'un
+côté et l'**API `/api/v1/*`** (Bearer) de l'autre.
+
+- **Ne pas** toucher `places.sqlite` directement : les extensions sont
+  sandboxées (pas d'accès fichier), et écrire dans ce fichier pendant que Firefox
+  tourne risque de corrompre le profil. L'API `bookmarks`
+  (`getTree`, `create`, `update`, `move`, `remove` + événements
+  `onCreated/onRemoved/onChanged/onMoved`) est l'abstraction propre à utiliser.
+- **Vrai défi = la réconciliation**, pas la lecture :
+  - identité : table de correspondance `firefoxGuid ↔ symfonyLinkId` dans
+    `storage.local`, complétée par un match sur **URL normalisée** (réutiliser la
+    normalisation des doublons : minuscules, `/` final et `www.` ignorés) ;
+  - arbre de dossiers Firefox ↔ **collections imbriquées**, avec choix du
+    **dashboard** cible (Perso / Pro) ;
+  - suppressions et déplacements (propager ou détacher ?), conflits (« dernier
+    gagne » via timestamp, ou Symfony fait autorité) ;
+  - **exclure les collections chiffrées (vault)** de la synchro.
+- **Approche par paliers** : (1) miroir un sens périodique (via `alarms`) sans
+  propager les suppressions ; (2) l'autre sens (Symfony → Firefox dans un dossier
+  dédié) ; (3) temps réel via les événements + suppressions + conflits.
+- Côté Symfony (surtout déjà là) : exposer un **timestamp de modification** par
+  lien dans l'API et, à terme, un **endpoint de delta** (« ce qui a changé depuis
+  tel instant ») pour éviter de tout re-scanner à chaque passage.
