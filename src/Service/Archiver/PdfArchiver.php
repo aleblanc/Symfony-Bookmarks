@@ -19,6 +19,8 @@ final class PdfArchiver implements AssetArchiverInterface
         private readonly LoggerInterface $logger,
         #[Autowire('%env(APP_PDF_COMPRESS_QUALITY)%')]
         private readonly string $compressQuality = 'ebook',
+        #[Autowire('%env(int:APP_PDF_TIMEOUT)%')]
+        private readonly int $timeout = 15,
     ) {
     }
 
@@ -46,7 +48,7 @@ final class PdfArchiver implements AssetArchiverInterface
             '--print-to-pdf='.$outputPath,
             $url,
         ]);
-        $process->setTimeout(90);
+        $process->setTimeout($this->timeout);
         $process->mustRun();
 
         // Chrome embeds images uncompressed; shrink the PDF in place when
