@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/banner.jpg" width="960" alt="Symfony Bookmarks — self-hosted, single-user bookmark manager">
+</p>
+
 # Symfony Bookmarks
 
 A lightweight, self-hosted, single-user bookmark manager built in **PHP 8.5 / Symfony** + **SQLite**, designed to run on a Raspberry Pi 4 (~200 MB RAM) and stay **compatible with the official Linkwarden browser extensions** for Firefox and Chrome.
