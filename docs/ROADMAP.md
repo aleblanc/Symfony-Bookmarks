@@ -3,7 +3,42 @@
 Idées de fonctionnalités futures. Non priorisées, non engagées — juste consignées
 pour ne pas les perdre. Ajouté le 2026-09-07.
 
+## Réalisé (hors roadmap initiale)
+
+Fonctionnalités livrées le 2026-09-12, en plus des idées ci-dessous :
+
+- **Import par collage de liste** : sur la page Importer, un champ « Ou collez une
+  liste de liens » qui extrait chaque URL http/https/ftp d'une liste libre
+  (numérotée, à puces, CSV `id, url`, ou une par ligne) vers un dossier nommé
+  (défaut `Import <date>`, réutilisé ou créé).
+- **Actions groupées sur les résultats de recherche** : case à cocher par
+  résultat (+ « tout sélectionner ») et barre d'opérations pour déplacer le lot
+  dans un dossier ou le supprimer (avec confirmation).
+- **Page « Liens morts / doublons »** : voir la section 1 ci-dessous.
+- **Bannière du total de liens** en haut de la vue « Tous les liens ».
+- **Timeout PDF configurable** (`APP_PDF_TIMEOUT`, défaut 10 s) pour éviter qu'une
+  page lourde bloque tout un run d'indexation.
+- **Compteur de liens en attente** affiché au début de `app:index-pending`.
+- **Délais IA séparés et paramétrables** : `APP_AI_CALL_DELAY_MS` (tags, 2 s) et
+  `APP_AI_SUMMARY_CALL_DELAY_MS` (résumés, 6 s).
+
 ## 1. Analyse de santé des liens (liens morts / 404)
+
+> **Implémenté (2026-09-12)** : commande `app:check-links` + statut de santé par
+> lien (`health = unknown | alive | dead | error`) avec date du dernier contrôle.
+> Page **« Liens morts / doublons »** (`/links/dead`) qui liste :
+> - les liens **morts** (404/410),
+> - les liens **injoignables** (échec réseau : DNS, timeout, TLS, connexion
+>   refusée), avec un nettoyage groupé « X liens pour domaine.tld → Tout
+>   supprimer » dès qu'un domaine revient ≥ 2 fois,
+> - les **doublons** : liens pointant vers la même URL une fois normalisée
+>   (minuscules, `/` final et `www.` de tête ignorés), regroupés en volets
+>   repliables montrant le dossier de chaque copie pour choisir laquelle
+>   supprimer.
+>
+> L'archive locale (PDF / capture / single-file / texte lisible) reste accessible
+> depuis chaque carte. **Reste à faire** : proposer de basculer automatiquement
+> un lien mort vers sa version archivée.
 
 Vérification **ponctuelle** (à la demande, ou périodique via cron) de l'état d'un
 lien : requête HTTP, si le lien est HS (404, timeout, DNS, 5xx…) le marquer comme
