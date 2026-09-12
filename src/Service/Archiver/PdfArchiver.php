@@ -20,7 +20,7 @@ final class PdfArchiver implements AssetArchiverInterface
         #[Autowire('%env(APP_PDF_COMPRESS_QUALITY)%')]
         private readonly string $compressQuality = 'ebook',
         #[Autowire('%env(int:APP_PDF_TIMEOUT)%')]
-        private readonly int $timeout = 15,
+        private readonly int $timeout = 10,
     ) {
     }
 
