@@ -368,6 +368,18 @@ final class LinkRepository extends ServiceEntityRepository
         return $this->hydrateCards($qb->getQuery()->getResult());
     }
 
+    /** Total number of links in a dashboard (all collections). */
+    public function countForDashboard(Dashboard $dashboard): int
+    {
+        return (int) $this->createQueryBuilder('l')
+            ->select('COUNT(l.id)')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d')
+            ->setParameter('d', $dashboard)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     /** Records a click via a direct UPDATE (bypasses the encrypt lifecycle listener). */
     public function registerClick(int $id): void
     {

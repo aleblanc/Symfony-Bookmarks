@@ -5,6 +5,11 @@
         <h1>{{ 'link.title_plural'|trans }} {% if query %}<small class="muted">— {{ 'link.search_for'|trans({'%query%': query}) }}</small>{% endif %}</h1>
         <a href="{{ path('links_new') }}" class="btn btn-primary">➕ {{ 'link.new'|trans }}</a>
     </header>
+    {% if total_links is defined and total_links is not null %}
+        <div class="card card-form" style="text-align:center;">
+            🔗 {{ 'link.total_banner'|trans({'%count%': total_links}) }}
+        </div>
+    {% endif %}
     <form class="search-bar" action="{{ path('links_index') }}" method="get">
         <input class="input" type="search" name="q" placeholder="{{ 'link.fulltext_placeholder'|trans }}" value="{{ query }}">
         <button class="btn" type="submit">🔍 {{ 'common.search'|trans }}</button>

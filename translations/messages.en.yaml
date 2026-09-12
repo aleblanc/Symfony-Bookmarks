@@ -101,6 +101,7 @@ dashboard:
 
 link:
     title_plural: 'Links'
+    total_banner: '%count% links in total'
     search_for: 'search "%query%"'
     new: 'New link'
     edit: 'Edit link'

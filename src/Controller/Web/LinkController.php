@@ -62,6 +62,10 @@ final class LinkController extends AbstractController
             'links' => $links,
             'collections' => $this->collections->findForDashboardTreeOrder($dashboard),
             'query' => $q,
+            // Banner shown only on the unfiltered "all links" view.
+            'total_links' => '' === $q && null === $collectionId && null === $tagId
+                ? $this->links->countForDashboard($dashboard)
+                : null,
         ]);
     }
 
