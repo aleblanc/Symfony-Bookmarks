@@ -60,6 +60,9 @@ dead:
     none: 'Aucun lien mort détecté. 🎉'
     unreachable_title: 'Injoignables'
     unreachable_intro: 'Liens dont la dernière vérification a échoué au niveau réseau (domaine mort, DNS, connexion refusée, timeout, TLS). Ce n''est pas forcément un 404 — vérifiez avant de supprimer.'
+    domain_summary: '%count% liens pour %host%'
+    domain_delete: 'Tout supprimer'
+    domain_confirm: 'Supprimer les %count% liens injoignables de %host% ?'
     duplicates_title: 'Doublons'
     duplicates_intro: 'Liens pointant vers la même URL (comparée en minuscules, sans le / final ni le « www. » de tête). Chaque volet regroupe les copies avec leur dossier pour vous permettre de supprimer celles en trop.'
 

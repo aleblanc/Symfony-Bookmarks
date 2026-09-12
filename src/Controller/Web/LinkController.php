@@ -145,6 +145,7 @@ final class LinkController extends AbstractController
             'dashboard' => $dashboard,
             'links' => $this->links->findDeadForDashboard($dashboard),
             'unreachable' => $this->links->findUnreachableForDashboard($dashboard),
+            'unreachable_domains' => $this->links->findUnreachableDomainClusters($dashboard),
             'duplicates' => $this->links->findDuplicatesForDashboard($dashboard),
         ]);
     }
@@ -191,6 +192,21 @@ final class LinkController extends AbstractController
         }
         $this->em->flush();
         $this->addFlash('success', 'link.bulk_deleted');
+
+        return $this->safeReturn($request);
+    }
+
+    /**
+     * Delete every unreachable link of the current dashboard belonging to one
+     * dead domain (the "X links for host.tld" cleanup on the dead-links page).
+     */
+    #[Route('/links/unreachable-domain/delete', name: 'links_unreachable_domain_delete', methods: ['POST'])]
+    public function deleteUnreachableDomain(Request $request): Response
+    {
+        $host = trim($request->request->getString('host'));
+        if ('' !== $host && $this->links->deleteUnreachableForHost($this->current->get(), $host) > 0) {
+            $this->addFlash('success', 'link.bulk_deleted');
+        }
 
         return $this->safeReturn($request);
     }

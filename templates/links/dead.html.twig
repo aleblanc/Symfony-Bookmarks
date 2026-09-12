@@ -17,6 +17,19 @@
         <section style="margin-top:28px;">
             <h2>📡 {{ 'dead.unreachable_title'|trans }} <span class="muted">({{ unreachable|length }})</span></h2>
             <p class="muted">{{ 'dead.unreachable_intro'|trans }}</p>
+            {% if unreachable_domains is not empty %}
+                <div class="dead-domains">
+                    {% for d in unreachable_domains %}
+                        <form class="dead-domain" method="post" action="{{ path('links_unreachable_domain_delete') }}"
+                              onsubmit="return confirm('{{ 'dead.domain_confirm'|trans({'%count%': d.count, '%host%': d.host}) }}');">
+                            <input type="hidden" name="host" value="{{ d.host }}">
+                            <input type="hidden" name="return_to" value="{{ app.request.basePath }}{{ app.request.pathInfo }}">
+                            <span class="muted">{{ 'dead.domain_summary'|trans({'%count%': d.count, '%host%': d.host}) }}</span>
+                            <button class="btn btn-sm btn-danger" type="submit">🗑️ {{ 'dead.domain_delete'|trans }}</button>
+                        </form>
+                    {% endfor %}
+                </div>
+            {% endif %}
             <div class="link-list">
                 {% for link in unreachable %}{% include 'links/_card.html.twig' with {ajax_delete: true} %}{% endfor %}
             </div>

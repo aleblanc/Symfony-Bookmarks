@@ -119,6 +119,99 @@ final class LinkRepository extends ServiceEntityRepository
     }
 
     /**
+     * Unreachable links clustered by host, keeping only hosts that recur more
+     * than twice — so a whole dead domain can be wiped in one click. Hosts are
+     * lower-cased with a leading "www." stripped; biggest clusters first.
+     *
+     * @return list<array{host: string, count: int}>
+     */
+    public function findUnreachableDomainClusters(Dashboard $dashboard): array
+    {
+        /** @var list<array{url: string}> $rows */
+        $rows = $this->createQueryBuilder('l')
+            ->select('l.url AS url')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d')
+            ->andWhere('l.healthStatus = :err')
+            ->setParameter('d', $dashboard)
+            ->setParameter('err', Link::HEALTH_ERROR)
+            ->getQuery()
+            ->getResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $host = $this->hostOf($row['url']);
+            if ('' !== $host) {
+                $counts[$host] = ($counts[$host] ?? 0) + 1;
+            }
+        }
+
+        $clusters = [];
+        foreach ($counts as $host => $count) {
+            if ($count > 2) {
+                $clusters[] = ['host' => $host, 'count' => $count];
+            }
+        }
+        usort($clusters, static fn (array $a, array $b): int => $b['count'] <=> $a['count'] ?: strcmp($a['host'], $b['host']));
+
+        return $clusters;
+    }
+
+    /**
+     * Deletes every unreachable link of $dashboard whose host matches $host
+     * (normalised the same way as findUnreachableDomainClusters). Returns the
+     * number removed. Uses em->remove per row so the ArchiveAsset cascade and
+     * any lifecycle listeners still fire.
+     */
+    public function deleteUnreachableForHost(Dashboard $dashboard, string $host): int
+    {
+        $host = $this->normalizeHost($host);
+        if ('' === $host) {
+            return 0;
+        }
+
+        /** @var list<Link> $links */
+        $links = $this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d')
+            ->andWhere('l.healthStatus = :err')
+            ->setParameter('d', $dashboard)
+            ->setParameter('err', Link::HEALTH_ERROR)
+            ->getQuery()
+            ->getResult();
+
+        $em = $this->getEntityManager();
+        $deleted = 0;
+        foreach ($links as $link) {
+            if ($this->hostOf($link->getUrl()) === $host) {
+                $em->remove($link);
+                ++$deleted;
+            }
+        }
+        if ($deleted > 0) {
+            $em->flush();
+        }
+
+        return $deleted;
+    }
+
+    /** Lower-cased host of a URL, with a leading "www." stripped; '' if none. */
+    private function hostOf(string $url): string
+    {
+        return $this->normalizeHost((string) (parse_url($url, PHP_URL_HOST) ?? ''));
+    }
+
+    private function normalizeHost(string $host): string
+    {
+        $host = strtolower($host);
+        if (str_starts_with($host, 'www.')) {
+            $host = substr($host, 4);
+        }
+
+        return $host;
+    }
+
+    /**
      * Groups of links that resolve to the same URL once normalised — lower-cased,
      * stripped of trailing slashes and of a leading "www." in the host — so the
      * dead-links page can surface redundant copies and let the user delete the
