@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Controller\Web;
 
+use App\Entity\Collection;
+use App\Entity\Link;
+use App\Repository\CollectionRepository;
 use App\Service\CurrentDashboard;
 use App\Service\Import\NetscapeBookmarkParser;
 use App\Service\Import\NetscapeBookmarksImporter;
+use App\Service\Import\UrlListParser;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class ImportController extends AbstractController
 {
@@ -22,6 +28,10 @@ final class ImportController extends AbstractController
         private readonly NetscapeBookmarkParser $parser,
         private readonly CurrentDashboard $current,
         private readonly LoggerInterface $logger,
+        private readonly CollectionRepository $collections,
+        private readonly UrlListParser $urlList,
+        private readonly EntityManagerInterface $em,
+        private readonly ValidatorInterface $validator,
     ) {
     }
 
@@ -72,6 +82,57 @@ final class ImportController extends AbstractController
         }
 
         return $this->render('import/index.html.twig', ['stats' => null]);
+    }
+
+    /**
+     * Bulk-create links from a pasted, free-form list (numbered / bulleted /
+     * CSV / one-per-line). See UrlListParser for the accepted shapes.
+     */
+    #[Route('/import/links', name: 'import_links', methods: ['POST'])]
+    public function importLinks(Request $request): Response
+    {
+        $dashboard = $this->current->get();
+
+        $folder = trim($request->request->getString('folder'));
+        if ('' === $folder) {
+            $this->addFlash('error', 'import.list_need_folder');
+
+            return $this->redirectToRoute('import_index');
+        }
+
+        $urls = $this->urlList->parse($request->request->getString('links'));
+
+        // Reuse a root folder of the same name; create it only once we have at
+        // least one valid link, so an all-junk paste never leaves an empty folder.
+        $collection = $this->collections->findRootByName($folder, $dashboard);
+        $imported = 0;
+        $skipped = 0;
+        foreach ($urls as $url) {
+            $link = new Link($url, $collection ?? new Collection($folder, $dashboard));
+            if (0 !== \count($this->validator->validate($link))) {
+                ++$skipped;
+                continue;
+            }
+            $collection = $link->getCollection();
+            if (null === $collection->getId()) {
+                $this->em->persist($collection);
+            }
+            $this->em->persist($link);
+            ++$imported;
+        }
+        $this->em->flush();
+
+        $this->logger->info('[import] pasted link list', [
+            'found' => \count($urls),
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'collection' => $folder,
+        ]);
+
+        return $this->render('import/index.html.twig', [
+            'stats' => null,
+            'list_stats' => ['links' => $imported, 'skipped' => $skipped, 'collection' => $folder],
+        ]);
     }
 
     /**

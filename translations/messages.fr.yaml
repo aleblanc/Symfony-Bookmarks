@@ -197,6 +197,17 @@ import:
     confirm: 'Importer la sélection'
     firefox_help_title: 'Depuis Firefox'
     firefox_help: 'Ctrl+Maj+O → Importer et sauvegarder → Exporter les marque-pages au format HTML, puis chargez le fichier ici.'
+    list_title: 'Ou collez une liste de liens'
+    list_field_links: 'Un lien par ligne'
+    list_field_folder: 'Dossier de destination'
+    list_folder_default: 'Import %date%'
+    list_folder_help: 'Un dossier portant ce nom est réutilisé s’il existe, sinon il est créé dans le tableau de bord actuel.'
+    list_help: 'Les lignes sans lien http/https/ftp sont ignorées. La numérotation, les puces (« 1. », « - », « * ») et une colonne CSV en tête (« 42, https://… ») sont retirées automatiquement.'
+    list_placeholder: "1. https://exemple.com\n2. https://autre.org\n- https://troisieme.net"
+    list_submit: 'Importer les liens'
+    list_result: 'Importé : %links% liens dans « %collection% ».'
+    list_skipped: '%skipped% ligne(s) ignorée(s) (URL invalide ou non supportée).'
+    list_need_folder: 'Saisissez un nom de dossier où importer les liens.'
 
 vault:
     unlock_title: 'Déverrouiller le coffre « %name% »'

@@ -197,6 +197,17 @@ import:
     confirm: 'Import selection'
     firefox_help_title: 'From Firefox'
     firefox_help: 'Ctrl+Shift+O → Import and Backup → Export Bookmarks to HTML, then upload the file here.'
+    list_title: 'Or paste a list of links'
+    list_field_links: 'One link per line'
+    list_field_folder: 'Folder to import into'
+    list_folder_default: 'Import %date%'
+    list_folder_help: 'A folder with this name is reused if it exists, otherwise it is created in the current dashboard.'
+    list_help: 'Lines without an http/https/ftp link are ignored. Numbering, bullets ("1.", "-", "*") and a leading CSV column ("42, https://…") are stripped automatically.'
+    list_placeholder: "1. https://example.com\n2. https://another.org\n- https://third.net"
+    list_submit: 'Import links'
+    list_result: 'Imported %links% links into "%collection%".'
+    list_skipped: '%skipped% line(s) skipped (invalid or unsupported URL).'
+    list_need_folder: 'Enter a folder name to import the links into.'
 
 vault:
     unlock_title: 'Unlock vault "%name%"'

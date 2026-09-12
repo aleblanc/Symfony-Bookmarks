@@ -29,6 +29,16 @@ final class CollectionRepository extends ServiceEntityRepository
         return $this->findOneBy([], ['id' => 'ASC']);
     }
 
+    /**
+     * A root-level (no parent) collection of $dashboard by exact name, or null.
+     * Used by the paste-a-list import to reuse an existing target folder before
+     * creating a new one.
+     */
+    public function findRootByName(string $name, Dashboard $dashboard): ?Collection
+    {
+        return $this->findOneBy(['name' => $name, 'parent' => null, 'dashboard' => $dashboard]);
+    }
+
     /** @return list<Collection> */
     public function findForDashboard(Dashboard $dashboard): array
     {

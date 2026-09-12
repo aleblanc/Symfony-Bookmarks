@@ -7,6 +7,12 @@
             ✅ {{ 'import.result'|trans({'%links%': stats.links, '%collections%': stats.collections}) }}
         </div>
     {% endif %}
+    {% if list_stats is defined and list_stats %}
+        <div class="card card-form" style="border-color: var(--ok);">
+            ✅ {{ 'import.list_result'|trans({'%links%': list_stats.links, '%collection%': list_stats.collection}) }}
+            {% if list_stats.skipped > 0 %}<br>{{ 'import.list_skipped'|trans({'%skipped%': list_stats.skipped}) }}{% endif %}
+        </div>
+    {% endif %}
     <form method="post" enctype="multipart/form-data" class="card card-form">
         <label class="field"><span>{{ 'import.field_file'|trans }}</span>
             <input class="input" type="file" name="bookmarks" accept=".html,.htm" required></label>
@@ -15,4 +21,19 @@
         </p>
         <button class="btn btn-primary" type="submit">{{ 'import.continue'|trans }} →</button>
     </form>
+
+    <div class="card card-form" style="margin-top:16px;">
+        <h2 style="margin-top:0;">{{ 'import.list_title'|trans }}</h2>
+        <form method="post" action="{{ path('import_links') }}">
+            <label class="field"><span>{{ 'import.list_field_links'|trans }}</span>
+                <textarea class="input" name="links" rows="10" required
+                          placeholder="{{ 'import.list_placeholder'|trans }}"></textarea></label>
+            <p class="muted" style="margin: 0 0 12px;">{{ 'import.list_help'|trans }}</p>
+            <label class="field"><span>{{ 'import.list_field_folder'|trans }}</span>
+                <input class="input" type="text" name="folder" required
+                       value="{{ 'import.list_folder_default'|trans({'%date%': 'now'|date('Y-m-d')}) }}"></label>
+            <p class="muted" style="margin: 0 0 12px;">{{ 'import.list_folder_help'|trans }}</p>
+            <button class="btn btn-primary" type="submit">➕ {{ 'import.list_submit'|trans }}</button>
+        </form>
+    </div>
 {% endblock %}

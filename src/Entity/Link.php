@@ -48,7 +48,7 @@ class Link
 
     #[ORM\Column(length: 2048)]
     #[Assert\NotBlank]
-    #[Assert\Url(protocols: ['http', 'https'])]
+    #[Assert\Url(protocols: ['http', 'https', 'ftp', 'ftps'])]
     #[Assert\Length(max: 2048)]
     private string $url;
 
