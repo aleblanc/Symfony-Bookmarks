@@ -119,8 +119,8 @@ final class LinkRepository extends ServiceEntityRepository
     }
 
     /**
-     * Unreachable links clustered by host, keeping only hosts that recur more
-     * than twice — so a whole dead domain can be wiped in one click. Hosts are
+     * Unreachable links clustered by host, keeping only hosts that recur at
+     * least twice — so a whole dead domain can be wiped in one click. Hosts are
      * lower-cased with a leading "www." stripped; biggest clusters first.
      *
      * @return list<array{host: string, count: int}>
@@ -148,7 +148,7 @@ final class LinkRepository extends ServiceEntityRepository
 
         $clusters = [];
         foreach ($counts as $host => $count) {
-            if ($count > 2) {
+            if ($count >= 2) {
                 $clusters[] = ['host' => $host, 'count' => $count];
             }
         }
