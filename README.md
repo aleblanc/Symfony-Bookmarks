@@ -48,7 +48,8 @@ Goals:
 - Runtime detection of Chromium: features gracefully disable in the UI when tooling is absent.
 - Encrypted vault protecting selected collections (URL + title + description + text ciphered at rest).
 - Web UI in Twig (no npm build required — CSS is inline).
-- Netscape HTML bookmarks import (Firefox / Chrome / Linkwarden exports).
+- Netscape HTML bookmarks import (Firefox / Chrome / Linkwarden exports), **plus a paste-a-list import**: drop a free-form list (numbered, bulleted, CSV `id, url`, or one URL per line) and every http/https/ftp link is extracted into a folder you name (defaults to `Import <date>`).
+- **Dead links / duplicates page**: lists links whose last check returned 404/410 or failed at the network level, and groups links that resolve to the same URL (normalised: lower-cased, trailing slash ignored) into collapsible panels showing each copy's folder so you can delete the redundant ones.
 - AI auto-tagging via any OpenAI-compatible endpoint (LM Studio, Ollama, vLLM, cloud API…).
 
 ---

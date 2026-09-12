@@ -8,7 +8,7 @@ nav:
     new_link: 'New link'
     collections: 'Collections'
     import: 'Import'
-    dead_links: 'Dead links'
+    dead_links: 'Dead links / duplicates'
     open_menu: 'Open menu'
     close_menu: 'Close menu'
     collapse_menu: 'Collapse menu'
@@ -55,7 +55,7 @@ common:
     back: 'Back'
 
 dead:
-    title: 'Dead links'
+    title: 'Dead links / duplicates'
     intro: 'Links whose last check returned 404 or 410 (page gone). Run "app:check-links" to refresh. Deletion is manual: use 🗑️ on each card.'
     none: 'No dead links found. 🎉'
     unreachable_title: 'Unreachable'

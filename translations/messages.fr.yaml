@@ -8,7 +8,7 @@ nav:
     new_link: 'Nouveau lien'
     collections: 'Collections'
     import: 'Importer'
-    dead_links: 'Liens morts'
+    dead_links: 'Liens morts / doublons'
     open_menu: 'Ouvrir le menu'
     close_menu: 'Fermer le menu'
     collapse_menu: 'Réduire le menu'
@@ -55,7 +55,7 @@ common:
     back: 'Retour'
 
 dead:
-    title: 'Liens morts'
+    title: 'Liens morts / doublons'
     intro: 'Liens dont la dernière vérification a renvoyé un 404 ou 410 (page supprimée). Lancez « app:check-links » pour rafraîchir. La suppression est manuelle : utilisez 🗑️ sur chaque carte.'
     none: 'Aucun lien mort détecté. 🎉'
     unreachable_title: 'Injoignables'
