@@ -118,6 +118,47 @@ final class LinkRepository extends ServiceEntityRepository
             ->getResult());
     }
 
+    /**
+     * Groups of links that resolve to the same URL once normalised — lower-cased
+     * and stripped of trailing slashes — so the dead-links page can surface
+     * redundant copies and let the user delete the ones they don't want. Only
+     * groups with more than one member are returned; groups are ordered by URL,
+     * and each group keeps its members together so their folders are comparable.
+     *
+     * @return list<list<Link>>
+     */
+    public function findDuplicatesForDashboard(Dashboard $dashboard): array
+    {
+        /** @var list<Link> $all */
+        $all = $this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d')
+            ->setParameter('d', $dashboard)
+            ->orderBy('l.url', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        /** @var array<string, list<Link>> $groups */
+        $groups = [];
+        foreach ($all as $link) {
+            $key = strtolower(rtrim($link->getUrl(), '/'));
+            $groups[$key][] = $link;
+        }
+
+        $duplicates = [];
+        foreach ($groups as $group) {
+            if (\count($group) > 1) {
+                $duplicates[] = $group;
+            }
+        }
+
+        if ([] !== $duplicates) {
+            $this->hydrateCards(array_merge(...$duplicates));
+        }
+
+        return $duplicates;
+    }
+
     public function countDeadForDashboard(Dashboard $dashboard): int
     {
         return (int) $this->createQueryBuilder('l')

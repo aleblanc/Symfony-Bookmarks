@@ -145,6 +145,7 @@ final class LinkController extends AbstractController
             'dashboard' => $dashboard,
             'links' => $this->links->findDeadForDashboard($dashboard),
             'unreachable' => $this->links->findUnreachableForDashboard($dashboard),
+            'duplicates' => $this->links->findDuplicatesForDashboard($dashboard),
         ]);
     }
 
