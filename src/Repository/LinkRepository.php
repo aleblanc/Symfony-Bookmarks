@@ -268,6 +268,19 @@ final class LinkRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /** Total links still waiting to be indexed (same filter as findPendingArchive). */
+    public function countPendingArchive(): int
+    {
+        return (int) $this->createQueryBuilder('l')
+            ->select('COUNT(l.id)')
+            ->join('l.collection', 'c')
+            ->andWhere('l.status = :s')
+            ->andWhere('c.skipProcessing = false')
+            ->setParameter('s', Link::STATUS_PENDING)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     /** @return list<Link> */
     public function findPendingArchive(int $limit = 20): array
     {

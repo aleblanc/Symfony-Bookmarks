@@ -37,6 +37,7 @@ final class AppArchivePendingCommand extends Command
             $requeued = $this->links->requeueAllForArchive();
             $output->writeln(\sprintf('%d link(s) requeued for re-indexing', $requeued));
         }
+        $output->writeln(\sprintf('%d link(s) pending indexing', $this->links->countPendingArchive()));
         $links = $this->links->findPendingArchive($limit);
         foreach ($links as $link) {
             $output->writeln(\sprintf('indexing #%d %s', (int) $link->getId(), $link->getUrl()));
