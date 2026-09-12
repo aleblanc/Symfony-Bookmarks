@@ -61,7 +61,7 @@ dead:
     unreachable_title: 'Unreachable'
     unreachable_intro: 'Links whose last check failed at the network level (dead domain, DNS, refused connection, timeout, TLS). Not necessarily a 404 — check before deleting.'
     duplicates_title: 'Duplicates'
-    duplicates_intro: 'Links pointing to the same URL (compared lower-cased, ignoring a trailing slash). Each panel groups the copies with their folder so you can delete the redundant ones.'
+    duplicates_intro: 'Links pointing to the same URL (compared lower-cased, ignoring a trailing slash and a leading "www."). Each panel groups the copies with their folder so you can delete the redundant ones.'
 
 bulk:
     select_all: 'Select all'

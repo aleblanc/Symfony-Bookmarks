@@ -119,11 +119,12 @@ final class LinkRepository extends ServiceEntityRepository
     }
 
     /**
-     * Groups of links that resolve to the same URL once normalised — lower-cased
-     * and stripped of trailing slashes — so the dead-links page can surface
-     * redundant copies and let the user delete the ones they don't want. Only
-     * groups with more than one member are returned; groups are ordered by URL,
-     * and each group keeps its members together so their folders are comparable.
+     * Groups of links that resolve to the same URL once normalised — lower-cased,
+     * stripped of trailing slashes and of a leading "www." in the host — so the
+     * dead-links page can surface redundant copies and let the user delete the
+     * ones they don't want. Only groups with more than one member are returned;
+     * groups are ordered by URL, and each group keeps its members together so
+     * their folders are comparable.
      *
      * @return list<list<Link>>
      */
@@ -142,6 +143,8 @@ final class LinkRepository extends ServiceEntityRepository
         $groups = [];
         foreach ($all as $link) {
             $key = strtolower(rtrim($link->getUrl(), '/'));
+            // Treat "https://www.example.com" and "https://example.com" as the same.
+            $key = preg_replace('~^([a-z][a-z0-9+.-]*://)www\.~', '$1', $key) ?? $key;
             $groups[$key][] = $link;
         }
 
