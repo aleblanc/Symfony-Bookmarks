@@ -315,7 +315,7 @@ const SfbSync = (() => {
     "root________", "menu________", "toolbar_____", "unfiled_____", "mobile______",
   ]);
 
-  async function computePushPlan(_cfg) {
+  async function computePushPlan(cfg) {
     const list = await SfbApi.listLinks(); // v2: id, url, name, updatedAt…
     const symById = new Map();
     const symUrls = new Set();
@@ -355,9 +355,15 @@ const SfbSync = (() => {
           if (/^(https?|ftps?):/i.test(n.url)) {
             const colPath = toCollectionPath(path);
             if (mappedGuids.has(n.id)) {
+              // mapped links are tracked wherever they are (so a move out of the
+              // wrapper isn't mistaken for a deletion)
               ffByGuid.set(n.id, { folderPath: colPath, title: n.title || n.url, url: n.url });
             } else if (!symUrls.has(normaliseUrl(n.url))) {
-              adds.push({ guid: n.id, title: n.title || n.url, url: n.url, folderPath: colPath });
+              // With "wrap" on, only offer NEW bookmarks that live inside the
+              // "Symfony Bookmarks" wrapper — those outside are personal.
+              if (!cfg.wrap || path[0] === ROOT_TITLE) {
+                adds.push({ guid: n.id, title: n.title || n.url, url: n.url, folderPath: colPath });
+              }
             }
           }
         } else if (n.children) {
