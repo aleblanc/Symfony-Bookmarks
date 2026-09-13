@@ -75,6 +75,33 @@ Load manually instead: `about:debugging` → *This Firefox* → *Load Temporary
 Add-on* → pick `extension/manifest.json`. Inspect Android from desktop Firefox
 via `about:debugging` → your device.
 
+### Run with Firefox Developer Edition
+
+`web-ext run` launches plain Firefox by default. To use Developer Edition, point
+`--firefox` at its binary (the app name may contain spaces, so quote it):
+
+```bash
+# macOS
+npx web-ext run --firefox="/Applications/Firefox Developer Edition.app/Contents/MacOS/firefox"
+
+# Linux (typical)
+npx web-ext run --firefox="/opt/firefox-developer-edition/firefox"
+```
+
+> On macOS the app is sometimes named `Firefox Developer Edition 2.app` (a copy
+> made by the OS) — use that exact path.
+
+`web-ext` also accepts a shortcut instead of a full path, **if** the app is at the
+standard location:
+
+```bash
+npx web-ext run --firefox=firefoxdeveloperedition   # or: --firefox=nightly / beta
+```
+
+> Do **not** put the path in a global `~/.web-ext-config.js` — on recent Node
+> versions web-ext mis-parses a CommonJS global config (`"module.exports" must be
+> specified in camel case`). Pass `--firefox` on the command line instead.
+
 ## Build & install (signed)
 
 Android stable refuses unsigned `.xpi`, so sign via AMO:
