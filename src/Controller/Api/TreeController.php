@@ -37,8 +37,15 @@ final class TreeController extends AbstractApiController
         }
 
         // Build one node per collection, then wire parent/child links.
+        // "À trier" (skipProcessing) collections — and their whole subtree — are
+        // excluded from the export: they hold links the user hasn't triaged yet,
+        // which should not be mirrored into Firefox.
+        $collections = $this->collections->findAll();
         $nodes = [];
-        foreach ($this->collections->findAll() as $collection) {
+        foreach ($collections as $collection) {
+            if ($this->isExcluded($collection)) {
+                continue;
+            }
             $id = (int) $collection->getId();
             $nodes[$id] = $this->serializeCollection($collection) + [
                 'links' => $linksByCollection[$id] ?? [],
@@ -48,10 +55,12 @@ final class TreeController extends AbstractApiController
 
         // Roots per dashboard; children attached to their parent when present.
         $rootsByDashboard = [];
-        foreach ($this->collections->findAll() as $collection) {
+        foreach ($collections as $collection) {
+            if ($this->isExcluded($collection)) {
+                continue;
+            }
             $id = (int) $collection->getId();
-            $parent = $collection->getParent();
-            $parentId = $parent?->getId();
+            $parentId = $collection->getParent()?->getId();
             if (null !== $parentId && isset($nodes[$parentId])) {
                 $nodes[$parentId]['children'][] = &$nodes[$id];
             } else {
@@ -71,6 +80,18 @@ final class TreeController extends AbstractApiController
         }
 
         return $this->ok(['dashboards' => $tree]);
+    }
+
+    /** A collection is excluded if it, or any ancestor, is flagged "à trier". */
+    private function isExcluded(Collection $c): bool
+    {
+        for ($cur = $c; null !== $cur; $cur = $cur->getParent()) {
+            if ($cur->isSkipProcessing()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
