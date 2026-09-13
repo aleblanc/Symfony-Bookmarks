@@ -104,6 +104,20 @@ final class LinkRepository extends ServiceEntityRepository
             ->getResult());
     }
 
+    /** @return list<Link> links whose host no longer resolves (DNS expired) for the dashboard */
+    public function findDnsExpiredForDashboard(Dashboard $dashboard): array
+    {
+        return $this->hydrateCards($this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d')
+            ->andWhere('l.healthStatus = :dns')
+            ->setParameter('d', $dashboard)
+            ->setParameter('dns', Link::HEALTH_DNS)
+            ->orderBy('l.url', 'ASC')
+            ->getQuery()
+            ->getResult());
+    }
+
     /** @return list<Link> unreachable links (last check failed at transport level) for the dashboard */
     public function findUnreachableForDashboard(Dashboard $dashboard): array
     {
@@ -198,7 +212,7 @@ final class LinkRepository extends ServiceEntityRepository
     /** Lower-cased host of a URL, with a leading "www." stripped; '' if none. */
     private function hostOf(string $url): string
     {
-        return $this->normalizeHost((string) (parse_url($url, PHP_URL_HOST) ?? ''));
+        return $this->normalizeHost((string) (parse_url($url, \PHP_URL_HOST) ?? ''));
     }
 
     private function normalizeHost(string $host): string

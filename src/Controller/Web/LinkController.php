@@ -148,6 +148,7 @@ final class LinkController extends AbstractController
         return $this->render('links/dead.html.twig', [
             'dashboard' => $dashboard,
             'links' => $this->links->findDeadForDashboard($dashboard),
+            'dns_expired' => $this->links->findDnsExpiredForDashboard($dashboard),
             'unreachable' => $this->links->findUnreachableForDashboard($dashboard),
             'unreachable_domains' => $this->links->findUnreachableDomainClusters($dashboard),
             'duplicates' => $this->links->findDuplicatesForDashboard($dashboard),

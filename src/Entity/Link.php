@@ -39,7 +39,8 @@ class Link
     public const HEALTH_UNKNOWN = 'unknown'; // never checked
     public const HEALTH_ALIVE = 'alive';     // 2xx / 3xx
     public const HEALTH_DEAD = 'dead';       // 404 / 410 only (resource really gone)
-    public const HEALTH_ERROR = 'error';     // other 4xx (403 bot-block, 401, 429…), 5xx, transport error
+    public const HEALTH_ERROR = 'error';     // other 4xx (403 bot-block, 401, 429…), 5xx, transport error (host resolves)
+    public const HEALTH_DNS = 'dns';         // host no longer resolves (NXDOMAIN — expired/parked domain)
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

@@ -13,6 +13,16 @@
         </div>
     {% endif %}
 
+    {% if dns_expired is not empty %}
+        <section style="margin-top:28px;">
+            <h2>🌐 {{ 'dead.dns_title'|trans }} <span class="muted">({{ dns_expired|length }})</span></h2>
+            <p class="muted">{{ 'dead.dns_intro'|trans }}</p>
+            <div class="link-list">
+                {% for link in dns_expired %}{% include 'links/_card.html.twig' with {ajax_delete: true} %}{% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
     {% if unreachable is not empty %}
         <section style="margin-top:28px;">
             <h2>📡 {{ 'dead.unreachable_title'|trans }} <span class="muted">({{ unreachable|length }})</span></h2>

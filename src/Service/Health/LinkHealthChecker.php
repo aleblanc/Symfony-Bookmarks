@@ -47,7 +47,11 @@ final readonly class LinkHealthChecker
         } catch (\Throwable $e) {
             // TransportException (DNS/TLS/timeout) AND anything the client rejects
             // synchronously (malformed URL, bad redirect scheme…) → error, never fatal.
-            return ['status' => Link::HEALTH_ERROR, 'httpStatus' => null, 'error' => $e->getMessage()];
+            // Distinguish an expired/removed domain (host no longer resolves) from a
+            // host that resolves but is unreachable (TLS, timeout, connection refused).
+            $status = $this->hostResolves($url) ? Link::HEALTH_ERROR : Link::HEALTH_DNS;
+
+            return ['status' => $status, 'httpStatus' => null, 'error' => $e->getMessage()];
         }
 
         // Only 404/410 mean the resource is really gone. Other 4xx (401/403/405/429…)
@@ -60,5 +64,23 @@ final readonly class LinkHealthChecker
         };
 
         return ['status' => $status, 'httpStatus' => $code, 'error' => null];
+    }
+
+    /**
+     * True if the URL's host still resolves to at least one A/AAAA record.
+     * An IP literal is treated as "resolves" (nothing to expire); an empty or
+     * non-resolving host is treated as gone → the caller maps it to HEALTH_DNS.
+     */
+    private function hostResolves(string $url): bool
+    {
+        $host = (string) parse_url($url, \PHP_URL_HOST);
+        if ('' === $host) {
+            return false;
+        }
+        if (false !== filter_var($host, \FILTER_VALIDATE_IP)) {
+            return true; // literal IP — DNS never applies
+        }
+
+        return checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA');
     }
 }
