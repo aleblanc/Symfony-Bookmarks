@@ -28,11 +28,10 @@
   dont le GUID Firefox est dans le map. Ça permet l'**import à la racine** de
   Firefox sans jamais toucher aux favoris perso (jamais mappés).
 
-**Reste à confirmer** — comment le push détecte les **ajouts** à la racine (un
-bookmark non mappé = nouveau lien à envoyer *ou* favori perso à ne pas toucher) :
-- **A.** dossier dédié « à envoyer » (Outbox) scanné pour les nouveaux ;
-- **B.** liste tous les non-mappés mais **ajouts décochés par défaut** (recommandé) ;
-- **C.** ajout manuel (« Envoyer cette page » / menu contextuel), pas de scan.
+- **Ajouts au push (racine) → option B (décidé)** : le push **liste tous** les
+  bookmarks Firefox non mappés dont l'URL est absente de Symfony, mais **décochés
+  par défaut** ; l'utilisateur coche ceux qu'il veut réellement envoyer. Pas de
+  dossier dédié, pas de risque de déversement automatique.
 
 ## Objectifs
 
@@ -272,7 +271,5 @@ liste avant d'appliquer**, avec une case à cocher par ligne.
 
 ## Points à trancher avec l'utilisateur
 
-Les principaux choix sont **actés** (voir « Décisions » en tête). **Seul point
-ouvert** : la détection des **ajouts au push** à la racine — option **A** (dossier
-Outbox), **B** (liste complète, ajouts décochés — recommandé) ou **C** (ajout
-manuel). À confirmer avant la Phase 2b.
+Tous les choix sont **actés** (voir « Décisions » en tête). Le plan est prêt à
+être implémenté par paliers, en commençant par la Phase 2a.
