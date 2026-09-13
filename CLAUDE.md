@@ -106,6 +106,7 @@ tests/SmokeTest.php             # data-provider smoke test on every public URL +
 - Controllers are `final` and extend `AbstractController`.
 - Repositories are `final` and extend `ServiceEntityRepository` with `@extends` PHPDoc for PHPStan.
 - Attribute routing (`#[Route]`), never `routes.yaml`.
+- **Reverse-proxy sub-path safe URLs, always.** The app must run unchanged under a sub-path (e.g. `https://host/bookmarks/`). Symfony derives the sub-path from the `X-Forwarded-Prefix` header (proxy IP must be in `TRUSTED_PROXIES`), and `asset()` / `path()` / `url()` bake it in automatically. So **every** URL you emit must go through them — `asset('favicon.svg')`, `path('route_name')`, never a hardcoded `/foo` in HTML, JS fetches (`window.APP_BASE` is exposed for that), redirects, or generated files. Anything served as a **static file** (e.g. a `.webmanifest`) can't see the prefix — render it through a controller/Twig so `asset()`/`basePath` inject it (see `ManifestController` + `templates/site.webmanifest.twig`).
 - Templates: `snake_case`, partials prefixed with `_`.
 - `readonly` on injected service properties.
 - PHPStan level 8 must stay green. If you add a service that expects a specific interface not yet available, wire it explicitly in `services.yaml` — don't rely on autowiring for it.
