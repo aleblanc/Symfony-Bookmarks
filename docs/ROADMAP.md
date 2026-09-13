@@ -141,21 +141,29 @@ côté et l'**API `/api/v1/*`** (Bearer) de l'autre.
 - Côté Symfony (surtout déjà là) : exposer un **timestamp de modification** par
   lien dans l'API et, à terme, un **endpoint de delta** (« ce qui a changé depuis
   tel instant ») pour éviter de tout re-scanner à chaque passage.
-- **Authentification (basic-auth vs Bearer)** :
-  - L'extension parle **uniquement à `/api/v1/*`**, qui est déjà **hors
-    basic-auth** dans la conf nginx (`location /api/ { auth_basic off; }`) et
-    protégé par le **token Bearer** (`ApiTokenSubscriber`). Le `.htpasswd` ne
-    concerne donc que l'UI web (`location /`) consultée par un humain : les deux
-    mécanismes cohabitent sans se gêner.
-  - **Ne pas** mettre le basic-auth aussi sur `/api/` : on ne peut envoyer qu'un
-    seul en-tête `Authorization`, donc `Basic …` et `Bearer …` sont mutuellement
-    exclusifs. Si un jour c'est indispensable, prévoir de lire le token API via
-    un en-tête custom (`X-Api-Token`) pour libérer `Authorization` pour le Basic.
-  - **Persistance des identifiants** : URL serveur + token Bearer saisis une fois
-    dans la **page d'options**, stockés dans `browser.storage.local` (sur disque,
-    survit au redémarrage — « mémorisé » jusqu'à modification). ⚠️ `storage.local`
-    n'est **pas chiffré** ; acceptable pour un usage perso, sinon n'y mettre qu'un
-    token **révocable** aux droits limités.
+- **Authentification** — cas réel : **tout le reverse-proxy est derrière un
+  basic-auth** (`.htpasswd`), `/api/` compris. Conséquences :
+  - L'extension doit envoyer le **basic-auth** sur chaque requête :
+    `Authorization: Basic base64(user:pass)`. Comme il n'existe qu'**un seul**
+    en-tête `Authorization`, il ne peut pas porter en plus le `Bearer`. Deux
+    montages possibles :
+    - **(simple)** laisser le basic-auth être **l'unique** protection de l'API :
+      mettre `APP_API_TOKEN` vide (le `ApiTokenSubscriber` laisse alors tout
+      passer), l'extension n'envoie que le `Basic` ;
+    - **(défense en profondeur)** garder le token API mais le lire via un en-tête
+      **custom** `X-Api-Token` (petite modif du `ApiTokenSubscriber`), pour que
+      `Authorization` reste libre pour le `Basic`.
+  - Alternative propre si on veut isoler l'API : rétablir `auth_basic off` sur
+    `location /api/` et laisser le **Bearer** seul protéger l'API (design décrit
+    dans `CLAUDE.md`) — mais ça suppose de sortir `/api/` du mot de passe global.
+  - **Rappel UI/PWA** : le `<link rel="manifest">` porte déjà
+    `crossorigin="use-credentials"` pour que le manifest et ses icônes passent le
+    basic-auth (sinon 401 → pas d'icône de raccourci).
+  - **Persistance des identifiants** : URL serveur + identifiants (basic-auth
+    et/ou token) saisis une fois dans la **page d'options**, stockés dans
+    `browser.storage.local` (sur disque, survit au redémarrage — « mémorisé »
+    jusqu'à modification). ⚠️ `storage.local` n'est **pas chiffré** ; acceptable
+    pour un usage perso, sinon n'y mettre que des identifiants **révocables**.
 
 ## 7. Cache des pages invalidé à chaque changement de contenu
 
