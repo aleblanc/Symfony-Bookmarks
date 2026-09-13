@@ -266,6 +266,10 @@ const SfbSync = (() => {
       return p;
     };
 
+    // Full path (by names) of each Symfony collection, to detect folder moves.
+    const cols = await SfbApi.collections();
+    const colPathById = buildCollectionPaths(cols);
+
     const map = await getMap();
     const snap = await getSnap();
     const mappedGuids = new Set(Object.values(map));
@@ -275,15 +279,17 @@ const SfbSync = (() => {
 
     const tree = await browser.bookmarks.getTree();
     const adds = [];
+    const ffByGuid = new Map(); // mapped bookmark guid -> {folderPath, title, url}
     const walkFf = (nodes, path) => {
       for (const n of nodes) {
         if (n.url) {
-          if (
-            /^(https?|ftps?):/i.test(n.url) &&
-            !mappedGuids.has(n.id) &&
-            !symUrls.has(normaliseUrl(n.url))
-          ) {
-            adds.push({ guid: n.id, title: n.title || n.url, url: n.url, folderPath: toCollectionPath(path) });
+          if (/^(https?|ftps?):/i.test(n.url)) {
+            const colPath = toCollectionPath(path);
+            if (mappedGuids.has(n.id)) {
+              ffByGuid.set(n.id, { folderPath: colPath, title: n.title || n.url, url: n.url });
+            } else if (!symUrls.has(normaliseUrl(n.url))) {
+              adds.push({ guid: n.id, title: n.title || n.url, url: n.url, folderPath: colPath });
+            }
           }
         } else if (n.children) {
           if (IGNORE_FOLDER.test(n.title || "")) continue; // skip the whole subtree
@@ -300,25 +306,34 @@ const SfbSync = (() => {
       const symId = Number(symIdStr);
       const sym = symById.get(symId);
       if (!sym) continue; // gone from Symfony → the pull side handles that
-      const node = await getNode(guid);
-      if (!node) {
+      const ff = ffByGuid.get(guid);
+      if (!ff) {
         deletes.push({ symfonyId: symId, guid, title: sym.name || sym.url, url: sym.url });
         continue;
       }
       const s = snap[symId];
       const symTitle = (sym.name && String(sym.name).trim()) || sym.url;
       // URLs compared normalised (Firefox adds a trailing slash on store).
-      const ffChanged = s ? node.title !== s.title || normaliseUrl(node.url) !== normaliseUrl(s.url) : false;
-      const differsFromSym = node.title !== symTitle || normaliseUrl(node.url) !== normaliseUrl(sym.url);
-      if (ffChanged && differsFromSym) {
+      const ffChanged = s ? ff.title !== s.title || normaliseUrl(ff.url) !== normaliseUrl(s.url) : false;
+      const differsFromSym = ff.title !== symTitle || normaliseUrl(ff.url) !== normaliseUrl(sym.url);
+      // Folder move: the FF folder maps to a different collection path than the
+      // link's current one. Skip when we can't resolve the current path.
+      const currentPath = colPathById.has(sym.collectionId) ? colPathById.get(sym.collectionId) : null;
+      const desiredPath = ff.folderPath.join("/");
+      const moved = null !== currentPath && desiredPath !== currentPath;
+      if ((ffChanged && differsFromSym) || moved) {
         const symChanged = !!(s && s.updatedAt && sym.updatedAt && sym.updatedAt > s.updatedAt);
         updates.push({
           symfonyId: symId,
           guid,
-          title: node.title,
-          url: node.url,
+          title: ff.title,
+          url: ff.url,
+          folderPath: ff.folderPath,
           oldTitle: symTitle,
           conflict: symChanged,
+          moved,
+          fromPath: currentPath || "",
+          toPath: desiredPath,
         });
       }
     }
@@ -339,6 +354,24 @@ const SfbSync = (() => {
       idx.set(c.dashboardId + "|" + (c.parentId ?? "") + "|" + c.name, c.id);
     }
     return idx;
+  }
+
+  /** Map each collection id to its full path by names ("A/B/C"). */
+  function buildCollectionPaths(cols) {
+    const byId = new Map();
+    for (const c of Array.isArray(cols) ? cols : []) byId.set(c.id, c);
+    const paths = new Map();
+    for (const c of Array.isArray(cols) ? cols : []) {
+      const parts = [];
+      let cur = c;
+      let guard = 0;
+      while (cur && guard++ < 50) {
+        parts.unshift(cur.name);
+        cur = null != cur.parentId ? byId.get(cur.parentId) : null;
+      }
+      paths.set(c.id, parts.join("/"));
+    }
+    return paths;
   }
 
   /** Find-or-create the nested collection path in $dashId; returns the leaf id. */
@@ -384,7 +417,17 @@ const SfbSync = (() => {
       }
     }
     for (const u of selected.updates || []) {
-      await SfbApi.updateLink(u.symfonyId, { name: u.title, url: u.url });
+      const patch = { name: u.title, url: u.url };
+      // Only relocate when the folder actually changed, to avoid accidental
+      // cross-dashboard moves on plain title/url edits.
+      if (u.moved) {
+        const path = u.folderPath || [];
+        const collectionId = path.length
+          ? await ensureCollectionPath(path, dashId, index)
+          : cfg.pushCollectionId || null;
+        if (null != collectionId) patch.collectionId = collectionId;
+      }
+      await SfbApi.updateLink(u.symfonyId, patch);
       updated++;
     }
     for (const d of selected.deletes || []) {

@@ -53,6 +53,9 @@ function buildItem(kind, item, idx) {
   if (kind === "updates" && item.oldTitle && item.oldTitle !== item.title) {
     label.append(div("it-note", "was: " + item.oldTitle));
   }
+  if (kind === "updates" && item.moved) {
+    label.append(div("it-note", "moved: " + (item.fromPath || "(root)") + " → " + (item.toPath || "(root)")));
+  }
   if (item.conflict) {
     label.append(div("it-note", "⚠ conflict — Symfony also changed since last sync"));
   }

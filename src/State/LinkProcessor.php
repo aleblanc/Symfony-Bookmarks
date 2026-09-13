@@ -88,8 +88,20 @@ final class LinkProcessor implements ProcessorInterface
         $link->setUrl($data->url);
         $link->setName($data->name);
         $link->setDescription($data->description);
-        $this->validate($link);
 
+        // Move to another collection when collectionId changes (folder move).
+        if (null !== $data->collectionId && $data->collectionId !== $link->getCollection()->getId()) {
+            $target = $this->collections->find($data->collectionId);
+            if (null === $target) {
+                throw new UnprocessableEntityHttpException('target collection not found');
+            }
+            if (null !== $target->getVault()) {
+                throw new UnprocessableEntityHttpException('cannot move into a vault collection via the API');
+            }
+            $link->setCollection($target);
+        }
+
+        $this->validate($link);
         $this->em->flush();
 
         return $link;
