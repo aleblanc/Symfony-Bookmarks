@@ -7,8 +7,8 @@
         "start": "web-ext run",
         "start:android": "web-ext run -t firefox-android",
         "lint": "web-ext lint --self-hosted",
-        "build": "web-ext build --overwrite-dest",
-        "sign": "web-ext sign --channel=unlisted"
+        "build": "web-ext build --overwrite-dest --ignore-files node_modules package.json package-lock.json README.md",
+        "sign": "web-ext sign --channel=unlisted --ignore-files node_modules package.json package-lock.json README.md"
     },
     "devDependencies": {
         "web-ext": "^10"
