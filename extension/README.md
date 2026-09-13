@@ -16,11 +16,16 @@ bookmarks. Built to run on **Firefox for Android** as well as desktop.
 >
 > See `docs/plan-api-v2-sync-bidirectionnel.md` in the main repo.
 >
+> Deleting a Firefox folder deletes its links **and** the now-empty Symfony
+> collection (and emptied ancestors) on push. The options page has a
+> **"Save & pull"** button that saves settings and opens the pull review.
+>
 > **Known limitations:** background auto-sync applies adds/updates/moves but
-> **never deletes** (deletions are review-only). Emptied folders/collections are
-> not removed. Moving a *synced* bookmark into the "Mozilla Firefox" folder would
-> look like a deletion on push (edge case). Tags aren't synced (Firefox's
-> WebExtension API has no bookmark-tag support).
+> **never deletes** (deletions are review-only). Pull does not remove emptied
+> Firefox folders (push does remove emptied Symfony collections). Moving a
+> *synced* bookmark into the "Mozilla Firefox" folder would look like a deletion
+> on push (edge case). Tags aren't synced (Firefox's WebExtension API has no
+> bookmark-tag support).
 >
 > ⚠️ **Desktop-only for the bookmark part.** The `browser.bookmarks` API does not
 > exist on Firefox for Android, so native sync can't run there — the extension
