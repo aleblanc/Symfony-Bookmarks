@@ -117,9 +117,13 @@ final class CollectionProcessor implements ProcessorInterface
         if ($parent === $collection || $parent->getDashboard() !== $collection->getDashboard()) {
             throw new UnprocessableEntityHttpException('invalid parent (self or other dashboard)');
         }
-        foreach ($this->collections->findDescendants($collection) as $descendant) {
-            if ($descendant === $parent) {
-                throw new UnprocessableEntityHttpException('invalid parent (cycle)');
+        // Cycle check only for an existing collection: a not-yet-persisted one has
+        // no id (Doctrine can't bind it as a query param) and has no descendants.
+        if (null !== $collection->getId()) {
+            foreach ($this->collections->findDescendants($collection) as $descendant) {
+                if ($descendant === $parent) {
+                    throw new UnprocessableEntityHttpException('invalid parent (cycle)');
+                }
             }
         }
         $collection->setParent($parent);
