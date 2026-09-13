@@ -1,0 +1,18 @@
+api_platform:
+    title: 'Symfony Bookmarks API'
+    version: '2.0.0'
+    description: 'Self-hosted, single-user bookmark manager — clean REST API (v2).'
+    # No auth layer here: the whole app sits behind nginx basic-auth (htpasswd).
+    # Only scan src/ApiResource (DTO resources) — never auto-expose Doctrine entities.
+    mapping:
+        paths: ['%kernel.project_dir%/src/ApiResource']
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']
+    formats:
+        jsonld: ['application/ld+json']
+        json: ['application/json']
+    # PATCH uses the JSON Merge Patch content type.
+    patch_formats:
+        json: ['application/merge-patch+json']

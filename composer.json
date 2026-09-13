@@ -8,6 +8,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "aleblanc/simple-cron-scheduler": "^0.2.0",
+        "api-platform/core": "^4.3",
         "doctrine/dbal": "^4.4.4",
         "doctrine/doctrine-bundle": "^3.3.1",
         "doctrine/doctrine-migrations-bundle": "^4.0.1",

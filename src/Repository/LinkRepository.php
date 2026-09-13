@@ -530,6 +530,23 @@ final class LinkRepository extends ServiceEntityRepository
     }
 
     /**
+     * Links exposed by the API v2 collection endpoint: vault-encrypted and
+     * "à trier" (skipProcessing) collections are excluded. Newest first.
+     *
+     * @return list<Link>
+     */
+    public function findApiList(): array
+    {
+        return $this->hydrateCards($this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.vault IS NULL')
+            ->andWhere('c.skipProcessing = false')
+            ->orderBy('l.id', 'DESC')
+            ->getQuery()
+            ->getResult());
+    }
+
+    /**
      * Every link with its collection eager-loaded and tags/assets batch-hydrated
      * — for the no-pagination /api/v1/tree export consumed by the sync extension.
      *
