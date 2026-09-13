@@ -14,12 +14,15 @@ use App\Repository\LinkRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Writes links for the API v2: POST (create), PATCH (update), DELETE.
  * Vault collections are refused (their content is encrypted and can only be
  * written with an unlocked session vault, which the API has no notion of).
+ *
+ * Field validation (URL, lengths, NotBlank) is declared on LinkResource and run
+ * by API Platform's ValidateProcessor before this runs; here we only enforce
+ * business rules (vault, collection existence).
  *
  * @implements ProcessorInterface<LinkResource, LinkResource|null>
  */
@@ -29,7 +32,6 @@ final class LinkProcessor implements ProcessorInterface
         private readonly EntityManagerInterface $em,
         private readonly LinkRepository $links,
         private readonly CollectionRepository $collections,
-        private readonly ValidatorInterface $validator,
     ) {
     }
 
@@ -70,7 +72,6 @@ final class LinkProcessor implements ProcessorInterface
         $link = new Link($data->url, $collection);
         $link->setName($data->name);
         $link->setDescription($data->description);
-        $this->validate($link);
 
         $this->em->persist($link);
         $this->em->flush();
@@ -101,16 +102,8 @@ final class LinkProcessor implements ProcessorInterface
             $link->setCollection($target);
         }
 
-        $this->validate($link);
         $this->em->flush();
 
         return $link;
-    }
-
-    private function validate(Link $link): void
-    {
-        foreach ($this->validator->validate($link) as $error) {
-            throw new UnprocessableEntityHttpException((string) $error->getMessage());
-        }
     }
 }

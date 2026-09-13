@@ -31,12 +31,21 @@ final class LinkProvider implements ProviderInterface
 
         $id = isset($uriVariables['id']) ? (int) $uriVariables['id'] : 0;
         $link = $this->links->find($id);
-        // Item not found, or lives in a vault collection → hidden from the API.
-        if (null === $link || null !== $link->getCollection()->getVault()) {
+        if (null === $link) {
             return null;
         }
+        try {
+            // Vault-collection links are hidden. Accessing the collection can throw
+            // EntityNotFoundException on a legacy orphan link (collection deleted) —
+            // treat that as not-found rather than a 500 (see CLAUDE.md gotcha #1).
+            if (null !== $link->getCollection()->getVault()) {
+                return null;
+            }
 
-        return self::toResource($link);
+            return self::toResource($link);
+        } catch (\Doctrine\ORM\EntityNotFoundException) {
+            return null;
+        }
     }
 
     public static function toResource(Link $link): LinkResource
