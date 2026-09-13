@@ -216,7 +216,8 @@
            Placed after the .link-strip base rules so it overrides its display:flex. */
         @media (max-width: 759px) {
             .link-list, .link-strip {
-                display: grid; grid-auto-flow: column; grid-template-rows: repeat(3, auto);
+                display: grid; grid-auto-flow: column; grid-template-columns: none;
+                grid-template-rows: repeat(3, auto);
                 grid-auto-columns: 100%; gap: 8px; overflow-x: auto; overflow-y: hidden;
                 scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
                 overscroll-behavior-x: contain; padding-bottom: 10px;
