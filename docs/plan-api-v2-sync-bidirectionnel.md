@@ -3,6 +3,30 @@
 > Rédigé le 2026-09-13. Document de conception, non implémenté. À faire par
 > paliers ; chaque palier reste livrable et testable indépendamment.
 
+## ⚠️ Limite plateforme — `browser.bookmarks` absente sur Firefox Android
+
+**Vérifié le 2026-09-13** : l'API `browser.bookmarks` n'est **toujours pas
+implémentée sur Firefox for Android** (Fenix). Source : la FAQ de **Floccus**
+(l'extension de référence pour la synchro de marque-pages) indique explicitement
+qu'elle **ne peut pas** s'intégrer à Firefox Android faute de cette API, et ne
+propose qu'une app Android autonome qui n'accède pas aux favoris du navigateur.
+
+**Conséquence directe** : la synchro vers les **marque-pages natifs** de Firefox
+(les deux sens de ce plan) fonctionne **sur desktop uniquement**. Sur Android,
+`getTree` / `create` / `update` / `remove` ne sont pas disponibles.
+
+**Ce qui marche quand même sur Android** : `storage`, `alarms`, `fetch`, les pages
+d'extension (popup, options) → on peut y offrir une **autre** valeur :
+
+- **Piste Android recommandée** : une **page « Mes favoris »** dans l'extension
+  (liste/recherche des liens Symfony récupérés via l'API, clic pour ouvrir) —
+  un *viewer*, pas une synchro des favoris natifs.
+- Alternative : utiliser la **PWA** déjà en place (icône écran d'accueil) pour
+  consulter/rechercher les favoris sur mobile.
+
+→ Le reste de ce plan (synchro native bidirectionnelle) cible donc **desktop** ;
+la couche **API v2** sert les deux (desktop sync + viewer Android).
+
 ## Contexte
 
 - L'extension Firefox (`extension/`) fait aujourd'hui un **pull un sens**
