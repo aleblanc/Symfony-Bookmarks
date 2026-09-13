@@ -4,16 +4,23 @@ One-way, on-device sync from your **Symfony Bookmarks** server into Firefox
 bookmarks. Built to run on **Firefox for Android** as well as desktop.
 
 > Status: **two-way** — reviewable, selective sync in both directions over the
-> API v2 (API Platform):
-> - **⬇️ Receive (pull)**: Symfony → Firefox, diff (add/update/delete) with
->   checkboxes, propagates deletions.
+> API v2 (API Platform). Both directions handle **add / update (title, URL) /
+> move (folder ↔ collection) / delete**:
+> - **⬇️ Receive (pull)**: Symfony → Firefox, diff with checkboxes; propagates
+>   collection moves (bookmark relocated to the matching folder) and deletions.
 > - **⬆️ Send (push)**: Firefox → Symfony, additions (unticked by default),
->   updates, deletions, with last-write-wins conflict flagging. Additions mirror
->   the Firefox folder into a matching Symfony collection (created if needed)
->   under the configured dashboard; the built-in "Mozilla Firefox" folder is
->   ignored; root links fall back to a configurable collection.
+>   updates, moves, deletions, with last-write-wins conflict flagging. Additions
+>   and moves mirror the Firefox folder into a matching Symfony collection
+>   (created if needed) under the configured dashboard; the built-in "Mozilla
+>   Firefox" folder is ignored; root links fall back to a configurable collection.
 >
 > See `docs/plan-api-v2-sync-bidirectionnel.md` in the main repo.
+>
+> **Known limitations:** background auto-sync applies adds/updates/moves but
+> **never deletes** (deletions are review-only). Emptied folders/collections are
+> not removed. Moving a *synced* bookmark into the "Mozilla Firefox" folder would
+> look like a deletion on push (edge case). Tags aren't synced (Firefox's
+> WebExtension API has no bookmark-tag support).
 >
 > ⚠️ **Desktop-only for the bookmark part.** The `browser.bookmarks` API does not
 > exist on Firefox for Android, so native sync can't run there — the extension

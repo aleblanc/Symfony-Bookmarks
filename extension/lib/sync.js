@@ -487,9 +487,14 @@ const SfbSync = (() => {
     const cfg = await SfbApi.getConfig();
     log("Computing changes…");
     const plan = await computePullPlan(cfg);
-    log(`+${plan.adds.length} ~${plan.updates.length} -${plan.deletes.length}. Applying…`);
-    const report = await applyPull(plan, cfg);
-    log(`Done — ${report.created} new, ${report.updated} updated, ${report.deleted} removed.`);
+    // Background/auto sync never deletes silently — deletions are destructive and
+    // stay reserved for the manual, reviewable "Receive" flow.
+    const auto = { ...plan, deletes: [] };
+    log(`+${plan.adds.length} ~${plan.updates.length} (skipping ${plan.deletes.length} deletion(s)). Applying…`);
+    const report = await applyPull(auto, cfg);
+    if (plan.deletes.length) {
+      log(`${plan.deletes.length} deletion(s) skipped — review them via "Receive".`);
+    }
     return report;
   }
 
