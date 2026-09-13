@@ -152,31 +152,28 @@ const SfbSync = (() => {
     const byUrl = await indexExistingByUrl();
     const seen = new Set();
 
-    // Current Firefox collection path (containers + wrapper + dashboard stripped)
-    // of each bookmark, to detect Symfony-side folder moves.
-    const stripNames = new Set([ROOT_TITLE, ...((data && data.dashboards) || []).map((d) => d.name)]);
-    const toCollectionPath = (p) => {
-      const a = [...p];
-      while (a.length && stripNames.has(a[0])) a.shift();
-      return a;
-    };
-    const ffColByGuid = new Map();
-    const walkFfCols = (nodes, path) => {
+    // Map every Firefox folder id to its path [containerId, ...titles]. Comparing
+    // a bookmark's actual location key to the desired one ([location, ...folderPath])
+    // detects any relocation: a Symfony collection move, or a change of the
+    // wrap / import-location / dashboard-folder settings.
+    const rootId = cfg.location || "menu________";
+    const folderPathById = new Map();
+    const walkFolders = (nodes, path) => {
       for (const n of nodes) {
-        if (n.url) {
-          ffColByGuid.set(n.id, toCollectionPath(path).join("/"));
-        } else if (n.children) {
-          walkFfCols(n.children, CONTAINER_IDS.has(n.id) || !n.title ? path : path.concat(n.title));
+        if (!n.url && undefined !== n.children) {
+          const p = CONTAINER_IDS.has(n.id) ? [n.id] : path.concat(n.title || "");
+          folderPathById.set(n.id, p);
+          walkFolders(n.children, p);
         }
       }
     };
-    walkFfCols(await browser.bookmarks.getTree(), []);
+    walkFolders(await browser.bookmarks.getTree(), []);
 
     const adds = [];
     const updates = [];
     const toLink = []; // already in Firefox by URL — silently map, not shown
 
-    for (const { link, folderPath, collectionPath } of flat) {
+    for (const { link, folderPath } of flat) {
       seen.add(Number(link.id));
       const title = (link.name && String(link.name).trim()) || link.url;
       const guid = map[link.id];
@@ -186,12 +183,13 @@ const SfbSync = (() => {
           // Compare URLs normalised: Firefox stores a trailing slash it adds
           // itself, which would otherwise flag an endless bogus "update".
           const titleUrlChanged = node.title !== title || normaliseUrl(node.url) !== normaliseUrl(link.url);
-          const symCol = (collectionPath || []).join("/");
-          const moved = (ffColByGuid.get(guid) ?? symCol) !== symCol; // folder changed in Symfony
+          const currentLoc = folderPathById.get(node.parentId) || [];
+          const moved = currentLoc.join("/") !== [rootId, ...folderPath].join("/");
           if (titleUrlChanged || moved) {
             updates.push({
               symfonyId: link.id, guid, title, url: link.url, folderPath,
-              oldTitle: node.title, moved, fromPath: ffColByGuid.get(guid) || "", toPath: symCol,
+              oldTitle: node.title, moved,
+              fromPath: currentLoc.slice(1).join("/"), toPath: folderPath.join("/"),
             });
           }
         } else {
