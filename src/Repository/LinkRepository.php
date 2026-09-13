@@ -16,6 +16,12 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 final class LinkRepository extends ServiceEntityRepository
 {
+    /**
+     * A 403 from a bare check is almost always bot-blocking (Cloudflare & co.),
+     * not a dead link — we list those separately, out of the "unreachable" set.
+     */
+    private const HTTP_FORBIDDEN = 403;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Link::class);
@@ -146,15 +152,33 @@ final class LinkRepository extends ServiceEntityRepository
         return \count($links);
     }
 
-    /** @return list<Link> unreachable links (last check failed at transport level) for the dashboard */
+    /** @return list<Link> unreachable links (transport error or non-403 HTTP error) for the dashboard */
     public function findUnreachableForDashboard(Dashboard $dashboard): array
     {
         return $this->hydrateCards($this->createQueryBuilder('l')
             ->join('l.collection', 'c')
             ->andWhere('c.dashboard = :d')
             ->andWhere('l.healthStatus = :err')
+            ->andWhere('(l.httpStatus IS NULL OR l.httpStatus != :forbidden)')
             ->setParameter('d', $dashboard)
             ->setParameter('err', Link::HEALTH_ERROR)
+            ->setParameter('forbidden', self::HTTP_FORBIDDEN)
+            ->orderBy('l.url', 'ASC')
+            ->getQuery()
+            ->getResult());
+    }
+
+    /** @return list<Link> likely-bot-blocked links (HTTP 403 — Cloudflare & co.) for the dashboard */
+    public function findBlockedForDashboard(Dashboard $dashboard): array
+    {
+        return $this->hydrateCards($this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d')
+            ->andWhere('l.healthStatus = :err')
+            ->andWhere('l.httpStatus = :forbidden')
+            ->setParameter('d', $dashboard)
+            ->setParameter('err', Link::HEALTH_ERROR)
+            ->setParameter('forbidden', self::HTTP_FORBIDDEN)
             ->orderBy('l.url', 'ASC')
             ->getQuery()
             ->getResult());
@@ -175,8 +199,10 @@ final class LinkRepository extends ServiceEntityRepository
             ->join('l.collection', 'c')
             ->andWhere('c.dashboard = :d')
             ->andWhere('l.healthStatus = :err')
+            ->andWhere('(l.httpStatus IS NULL OR l.httpStatus != :forbidden)')
             ->setParameter('d', $dashboard)
             ->setParameter('err', Link::HEALTH_ERROR)
+            ->setParameter('forbidden', self::HTTP_FORBIDDEN)
             ->getQuery()
             ->getResult();
 
@@ -217,8 +243,10 @@ final class LinkRepository extends ServiceEntityRepository
             ->join('l.collection', 'c')
             ->andWhere('c.dashboard = :d')
             ->andWhere('l.healthStatus = :err')
+            ->andWhere('(l.httpStatus IS NULL OR l.httpStatus != :forbidden)')
             ->setParameter('d', $dashboard)
             ->setParameter('err', Link::HEALTH_ERROR)
+            ->setParameter('forbidden', self::HTTP_FORBIDDEN)
             ->getQuery()
             ->getResult();
 

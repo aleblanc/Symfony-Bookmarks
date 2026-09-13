@@ -66,6 +66,16 @@
         </section>
     {% endif %}
 
+    {% if blocked is not empty %}
+        <section style="margin-top:28px;">
+            <h2>🛡️ {{ 'dead.blocked_title'|trans }} <span class="muted">({{ blocked|length }})</span></h2>
+            <p class="muted">{{ 'dead.blocked_intro'|trans }}</p>
+            <div class="link-list">
+                {% for link in blocked %}{% include 'links/_card.html.twig' with {ajax_delete: true} %}{% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
     <script>
         // Delete straight away (no confirm, no page reload): POST via fetch, drop the card.
         // Only cards in the top 404 list decrement the sidebar "dead" badge; unreachable

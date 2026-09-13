@@ -151,6 +151,7 @@ final class LinkController extends AbstractController
             'dns_expired' => $this->links->findDnsExpiredForDashboard($dashboard),
             'unreachable' => $this->links->findUnreachableForDashboard($dashboard),
             'unreachable_domains' => $this->links->findUnreachableDomainClusters($dashboard),
+            'blocked' => $this->links->findBlockedForDashboard($dashboard),
             'duplicates' => $this->links->findDuplicatesForDashboard($dashboard),
         ]);
     }
