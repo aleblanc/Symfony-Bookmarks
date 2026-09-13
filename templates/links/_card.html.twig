@@ -63,4 +63,8 @@
             </span>
         </div>
     </div>
+    {# Compact mobile cards hide .link-foot, so surface a details link that opens the
+       full page (all actions live there). Shown only < 760px via .link-eye CSS. #}
+    <a class="icon-btn link-eye" href="{{ path('links_show', {id: link.id}) }}"
+       title="{{ 'common.details'|trans }}" aria-label="{{ 'common.details'|trans }}">👁️</a>
 </article>

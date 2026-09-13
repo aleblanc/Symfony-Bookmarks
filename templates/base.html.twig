@@ -228,6 +228,7 @@
             .link-list .link-card .link-thumb, .link-strip .link-card .link-thumb,
             .link-list .link-card .link-tags,  .link-strip .link-card .link-tags,
             .link-list .link-card .link-foot,  .link-strip .link-card .link-foot { display: none; }
+            .link-list .link-card .link-eye, .link-strip .link-card .link-eye { display: inline-flex; align-self: center; flex: none; }
         }
 
         .link-card { display: flex; gap: 12px; background: var(--card); border: 1px solid var(--border);
@@ -265,6 +266,8 @@
         .icon-btn .ic-svg { display: block; }
         .icon-btn--danger:hover { background: var(--danger-soft); border-color: var(--danger); }
         .icon-btn.is-fav { border-color: var(--warn); background: var(--warn-soft); }
+        /* Details shortcut on compact mobile cards — hidden on desktop, shown in the phone media query. */
+        .link-eye { display: none; }
 
         /* Mobile top bar + off-canvas drawer — all hidden on desktop */
         .app-topbar { display: none; }
