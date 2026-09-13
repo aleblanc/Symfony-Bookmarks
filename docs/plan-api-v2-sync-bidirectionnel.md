@@ -10,8 +10,9 @@
 > - ✅ **Phase 2a** — pull sélectif avec revue + suppressions (desktop).
 > - ✅ **Phase 2b** — push ajouts (option B).
 > - ✅ **Phase 2c** — push màj / suppressions / conflits (last-write-wins).
-> - ⏳ **Reste** : sélecteur de collection cible au push (utilise
->   `GET /api/v2/collections`), viewer Android, dépréciation effective de v1.
+> - ✅ **Sélecteur de collection cible au push** (options → `pushCollectionId`,
+>   alimenté par `GET /api/v2/collections`).
+> - ⏳ **Reste** : viewer Android, dépréciation effective de v1.
 >   ⚠️ La logique côté `browser.bookmarks` n'a pas été testée en navigateur
 >   (pas de Firefox dans l'env de dev) — **à valider avant de se fier aux
 >   suppressions**.
