@@ -159,7 +159,9 @@ const SfbSync = (() => {
       if (guid) {
         const node = await getNode(guid);
         if (node) {
-          if (node.title !== title || node.url !== link.url) {
+          // Compare URLs normalised: Firefox stores a trailing slash it adds
+          // itself, which would otherwise flag an endless bogus "update".
+          if (node.title !== title || normaliseUrl(node.url) !== normaliseUrl(link.url)) {
             updates.push({ symfonyId: link.id, guid, title, url: link.url, oldTitle: node.title });
           }
         } else {
@@ -279,8 +281,9 @@ const SfbSync = (() => {
       }
       const s = snap[symId];
       const symTitle = (sym.name && String(sym.name).trim()) || sym.url;
-      const ffChanged = s ? node.title !== s.title || node.url !== s.url : false;
-      const differsFromSym = node.title !== symTitle || node.url !== sym.url;
+      // URLs compared normalised (Firefox adds a trailing slash on store).
+      const ffChanged = s ? node.title !== s.title || normaliseUrl(node.url) !== normaliseUrl(s.url) : false;
+      const differsFromSym = node.title !== symTitle || normaliseUrl(node.url) !== normaliseUrl(sym.url);
       if (ffChanged && differsFromSym) {
         const symChanged = !!(s && s.updatedAt && sym.updatedAt && sym.updatedAt > s.updatedAt);
         updates.push({
