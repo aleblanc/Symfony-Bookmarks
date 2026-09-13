@@ -41,6 +41,25 @@
   <input id="password" type="password" autocomplete="current-password" placeholder="(htpasswd password)">
   <p class="hint">Sent as an <code>Authorization: Basic</code> header on every request — no password prompt. Stored unencrypted in the browser profile.</p>
 
+  <label for="dashboard">Dashboard to import</label>
+  <select id="dashboard">
+    <option value="all">All dashboards</option>
+  </select>
+  <p class="hint">Choose one dashboard, or import them all. Refreshed from the server after a successful <em>Test connection</em>.</p>
+
+  <label for="location">Import into</label>
+  <select id="location">
+    <option value="menu________">Bookmarks Menu</option>
+    <option value="toolbar_____">Bookmarks Toolbar</option>
+    <option value="unfiled_____">Other Bookmarks</option>
+  </select>
+
+  <label style="display:flex;align-items:center;gap:8px;font-weight:600;margin-top:16px;">
+    <input id="wrap" type="checkbox" style="width:auto;">
+    Wrap everything in a “Symfony Bookmarks” folder
+  </label>
+  <p class="hint">Off = collections are created directly at the chosen root. When importing all dashboards, each keeps its own folder to avoid mixing.</p>
+
   <div class="row">
     <button id="save" class="primary" type="button">Save</button>
     <button id="test" type="button">Test connection</button>

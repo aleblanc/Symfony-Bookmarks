@@ -11,13 +11,20 @@ bookmarks. Built to run on **Firefox for Android** as well as desktop.
 ## What it does
 
 - Pulls the whole tree in one request from **`/api/v1/tree`** (no pagination).
-- Mirrors the structure under a dedicated folder:
-  `Symfony Bookmarks / <Dashboard> / <Collection> / <sub-collection> / links…`.
+- **Configurable in the options page:**
+  - **Dashboard** — import a single one (Perso / Pro …) or all of them.
+  - **Import into** — Bookmarks Menu, Bookmarks Toolbar or Other Bookmarks.
+  - **Wrap** — off by default: collections land directly at the chosen root; on
+    to nest everything under a “Symfony Bookmarks” folder. When importing *all*
+    dashboards, each keeps its own folder so Perso/Pro don't mix.
+- Mirrors the collection structure (nested sub-collections → links).
 - Deduplicates by normalised URL (lowercase host, no leading `www.`, no trailing
   `/`): a URL already bookmarked anywhere in Firefox is not recreated.
 - Remembers the `symfonyLinkId → firefoxBookmarkGuid` map in `storage.local`.
 - Syncs shortly after launch, every 30 min via `alarms`, and on demand
   (**Sync now** in the toolbar popup).
+- **Direction: one-way (Symfony → Firefox) for now.** The reverse direction and
+  conflict handling are planned (see `docs/ROADMAP.md` item 6).
 
 ## Auth model (v1)
 

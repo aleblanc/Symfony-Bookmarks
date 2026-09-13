@@ -13,10 +13,24 @@
 const SfbApi = (() => {
   const CONFIG_KEY = "config";
 
-  /** @returns {Promise<{baseUrl:string, username:string, password:string}>} */
+  /**
+   * @returns {Promise<{baseUrl:string, username:string, password:string,
+   *   dashboard:string, location:string, wrap:boolean}>}
+   * dashboard: "all" or a dashboard id (as string).
+   * location: a Firefox root folder id — "menu________", "toolbar_____" or "unfiled_____".
+   * wrap: put everything inside a "Symfony Bookmarks" folder instead of at the root.
+   */
   async function getConfig() {
     const { [CONFIG_KEY]: cfg } = await browser.storage.local.get(CONFIG_KEY);
-    return { baseUrl: "", username: "", password: "", ...(cfg || {}) };
+    return {
+      baseUrl: "",
+      username: "",
+      password: "",
+      dashboard: "all",
+      location: "menu________",
+      wrap: false,
+      ...(cfg || {}),
+    };
   }
 
   async function setConfig(cfg) {
@@ -85,6 +99,11 @@ const SfbApi = (() => {
     return request("/api/v1/tree");
   }
 
+  /** GET /api/v1/dashboards — [{ id, name, color }] for the picker. */
+  function dashboards() {
+    return request("/api/v1/dashboards");
+  }
+
   /**
    * Walk the cursor-paginated /api/v1/links endpoint until it runs dry.
    * The endpoint returns links with id < cursor (page size 20), so we advance
@@ -116,7 +135,7 @@ const SfbApi = (() => {
     return Array.from(seen.values());
   }
 
-  return { getConfig, setConfig, normaliseBase, me, tree, allLinks, request };
+  return { getConfig, setConfig, normaliseBase, me, tree, dashboards, allLinks, request };
 })();
 
 if (typeof module !== "undefined") module.exports = SfbApi;

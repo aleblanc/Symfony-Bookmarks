@@ -8,11 +8,36 @@ function show(kind, msg) {
   el.textContent = msg;
 }
 
+/** Fill the dashboard <select>, keeping "All dashboards" first. */
+function fillDashboards(list, selected) {
+  const sel = $("dashboard");
+  sel.length = 1; // keep the "all" option
+  for (const d of list) {
+    const opt = document.createElement("option");
+    opt.value = String(d.id);
+    opt.textContent = d.name;
+    sel.appendChild(opt);
+  }
+  sel.value = selected && [...sel.options].some((o) => o.value === selected) ? selected : "all";
+}
+
 async function load() {
   const cfg = await SfbApi.getConfig();
   $("baseUrl").value = cfg.baseUrl || "";
   $("username").value = cfg.username || "";
   $("password").value = cfg.password || "";
+  $("location").value = cfg.location || "menu________";
+  $("wrap").checked = !!cfg.wrap;
+  // Try to populate dashboards if we already have a server configured.
+  if (cfg.baseUrl) {
+    try {
+      const list = await SfbApi.dashboards();
+      if (Array.isArray(list)) fillDashboards(list, cfg.dashboard);
+    } catch {
+      // ignore — the user can hit "Test connection" to (re)load them
+      $("dashboard").value = cfg.dashboard || "all";
+    }
+  }
 }
 
 function readForm() {
@@ -20,10 +45,12 @@ function readForm() {
     baseUrl: SfbApi.normaliseBase($("baseUrl").value),
     username: $("username").value.trim(),
     password: $("password").value,
+    dashboard: $("dashboard").value || "all",
+    location: $("location").value || "menu________",
+    wrap: $("wrap").checked,
   };
 }
 
-/** Validate the URL early so we fail with a clear message, not a fetch error. */
 function assertValidUrl(baseUrl) {
   try {
     new URL(baseUrl);
@@ -51,8 +78,12 @@ $("test").addEventListener("click", async () => {
     assertValidUrl(cfg.baseUrl);
     await SfbApi.setConfig(cfg);
     show("ok", "Testing…");
-    const me = await SfbApi.me();
-    show("ok", "Connection OK ✓\n" + JSON.stringify(me, null, 2));
+    await SfbApi.me();
+    const list = await SfbApi.dashboards();
+    if (Array.isArray(list)) fillDashboards(list, cfg.dashboard);
+    // persist the (possibly re-validated) dashboard choice
+    await SfbApi.setConfig(readForm());
+    show("ok", `Connection OK ✓ — ${Array.isArray(list) ? list.length : 0} dashboard(s) loaded.`);
   } catch (e) {
     show("err", "Failed: " + String(e && e.message ? e.message : e));
   }

@@ -107,11 +107,24 @@ const SfbSync = (() => {
    * @param {(msg:string)=>void} [log]
    */
   async function pull(log = () => {}) {
+    const cfg = await SfbApi.getConfig();
     log("Fetching tree…");
     const data = await SfbApi.tree();
-    const dashboards = (data && data.dashboards) || [];
+    let dashboards = (data && data.dashboards) || [];
 
-    const root = await ensureFolder(null, ROOT_TITLE);
+    // Dashboard filter: "all" keeps everything, otherwise match by id.
+    if (cfg.dashboard && cfg.dashboard !== "all") {
+      dashboards = dashboards.filter((d) => String(d.id) === String(cfg.dashboard));
+    }
+
+    // Where to land: a Firefox root folder, optionally wrapped.
+    const rootId = cfg.location || "menu________";
+    const base = cfg.wrap ? (await ensureFolder(rootId, ROOT_TITLE)).id : rootId;
+
+    // Keep per-dashboard folders only when importing more than one, to avoid
+    // mixing Perso/Pro. A single dashboard drops straight into `base`.
+    const perDashboardFolder = dashboards.length > 1;
+
     const ctx = {
       byUrl: await indexExistingByUrl(),
       map: await getMap(),
@@ -122,10 +135,13 @@ const SfbSync = (() => {
     };
 
     for (const dash of dashboards) {
-      const dashFolder = await ensureFolder(root.id, dash.name || "Dashboard");
-      ctx.folders++;
+      let dashBase = base;
+      if (perDashboardFolder) {
+        dashBase = (await ensureFolder(base, dash.name || "Dashboard")).id;
+        ctx.folders++;
+      }
       for (const col of dash.collections || []) {
-        await importCollection(col, dashFolder.id, ctx);
+        await importCollection(col, dashBase, ctx);
       }
     }
 
