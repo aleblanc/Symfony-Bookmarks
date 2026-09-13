@@ -156,14 +156,40 @@ côté et l'**API `/api/v1/*`** (Bearer) de l'autre.
   - Alternative propre si on veut isoler l'API : rétablir `auth_basic off` sur
     `location /api/` et laisser le **Bearer** seul protéger l'API (design décrit
     dans `CLAUDE.md`) — mais ça suppose de sortir `/api/` du mot de passe global.
-  - **Rappel UI/PWA** : le `<link rel="manifest">` porte déjà
-    `crossorigin="use-credentials"` pour que le manifest et ses icônes passent le
-    basic-auth (sinon 401 → pas d'icône de raccourci).
   - **Persistance des identifiants** : URL serveur + identifiants (basic-auth
     et/ou token) saisis une fois dans la **page d'options**, stockés dans
     `browser.storage.local` (sur disque, survit au redémarrage — « mémorisé »
     jusqu'à modification). ⚠️ `storage.local` n'est **pas chiffré** ; acceptable
     pour un usage perso, sinon n'y mettre que des identifiants **révocables**.
+  - Pas de pop-up de mot de passe : l'extension pose elle-même l'en-tête
+    `Authorization` sur chaque `fetch`, donc le challenge basic-auth n'apparaît
+    jamais (il ne surgit que pour une navigation « normale » en onglet).
+- **Certificat auto-signé / accès par IP** — contrainte forte :
+  - Une extension **ne peut PAS ignorer une erreur TLS** (aucune API type
+    `--insecure`) : un `fetch` vers un cert non fiable **échoue**. Il faut donc
+    que **Firefox fasse confiance au cert AVANT**. Voie fiable : une **CA locale**
+    (ex. `mkcert`) dont on **importe l'autorité** dans Firefox (Paramètres → Vie
+    privée → Certificats → Autorités) ; l'exception UI « accepter le risque » est
+    peu fiable pour les `fetch` d'arrière-plan. Alternative : vrai cert Let's
+    Encrypt via un nom pointant sur l'IP (`nip.io`, DuckDNS…).
+  - Accès par **IP** : la permission d'hôte peut cibler `https://<ip>/*`, mais le
+    cert doit inclure l'**IP dans le SAN** (`subjectAltName = IP:...`), pas juste
+    le CN.
+- **Compatibilité Firefox Android obligatoire** : la cible principale est le
+  mobile, donc l'extension doit tourner sur **Firefox for Android** (GeckoView).
+  - N'utiliser que des API dispo sur Android : `bookmarks`, `storage`, `alarms`,
+    `permissions`, `fetch` le sont ; se méfier des API desktop-only (`menus`
+    contextuels, `omnibox` — pertinent surtout pour l'item 5, pas ici).
+  - Le **sync périodique** repose sur `alarms` : sous Android le navigateur peut
+    être suspendu en arrière-plan, donc prévoir aussi une **sync au lancement**
+    et un **bouton « Synchroniser maintenant »** plutôt que de compter uniquement
+    sur un timer.
+  - Manifest **MV2** privilégié (support Android le plus mûr) ; MV3 possible mais
+    valider chaque API sur Android.
+  - Test : `web-ext run -t firefox-android` avec un appareil branché en USB
+    (adb + débogage distant activé). Distribution : **signature AMO** obligatoire
+    (l'install de `.xpi` non signé n'est pas permise sur Android stable) — xpi
+    signé auto-distribué, ou publication (éventuellement « unlisted »).
 
 ## 7. Cache des pages invalidé à chaque changement de contenu
 
