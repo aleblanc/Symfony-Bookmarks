@@ -11,11 +11,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32.png') }}">
     {# PWA / "add to home screen" (Firefox, Chrome, iOS Safari). The manifest is
        rendered server-side (ManifestController) so asset() bakes the reverse-proxy
-       sub-path into every icon URL and into start_url/scope.
-       crossorigin="use-credentials" is REQUIRED here: the manifest (and its icon
-       fetches) is otherwise requested with credentials omitted — even same-origin —
-       so behind HTTP basic-auth it 401s and no icon/name is picked up. #}
-    <link rel="manifest" href="{{ path('site_manifest') }}" crossorigin="use-credentials">
+       sub-path into every icon URL and into start_url/scope. #}
+    <link rel="manifest" href="{{ path('site_manifest') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <meta name="apple-mobile-web-app-title" content="{{ 'app.name'|trans }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
