@@ -171,7 +171,8 @@ $("#apply").addEventListener("click", async () => {
     const report = DIR === "push"
       ? await SfbSync.applyPush(sel, cfg)
       : await SfbSync.applyPull(sel, cfg);
-    const extra = report.collectionsRemoved ? `, ${report.collectionsRemoved} empty collection(s) removed` : "";
+    const removedEmpty = (report.collectionsRemoved || 0) + (report.foldersRemoved || 0);
+    const extra = removedEmpty ? `, ${removedEmpty} empty folder(s) removed` : "";
     summary("ok", `Done ✓ ${report.created} added, ${report.updated} updated, ${report.deleted} removed${extra}.`);
     // Recompute so the lists reflect the new state.
     plan = DIR === "push" ? await SfbSync.computePushPlan(cfg) : await SfbSync.computePullPlan(cfg);

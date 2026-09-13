@@ -20,12 +20,14 @@ bookmarks. Built to run on **Firefox for Android** as well as desktop.
 > collection (and emptied ancestors) on push. The options page has a
 > **"Save & pull"** button that saves settings and opens the pull review.
 >
+> Empty-folder cleanup is symmetric: deleting a folder propagates both ways —
+> push removes the emptied Symfony collection, pull removes the emptied Firefox
+> folder (ancestors too), never touching root containers.
+>
 > **Known limitations:** background auto-sync applies adds/updates/moves but
-> **never deletes** (deletions are review-only). Pull does not remove emptied
-> Firefox folders (push does remove emptied Symfony collections). Moving a
-> *synced* bookmark into the "Mozilla Firefox" folder would look like a deletion
-> on push (edge case). Tags aren't synced (Firefox's WebExtension API has no
-> bookmark-tag support).
+> **never deletes** (deletions are review-only). Moving a *synced* bookmark into
+> the "Mozilla Firefox" folder would look like a deletion on push (edge case).
+> Tags aren't synced (Firefox's WebExtension API has no bookmark-tag support).
 >
 > ⚠️ **Desktop-only for the bookmark part.** The `browser.bookmarks` API does not
 > exist on Firefox for Android, so native sync can't run there — the extension

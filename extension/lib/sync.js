@@ -247,7 +247,10 @@ const SfbSync = (() => {
       }
       updated++;
     }
+    const affectedFolders = new Set();
     for (const d of selected.deletes || []) {
+      const node = await getNode(d.guid);
+      if (node && node.parentId) affectedFolders.add(node.parentId);
       try {
         await browser.bookmarks.remove(d.guid);
       } catch {
@@ -257,11 +260,45 @@ const SfbSync = (() => {
       deleted++;
     }
 
+    // Remove Firefox folders emptied by those deletions (folder deletion from
+    // Symfony propagates). Never touches root containers.
+    const foldersRemoved = deleted > 0 ? await cleanupEmptyFolders(affectedFolders) : 0;
+
     await setMap(map);
     await refreshSnapshot();
     await browser.storage.local.set({ lastSync: new Date().toISOString(), lastError: null });
 
-    return { created, updated, deleted, linked };
+    return { created, updated, deleted, foldersRemoved, linked };
+  }
+
+  /**
+   * Delete Firefox folders that a pull emptied (no children), walking up to
+   * ancestors that empty out too. Never removes a top-level container.
+   */
+  async function cleanupEmptyFolders(affected) {
+    let removed = 0;
+    let changed = true;
+    while (changed && affected.size) {
+      changed = false;
+      for (const id of [...affected]) {
+        affected.delete(id);
+        if (CONTAINER_IDS.has(id)) continue; // never delete a root container
+        const node = await getNode(id);
+        if (!node || node.url) continue; // gone, or not a folder
+        const children = await browser.bookmarks.getChildren(id);
+        if (children.length === 0) {
+          try {
+            await browser.bookmarks.remove(id);
+            removed++;
+            changed = true;
+            if (node.parentId) affected.add(node.parentId); // parent may now be empty
+          } catch {
+            /* best-effort */
+          }
+        }
+      }
+    }
+    return removed;
   }
 
   /**
