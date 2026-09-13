@@ -1,0 +1,41 @@
+{
+    "manifest_version": 2,
+    "name": "Symfony Bookmarks Sync",
+    "version": "0.1.0",
+    "description": "Sync your Symfony Bookmarks into Firefox (and back, later). Works on Firefox Android.",
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "sfbookmarks-sync@aleblanc",
+            "strict_min_version": "142.0",
+            "data_collection_permissions": {
+                "required": ["none"]
+            }
+        }
+    },
+    "icons": {
+        "48": "icons/icon-48.png",
+        "96": "icons/icon-96.png",
+        "128": "icons/icon-128.png"
+    },
+    "permissions": [
+        "bookmarks",
+        "storage",
+        "alarms",
+        "<all_urls>"
+    ],
+    "background": {
+        "scripts": ["lib/api.js", "lib/sync.js", "background.js"]
+    },
+    "options_ui": {
+        "page": "options.html",
+        "open_in_tab": true
+    },
+    "browser_action": {
+        "default_title": "Symfony Bookmarks Sync",
+        "default_popup": "popup.html",
+        "default_icon": {
+            "48": "icons/icon-48.png",
+            "96": "icons/icon-96.png"
+        }
+    }
+}

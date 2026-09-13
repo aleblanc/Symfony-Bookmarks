@@ -28,3 +28,7 @@
 
 # Local Symfony best-practices audit (not tracked)
 docs/audit.md
+
+# Firefox extension (JS toolchain artifacts)
+/extension/node_modules/
+/extension/web-ext-artifacts/

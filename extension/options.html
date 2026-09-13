@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Symfony Bookmarks Sync — Options</title>
+  <style>
+    :root { --fg:#241a12; --muted:#7c6a58; --line:#e7ddcf; --accent:#e11d48; --ok:#059669; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      color:var(--fg); background:#fbf7f0; padding:24px; max-width:560px; }
+    h1 { font-size:20px; margin:0 0 4px; }
+    p.sub { color:var(--muted); margin:0 0 20px; }
+    label { display:block; font-weight:600; margin:16px 0 6px; }
+    input { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px;
+      font:inherit; background:#fff; }
+    .hint { color:var(--muted); font-size:12.5px; margin:6px 0 0; }
+    .row { display:flex; gap:10px; margin-top:22px; flex-wrap:wrap; }
+    button { padding:10px 16px; border-radius:8px; border:1px solid var(--line); background:#fff;
+      font:inherit; font-weight:600; cursor:pointer; }
+    button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+    #status { margin-top:18px; padding:11px 13px; border-radius:8px; font-size:13.5px;
+      display:none; white-space:pre-wrap; }
+    #status.ok { display:block; background:#ecfdf5; color:var(--ok); }
+    #status.err { display:block; background:#fff1f3; color:var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>Symfony Bookmarks Sync</h1>
+  <p class="sub">Point the extension at your server. Everything is stored locally in the browser.</p>
+
+  <label for="baseUrl">Server URL</label>
+  <input id="baseUrl" type="url" inputmode="url" autocomplete="off"
+         placeholder="https://192.168.1.50/bookmarks">
+  <p class="hint">Include the sub-path if the app runs under one (e.g. <code>/bookmarks</code>). No trailing slash needed.</p>
+
+  <label for="username">Basic-auth user</label>
+  <input id="username" type="text" autocomplete="username" placeholder="(htpasswd user)">
+
+  <label for="password">Basic-auth password</label>
+  <input id="password" type="password" autocomplete="current-password" placeholder="(htpasswd password)">
+  <p class="hint">Sent as an <code>Authorization: Basic</code> header on every request — no password prompt. Stored unencrypted in the browser profile.</p>
+
+  <div class="row">
+    <button id="save" class="primary" type="button">Save</button>
+    <button id="test" type="button">Test connection</button>
+  </div>
+
+  <div id="status"></div>
+
+  <script src="lib/api.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

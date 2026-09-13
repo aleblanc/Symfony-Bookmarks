@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Symfony Bookmarks Sync</title>
+  <style>
+    :root { --fg:#241a12; --muted:#7c6a58; --line:#e7ddcf; --accent:#e11d48; --ok:#059669; }
+    * { box-sizing:border-box; }
+    body { margin:0; width:260px; font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      color:var(--fg); background:#fbf7f0; padding:14px; }
+    h1 { font-size:15px; margin:0 0 10px; }
+    button { width:100%; padding:10px; border-radius:8px; border:1px solid var(--accent);
+      background:var(--accent); color:#fff; font:inherit; font-weight:700; cursor:pointer; }
+    button:disabled { opacity:.6; cursor:default; }
+    .meta { color:var(--muted); font-size:12px; margin:10px 0 0; }
+    #msg { margin-top:10px; font-size:12.5px; white-space:pre-wrap; }
+    #msg.ok { color:var(--ok); } #msg.err { color:var(--accent); }
+    a { color:var(--accent); font-size:12px; }
+  </style>
+</head>
+<body>
+  <h1>Symfony Bookmarks Sync</h1>
+  <button id="sync" type="button">Sync now</button>
+  <p class="meta" id="last">—</p>
+  <p id="msg"></p>
+  <p><a id="opts" href="#">Open settings</a></p>
+
+  <script src="popup.js"></script>
+</body>
+</html>
