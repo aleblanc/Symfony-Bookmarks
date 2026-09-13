@@ -174,6 +174,7 @@ command classes (auto-discovered by `CollectCommandsPass` — no task list in ya
 - `app:index-pending` — `*/5 * * * *`
 - `app:ai-tag-pending` — `*/10 * * * *`
 - `app:ai-summarize-pending` — `*/15 * * * *`
+- `app:backup` — `0 */12 * * *` (sqlite3 `.backup` into `var/backup/`, GFS retention 12h/24h/48h/7d/14d; needs the `sqlite3` CLI, path via `APP_SQLITE_PATH`)
 
 `config/packages/simple_cron_scheduler.yaml` only sets globals (timezone `Europe/Luxembourg`,
 `log_channel: cron`). Inspect with `php bin/console scheduler:list`. Per-task `lock` (default
