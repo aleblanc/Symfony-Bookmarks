@@ -41,6 +41,11 @@
   <input id="password" type="password" autocomplete="current-password" placeholder="(htpasswd password)">
   <p class="hint">Sent as an <code>Authorization: Basic</code> header on every request — no password prompt. Stored unencrypted in the browser profile.</p>
 
+  <div class="row">
+    <button id="test" type="button">Test connection</button>
+  </div>
+  <p class="hint">Test first — it loads the dashboards and collections into the pickers below.</p>
+
   <label for="dashboard">Dashboard to import</label>
   <select id="dashboard">
     <option value="all">All dashboards</option>
@@ -69,7 +74,6 @@
   <div class="row">
     <button id="save" class="primary" type="button">Save</button>
     <button id="savepull" type="button">Save &amp; pull</button>
-    <button id="test" type="button">Test connection</button>
   </div>
 
   <div id="status"></div>
