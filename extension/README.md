@@ -3,10 +3,14 @@
 One-way, on-device sync from your **Symfony Bookmarks** server into Firefox
 bookmarks. Built to run on **Firefox for Android** as well as desktop.
 
-> Status: **Phase 2a** — *Symfony → Firefox* with a **reviewable, selective**
-> pull: a diff (add / update / delete) shown with checkboxes before applying,
-> **propagating deletions**. The reverse direction (push) is next; see
-> `docs/plan-api-v2-sync-bidirectionnel.md` in the main repo.
+> Status: **two-way** — reviewable, selective sync in both directions over the
+> API v2 (API Platform):
+> - **⬇️ Receive (pull)**: Symfony → Firefox, diff (add/update/delete) with
+>   checkboxes, propagates deletions.
+> - **⬆️ Send (push)**: Firefox → Symfony, additions (unticked by default),
+>   updates, deletions, with last-write-wins conflict flagging.
+>
+> See `docs/plan-api-v2-sync-bidirectionnel.md` in the main repo.
 >
 > ⚠️ **Desktop-only for the bookmark part.** The `browser.bookmarks` API does not
 > exist on Firefox for Android, so native sync can't run there — the extension
