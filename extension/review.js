@@ -46,6 +46,10 @@ function buildItem(kind, item, idx) {
   const label = document.createElement("label");
   label.htmlFor = cb.id;
   label.append(div("it-title", item.title || item.url), div("it-url", item.url));
+  if (Array.isArray(item.folderPath) && item.folderPath.length) {
+    const prefix = DIR === "push" ? "📁 in Firefox: " : "📁 into: ";
+    label.append(div("it-folder", prefix + item.folderPath.join(" / ")));
+  }
   if (kind === "updates" && item.oldTitle && item.oldTitle !== item.title) {
     label.append(div("it-note", "was: " + item.oldTitle));
   }
@@ -80,6 +84,21 @@ async function init() {
   $("#heading").textContent = UI[DIR].heading;
   $("#subtitle").textContent = UI[DIR].subtitle;
   $("[data-del-label]").textContent = UI[DIR].delLabel;
+
+  // On push, show where new links will be created so the target is never a surprise.
+  if (DIR === "push" && cfg.baseUrl) {
+    try {
+      const cols = await SfbApi.collections();
+      const target = cfg.pushCollectionId
+        ? (Array.isArray(cols) ? cols.find((c) => c.id === cfg.pushCollectionId) : null)
+        : null;
+      $("#subtitle").textContent += target
+        ? ` New links → “${target.name}”.`
+        : " New links → default collection (set a target in the options).";
+    } catch {
+      /* leave the base subtitle */
+    }
+  }
 
   if (!SfbSync.bookmarksAvailable()) {
     $("#loading").hidden = true;

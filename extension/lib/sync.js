@@ -254,19 +254,28 @@ const SfbSync = (() => {
     const snap = await getSnap();
     const mappedGuids = new Set(Object.values(map));
 
+    // Skip Firefox's built-in "Mozilla Firefox" folder (Get Help, Customize…).
+    const IGNORE_FOLDER = /mozilla firefox/i;
+
     const tree = await browser.bookmarks.getTree();
     const adds = [];
-    const walkFf = (nodes) => {
+    const walkFf = (nodes, path) => {
       for (const n of nodes) {
-        if (n.url && /^(https?|ftps?):/i.test(n.url)) {
-          if (!mappedGuids.has(n.id) && !symUrls.has(normaliseUrl(n.url))) {
-            adds.push({ guid: n.id, title: n.title || n.url, url: n.url });
+        if (n.url) {
+          if (
+            /^(https?|ftps?):/i.test(n.url) &&
+            !mappedGuids.has(n.id) &&
+            !symUrls.has(normaliseUrl(n.url))
+          ) {
+            adds.push({ guid: n.id, title: n.title || n.url, url: n.url, folderPath: path });
           }
+        } else if (n.children) {
+          if (IGNORE_FOLDER.test(n.title || "")) continue; // skip the whole subtree
+          walkFf(n.children, n.title ? path.concat(n.title) : path);
         }
-        if (n.children) walkFf(n.children);
       }
     };
-    walkFf(tree);
+    walkFf(tree, []);
 
     const updates = [];
     const deletes = [];
