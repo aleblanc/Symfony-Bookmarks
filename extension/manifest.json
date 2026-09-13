@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Symfony Bookmarks Sync",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Sync your Symfony Bookmarks into Firefox (and back, later). Works on Firefox Android.",
     "browser_specific_settings": {
         "gecko": {
