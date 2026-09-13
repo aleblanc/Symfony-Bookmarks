@@ -1,0 +1,16 @@
+{
+    "name": "sfbookmarks-sync",
+    "version": "0.1.0",
+    "description": "Firefox (Android) extension that syncs Symfony Bookmarks into browser bookmarks.",
+    "private": true,
+    "scripts": {
+        "start": "web-ext run",
+        "start:android": "web-ext run -t firefox-android",
+        "lint": "web-ext lint --self-hosted",
+        "build": "web-ext build --overwrite-dest",
+        "sign": "web-ext sign --channel=unlisted"
+    },
+    "devDependencies": {
+        "web-ext": "^8"
+    }
+}

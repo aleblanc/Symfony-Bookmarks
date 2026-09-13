@@ -42,21 +42,26 @@ If you connect **by IP**, the certificate must list the IP in its
 
 ## Develop & test
 
-Requires Node + [`web-ext`](https://github.com/mozilla/web-ext) (`npm i -g web-ext`).
+Requires Node. `web-ext` is a dev dependency here, so either install deps once
+(`npm install` in `extension/`) and use the npm scripts, or call it ad-hoc with
+`npx web-ext …` (no global install needed).
 
 ```bash
 cd extension
+npm install            # once, pulls web-ext locally
 
-# Lint
-web-ext lint
-
-# Run on desktop Firefox with auto-reload
-web-ext run
+npm run lint           # web-ext lint
+npm start              # run on desktop Firefox with auto-reload
+npm run build          # produce a .xpi in web-ext-artifacts/
+npm run sign           # AMO-sign (needs --api-key/--api-secret, see below)
 
 # Run on a USB-connected Android device
 #  - install Firefox on the phone, enable Settings → Remote debugging via USB
 #  - have adb installed on the PC
-web-ext run -t firefox-android --adb-device <DEVICE_ID> --firefox-apk org.mozilla.firefox
+npm run start:android -- --adb-device <DEVICE_ID> --firefox-apk org.mozilla.firefox
+
+# …or without any install:
+npx web-ext run
 ```
 
 Load manually instead: `about:debugging` → *This Firefox* → *Load Temporary
