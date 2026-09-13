@@ -117,6 +117,11 @@ via une extension dédiée).
 
 ## 6. Synchronisation avec les marque-pages Firefox
 
+> **Plan détaillé** : synchro **bidirectionnelle** (pull avec suppressions +
+> push sélectif) et **API v2** (API Platform, sans auth, CRUD + Swagger) →
+> voir [`plan-api-v2-sync-bidirectionnel.md`](plan-api-v2-sync-bidirectionnel.md).
+> NB : la **compat Linkwarden n'est plus un objectif**.
+
 Une **extension WebExtension** qui synchronise les marque-pages du navigateur avec
 la base de Symfony-Bookmarks : elle utilise l'**API `bookmarks` de Firefox** d'un
 côté et l'**API `/api/v1/*`** (Bearer) de l'autre.
