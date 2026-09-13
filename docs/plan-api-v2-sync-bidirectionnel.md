@@ -138,16 +138,30 @@ API Platform en JSON simple (désactiver JSON-LD/Hydra si on ne s'en sert pas).
 - **Scope géré** : uniquement les bookmarks sous le dossier/racine choisi et/ou
   présents dans `guidMap`. **Ne jamais toucher** aux bookmarks perso hors scope.
 
-### B.2 Pull (recevoir) — Symfony → Firefox, **avec suppressions**
+### B.2 Pull (recevoir) — Symfony → Firefox, **avec prévisualisation sélective**
+
+Symétrique au push : le pull calcule un **diff** et (mode « revue ») **affiche la
+liste avant d'appliquer**, avec une case à cocher par ligne.
 
 1. Récupérer l'arbre complet (`GET /api/v2/tree` ou liste complète).
-2. **Ajouts / mises à jour** : comme aujourd'hui (créer les manquants, matcher
-   par URL normalisée, remplir `guidMap`).
-3. **Suppressions** : pour chaque entrée de `guidMap` dont le `symfonyId`
-   **n'apparaît plus** dans la réponse → **supprimer** le bookmark Firefox
-   correspondant **uniquement s'il est dans le scope géré** et tracké, puis
-   retirer l'entrée du `guidMap`.
-4. Sécurité : jamais de suppression d'un bookmark non mappé / hors scope.
+2. Calculer le **diff** vs l'état Firefox + le snapshot :
+   - **➕ Nouveaux** : lien Symfony dont l'URL normalisée est **absente** de
+     Firefox → à créer.
+   - **✏️ Mis à jour** : lien **mappé** dont le titre/URL a changé **côté
+     Symfony** → à mettre à jour dans Firefox.
+   - **🗑️ Supprimés** : entrée `guidMap` dont le `symfonyId` **n'apparaît plus**
+     → bookmark Firefox à supprimer (**scope géré uniquement**, jamais un favori
+     perso hors scope).
+3. **Prévisualisation cochable** (voir B.4) : 3 groupes, une case par ligne
+   (cochées par défaut sauf les suppressions), bouton « Appliquer la sélection ».
+4. Appliquer la sélection dans Firefox, puis mettre à jour `guidMap` + snapshot.
+5. Sécurité : jamais de suppression d'un bookmark non mappé / hors scope.
+
+**Deux modes** :
+- **Revue** (défaut recommandé) : montre la liste, l'utilisateur coche/décoche
+  avant d'appliquer.
+- **Auto** (option, sync rapide) : applique sans revue (ajouts + màj cochés,
+  suppressions selon le réglage « décochées par défaut »).
 
 ### B.3 Push (envoyer) — Firefox → Symfony, **sélectif**
 
@@ -165,12 +179,15 @@ API Platform en JSON simple (désactiver JSON-LD/Hydra si on ne s'en sert pas).
 
 ### B.4 UI de l'extension
 
-- **Popup** : deux boutons —
-  - **⬇️ Recevoir (pull)** → lance B.2, affiche un résumé (créés / màj / supprimés).
-  - **⬆️ Envoyer (push)** → ouvre une **page dédiée** (onglet) avec le listing.
-- **Page push** (façon page d'options) :
+- **Popup** : deux boutons, **chacun ouvre une page de revue** (même composant,
+  seule la direction change) —
+  - **⬇️ Recevoir (pull)** → page de revue des changements **Symfony → Firefox**.
+  - **⬆️ Envoyer (push)** → page de revue des changements **Firefox → Symfony**.
+  - (option **Auto** : appliquer sans passer par la revue, cf. B.2 / B.3.)
+- **Page de revue** (façon page d'options, **partagée** pull/push) — trois groupes,
+  une case par ligne :
   ```
-  À ENVOYER VERS SYMFONY BOOKMARKS
+  RECEVOIR DE SYMFONY BOOKMARKS      (ou : ENVOYER VERS SYMFONY BOOKMARKS)
 
   ➕ À ajouter (3)
     [x] Titre A        https://a.tld/...
@@ -178,14 +195,16 @@ API Platform en JSON simple (désactiver JSON-LD/Hydra si on ne s'en sert pas).
     [ ] Titre C        https://c.tld/...
   ✏️ À modifier (1)
     [x] Titre D (titre changé)   https://d.tld/...
-  🗑️ À supprimer côté Symfony (2)
+  🗑️ À supprimer (2)
     [ ] Titre E        https://e.tld/...
     [x] Titre F        https://f.tld/...
 
-           [ Tout cocher ] [ Tout décocher ]   [ Envoyer la sélection ]
+           [ Tout cocher ] [ Tout décocher ]   [ Appliquer la sélection ]
   ```
-  - Les **suppressions décochées par défaut** (action destructive) ; ajouts/màj
-    cochés par défaut (à décider avec l'utilisateur).
+  - **Suppressions décochées par défaut** (action destructive) ; ajouts/màj
+    cochés par défaut (à confirmer avec l'utilisateur).
+  - Le même composant sert dans les **deux sens** ; côté **pull** « Appliquer »
+    écrit dans Firefox, côté **push** il appelle l'API v2.
   - Choix du **dashboard / collection cible** pour les ajouts (réutilise la config
     existante).
 
@@ -205,8 +224,11 @@ API Platform en JSON simple (désactiver JSON-LD/Hydra si on ne s'en sert pas).
 
 ### B.6 Phasage (Partie B)
 
-- **Phase 2a** — Pull **avec suppressions** (B.2). Petit, gros gain immédiat.
-- **Phase 2b** — Push **ajouts seulement**, avec UI de sélection (B.3 partiel + B.4).
+- **Phase 2a** — Pull **avec diff + prévisualisation cochable** (nouveaux / màj /
+  supprimés) et application sélective (B.2 + le composant de revue B.4). Petit,
+  gros gain immédiat, et **construit la page de revue réutilisée par le push**.
+- **Phase 2b** — Push **ajouts seulement**, réutilisant la page de revue (B.3
+  partiel + B.4).
 - **Phase 2c** — Push **modifications + suppressions + conflits** (B.3 complet + B.5).
 
 ---
@@ -230,6 +252,7 @@ API Platform en JSON simple (désactiver JSON-LD/Hydra si on ne s'en sert pas).
 
 ## Points à trancher avec l'utilisateur
 
+- **Pull** en mode **revue** par défaut (recommandé) ou **auto** (sans revue) ?
 - Stratégie de conflit par défaut (last-write-wins vs Symfony autorité vs manuel).
 - Cases « à supprimer » **décochées** par défaut ? (recommandé : oui).
 - Le push ne considère-t-il **que** le scope géré (recommandé) ou tout Firefox ?
