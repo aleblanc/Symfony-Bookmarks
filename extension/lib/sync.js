@@ -342,7 +342,7 @@ const SfbSync = (() => {
       if (!sym) continue; // gone from Symfony → the pull side handles that
       const ff = ffByGuid.get(guid);
       if (!ff) {
-        deletes.push({ symfonyId: symId, guid, title: sym.name || sym.url, url: sym.url });
+        deletes.push({ symfonyId: symId, guid, title: sym.name || sym.url, url: sym.url, collectionId: sym.collectionId });
         continue;
       }
       const s = snap[symId];
@@ -408,6 +408,45 @@ const SfbSync = (() => {
     return paths;
   }
 
+  /**
+   * Delete collections that became empty (no links, no children) as a result of
+   * a push deletion — walking up to ancestors that empty out too. Only touches
+   * the given `affected` collection ids (and their emptied ancestors), never
+   * pre-existing empty collections the user may want to keep.
+   */
+  async function cleanupEmptyCollections(affected) {
+    let removed = 0;
+    let changed = true;
+    while (changed && affected.size) {
+      changed = false;
+      const [links, cols] = await Promise.all([SfbApi.listLinks(), SfbApi.collections()]);
+      const linkCount = new Map();
+      for (const l of links) linkCount.set(l.collectionId, (linkCount.get(l.collectionId) || 0) + 1);
+      const childCount = new Map();
+      for (const c of cols) if (null != c.parentId) childCount.set(c.parentId, (childCount.get(c.parentId) || 0) + 1);
+      const byId = new Map(cols.map((c) => [c.id, c]));
+      for (const id of [...affected]) {
+        const c = byId.get(id);
+        if (!c) {
+          affected.delete(id);
+          continue;
+        }
+        if (!(linkCount.get(id) > 0) && !(childCount.get(id) > 0)) {
+          try {
+            await SfbApi.deleteCollection(id);
+            removed++;
+            changed = true;
+            if (null != c.parentId) affected.add(c.parentId); // parent may now be empty
+          } catch {
+            /* best-effort */
+          }
+          affected.delete(id);
+        }
+      }
+    }
+    return removed;
+  }
+
   /** Find-or-create the nested collection path in $dashId; returns the leaf id. */
   async function ensureCollectionPath(pathNames, dashId, index) {
     let parentId = null;
@@ -464,16 +503,21 @@ const SfbSync = (() => {
       await SfbApi.updateLink(u.symfonyId, patch);
       updated++;
     }
+    const affectedCols = new Set();
     for (const d of selected.deletes || []) {
       await SfbApi.deleteLink(d.symfonyId);
       delete map[d.symfonyId];
+      if (null != d.collectionId) affectedCols.add(d.collectionId);
       deleted++;
     }
+
+    // Remove collections emptied by those deletions (folder deletion propagates).
+    const collectionsRemoved = deleted > 0 ? await cleanupEmptyCollections(affectedCols) : 0;
 
     await setMap(map);
     await refreshSnapshot();
     await browser.storage.local.set({ lastSync: new Date().toISOString(), lastError: null });
-    return { created, updated, deleted, linked: 0 };
+    return { created, updated, deleted, collectionsRemoved, linked: 0 };
   }
 
   /**

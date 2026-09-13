@@ -94,6 +94,19 @@ $("save").addEventListener("click", async () => {
   }
 });
 
+$("savepull").addEventListener("click", async () => {
+  const cfg = readForm();
+  if (!cfg.baseUrl) return show("err", "Please enter the server URL.");
+  try {
+    assertValidUrl(cfg.baseUrl);
+    await SfbApi.setConfig(cfg);
+    // Open the pull review page directly.
+    await browser.tabs.create({ url: browser.runtime.getURL("review.html?dir=pull") });
+  } catch (e) {
+    show("err", String(e && e.message ? e.message : e));
+  }
+});
+
 $("test").addEventListener("click", async () => {
   const cfg = readForm();
   if (!cfg.baseUrl) return show("err", "Please enter the server URL first.");

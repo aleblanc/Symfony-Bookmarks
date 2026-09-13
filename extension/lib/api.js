@@ -121,6 +121,11 @@ const SfbApi = (() => {
     return request("/api/v2/collections", { method: "POST", body });
   }
 
+  /** DELETE /api/v2/collections/{id} (cascades to descendants server-side). */
+  function deleteCollection(id) {
+    return request(`/api/v2/collections/${id}`, { method: "DELETE" });
+  }
+
   /** GET /api/v2/links — flat list with id/url/name/updatedAt (for push diff). */
   function listLinks() {
     return request("/api/v2/links");
@@ -177,7 +182,7 @@ const SfbApi = (() => {
   }
 
   return {
-    getConfig, setConfig, normaliseBase, me, tree, dashboards, collections, createCollection, listLinks,
+    getConfig, setConfig, normaliseBase, me, tree, dashboards, collections, createCollection, deleteCollection, listLinks,
     createLink, updateLink, deleteLink, allLinks, request,
   };
 })();
