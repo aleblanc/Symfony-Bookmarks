@@ -108,9 +108,17 @@ const SfbApi = (() => {
     return request("/api/v1/dashboards");
   }
 
-  /** GET /api/v2/collections — [{ id, name, dashboardId, parentId, … }] for the push target picker. */
+  /** GET /api/v2/collections — [{ id, name, dashboardId, parentId, … }]. */
   function collections() {
     return request("/api/v2/collections");
+  }
+
+  /** POST /api/v2/collections — create a collection. Returns the created resource. */
+  function createCollection({ name, parentId = null, dashboardId = null }) {
+    const body = { name };
+    if (parentId != null) body.parentId = parentId;
+    if (dashboardId != null) body.dashboardId = dashboardId;
+    return request("/api/v2/collections", { method: "POST", body });
   }
 
   /** GET /api/v2/links — flat list with id/url/name/updatedAt (for push diff). */
@@ -169,7 +177,7 @@ const SfbApi = (() => {
   }
 
   return {
-    getConfig, setConfig, normaliseBase, me, tree, dashboards, collections, listLinks,
+    getConfig, setConfig, normaliseBase, me, tree, dashboards, collections, createCollection, listLinks,
     createLink, updateLink, deleteLink, allLinks, request,
   };
 })();

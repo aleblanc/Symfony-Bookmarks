@@ -241,6 +241,11 @@ const SfbSync = (() => {
    *   Symfony (destructive → unticked by default).
    * @returns {Promise<{adds:Array, updates:Array, deletes:Array, toLink:Array}>}
    */
+  // Firefox top-level containers — their titles must NOT become collections.
+  const CONTAINER_IDS = new Set([
+    "root________", "menu________", "toolbar_____", "unfiled_____", "mobile______",
+  ]);
+
   async function computePushPlan(_cfg) {
     const list = await SfbApi.listLinks(); // v2: id, url, name, updatedAt…
     const symById = new Map();
@@ -249,6 +254,17 @@ const SfbSync = (() => {
       symById.set(Number(l.id), l);
       symUrls.add(normaliseUrl(l.url));
     }
+
+    // Path segments to strip from a Firefox folder path so it maps back to a
+    // Symfony collection hierarchy: the "Symfony Bookmarks" wrapper and any
+    // dashboard-name folder created by the pull.
+    const dashList = await SfbApi.dashboards();
+    const stripNames = new Set([ROOT_TITLE, ...(Array.isArray(dashList) ? dashList.map((d) => d.name) : [])]);
+    const toCollectionPath = (path) => {
+      const p = [...path];
+      while (p.length && stripNames.has(p[0])) p.shift();
+      return p;
+    };
 
     const map = await getMap();
     const snap = await getSnap();
@@ -267,11 +283,12 @@ const SfbSync = (() => {
             !mappedGuids.has(n.id) &&
             !symUrls.has(normaliseUrl(n.url))
           ) {
-            adds.push({ guid: n.id, title: n.title || n.url, url: n.url, folderPath: path });
+            adds.push({ guid: n.id, title: n.title || n.url, url: n.url, folderPath: toCollectionPath(path) });
           }
         } else if (n.children) {
           if (IGNORE_FOLDER.test(n.title || "")) continue; // skip the whole subtree
-          walkFf(n.children, n.title ? path.concat(n.title) : path);
+          const nextPath = CONTAINER_IDS.has(n.id) || !n.title ? path : path.concat(n.title);
+          walkFf(n.children, nextPath);
         }
       }
     };
@@ -309,19 +326,58 @@ const SfbSync = (() => {
     return { adds, updates, deletes, toLink: [] };
   }
 
-  /** Apply a (filtered) push plan: create/update/delete links in Symfony. */
+  /** Target dashboard for push: the configured one, else Perso (1). */
+  function pushDashboardId(cfg) {
+    const d = cfg.dashboard;
+    return d && d !== "all" && !Number.isNaN(Number(d)) ? Number(d) : 1;
+  }
+
+  /** Index existing collections by `dashboardId|parentId|name` → id. */
+  function buildCollectionIndex(cols) {
+    const idx = new Map();
+    for (const c of Array.isArray(cols) ? cols : []) {
+      idx.set(c.dashboardId + "|" + (c.parentId ?? "") + "|" + c.name, c.id);
+    }
+    return idx;
+  }
+
+  /** Find-or-create the nested collection path in $dashId; returns the leaf id. */
+  async function ensureCollectionPath(pathNames, dashId, index) {
+    let parentId = null;
+    for (const name of pathNames) {
+      const key = dashId + "|" + (parentId ?? "") + "|" + name;
+      let id = index.get(key);
+      if (id === undefined) {
+        const res = await SfbApi.createCollection({ name, parentId, dashboardId: dashId });
+        id = res && res.id ? res.id : null;
+        if (null != id) index.set(key, id);
+      }
+      if (null == id) return parentId; // creation failed → stop at current level
+      parentId = id;
+    }
+    return parentId;
+  }
+
+  /**
+   * Apply a (filtered) push plan: create/update/delete links in Symfony.
+   * Additions mirror their Firefox folder path into nested Symfony collections
+   * (find-or-create) under the configured dashboard; links at the Firefox root
+   * fall back to the configured target collection (or the server default).
+   */
   async function applyPush(selected, cfg) {
     const map = await getMap();
+    const dashId = pushDashboardId(cfg);
+    const index = buildCollectionIndex(await SfbApi.collections());
     let created = 0;
     let updated = 0;
     let deleted = 0;
 
     for (const a of selected.adds || []) {
-      const res = await SfbApi.createLink({
-        url: a.url,
-        name: a.title,
-        collectionId: cfg.pushCollectionId || null,
-      });
+      const path = a.folderPath || [];
+      const collectionId = path.length
+        ? await ensureCollectionPath(path, dashId, index)
+        : cfg.pushCollectionId || null;
+      const res = await SfbApi.createLink({ url: a.url, name: a.title, collectionId });
       if (res && res.id) {
         map[res.id] = a.guid; // symfonyId -> firefoxGuid
         created++;

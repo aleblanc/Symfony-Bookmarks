@@ -8,7 +8,10 @@ bookmarks. Built to run on **Firefox for Android** as well as desktop.
 > - **⬇️ Receive (pull)**: Symfony → Firefox, diff (add/update/delete) with
 >   checkboxes, propagates deletions.
 > - **⬆️ Send (push)**: Firefox → Symfony, additions (unticked by default),
->   updates, deletions, with last-write-wins conflict flagging.
+>   updates, deletions, with last-write-wins conflict flagging. Additions mirror
+>   the Firefox folder into a matching Symfony collection (created if needed)
+>   under the configured dashboard; the built-in "Mozilla Firefox" folder is
+>   ignored; root links fall back to a configurable collection.
 >
 > See `docs/plan-api-v2-sync-bidirectionnel.md` in the main repo.
 >

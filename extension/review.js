@@ -15,7 +15,7 @@ const UI = {
   },
   push: {
     heading: "⬆️ Send to Symfony Bookmarks",
-    subtitle: "Firefox bookmarks not yet in Symfony. Tick the ones to send (all unticked by default).",
+    subtitle: "Firefox bookmarks not yet in Symfony. Each lands in the collection matching its folder (created if needed). Tick the ones to send (unticked by default).",
     delLabel: "🗑️ To delete in Symfony",
     // push: only updates ticked by default. Additions unticked (don't dump
     // personal bookmarks); deletions unticked (destructive in Symfony).
@@ -85,7 +85,7 @@ async function init() {
   $("#subtitle").textContent = UI[DIR].subtitle;
   $("[data-del-label]").textContent = UI[DIR].delLabel;
 
-  // On push, show where new links will be created so the target is never a surprise.
+  // On push, show the fallback used for links sitting at the Firefox root.
   if (DIR === "push" && cfg.baseUrl) {
     try {
       const cols = await SfbApi.collections();
@@ -93,8 +93,8 @@ async function init() {
         ? (Array.isArray(cols) ? cols.find((c) => c.id === cfg.pushCollectionId) : null)
         : null;
       $("#subtitle").textContent += target
-        ? ` New links → “${target.name}”.`
-        : " New links → default collection (set a target in the options).";
+        ? ` Root links → “${target.name}”.`
+        : " Root links → default collection.";
     } catch {
       /* leave the base subtitle */
     }
