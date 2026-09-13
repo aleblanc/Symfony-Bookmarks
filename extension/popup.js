@@ -16,24 +16,16 @@ async function refreshMeta() {
   if (lastError) msg("err", "Last error: " + lastError);
 }
 
-$("sync").addEventListener("click", async () => {
-  const btn = $("sync");
-  btn.disabled = true;
-  msg("ok", "Syncing…");
-  try {
-    const res = await browser.runtime.sendMessage({ type: "sync-now" });
-    if (res && res.ok) {
-      const r = res.report;
-      msg("ok", `Done ✓ ${r.created} new, ${r.linked} linked, ${r.folders} folders.`);
-    } else {
-      msg("err", (res && res.error) || "Sync failed.");
-    }
-  } catch (e) {
-    msg("err", String(e && e.message ? e.message : e));
-  } finally {
-    btn.disabled = false;
-    refreshMeta();
-  }
+// Firefox Android has no bookmarks API — disable native sync there.
+const canSync = typeof browser !== "undefined" && !!browser.bookmarks;
+if (!canSync) {
+  $("unavailable").hidden = false;
+  $("pull").disabled = true;
+}
+
+$("pull").addEventListener("click", () => {
+  browser.tabs.create({ url: browser.runtime.getURL("review.html") });
+  window.close();
 });
 
 $("opts").addEventListener("click", (e) => {

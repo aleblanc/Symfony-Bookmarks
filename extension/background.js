@@ -28,8 +28,9 @@ async function runSync() {
   }
 }
 
-/** Only auto-sync once the user has configured a server URL. */
+/** Auto-sync only when configured AND the bookmarks API exists (desktop). */
 async function maybeAutoSync() {
+  if (!SfbSync.bookmarksAvailable()) return; // Firefox Android: no native sync
   const cfg = await SfbApi.getConfig();
   if (cfg.baseUrl) runSync();
 }

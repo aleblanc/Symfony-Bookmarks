@@ -4,9 +4,11 @@ Read this before touching the code. It captures what exists, why, and the non-ob
 
 ## What this project is
 
-A self-hosted, single-user bookmark manager in PHP/Symfony/SQLite, meant to run on a Raspberry Pi 4 (~200 MB RAM) and stay compatible with the official Linkwarden browser extensions (Firefox / Chrome). It replaces the full Linkwarden stack (Next.js + Postgres + Chromium worker + workers) with a lightweight PHP-only stack.
+A self-hosted, single-user bookmark manager in PHP/Symfony/SQLite, meant to run on a Raspberry Pi 4 (~200 MB RAM). It replaces the full Linkwarden stack (Next.js + Postgres + Chromium worker + workers) with a lightweight PHP-only stack.
 
-The Linkwarden project itself lives in the parent directory (`../`) — this project reads its `packages/router/*.tsx` to know what API surface the extension expects.
+> **Linkwarden compatibility is NO LONGER a goal (dropped 2026-09).** It was an early constraint (hence the `{"response": …}` envelope in `/api/v1/*`), but we now ship our own **Firefox sync extension** (`extension/`) and a clean **API v2** (API Platform) is planned — see `docs/plan-api-v2-sync-bidirectionnel.md`. Don't add new Linkwarden-shaped endpoints; v1's envelope is legacy and will be deprecated.
+
+The Linkwarden project still lives in the parent directory (`../`); its `packages/router/*.tsx` was originally mirrored for the API surface, but that is now historical only.
 
 ## Why not just use Linkwarden / Karakeep / Shiori
 
@@ -37,7 +39,7 @@ Explored in previous conversation. Constraints that drove the custom build:
 
 Explicit user requirement. There is **no** `User` entity, no Security firewall, no login form. Protection is expected to be upstream (nginx `auth_basic`, VPN, LAN-only).
 
-The API has one optional guard: `ApiTokenSubscriber` (in `src/EventSubscriber/`). If `APP_API_TOKEN` env is set, requests to `/api/*` need `Authorization: Bearer <token>`; if empty, all requests pass. This lets the Linkwarden extension always send its Bearer header without breaking dev.
+The API has one optional guard: `ApiTokenSubscriber` (in `src/EventSubscriber/`). If `APP_API_TOKEN` env is set, requests to `/api/*` need `Authorization: Bearer <token>`; if empty, all requests pass. A browser extension can then always send its Bearer header without breaking dev. Note: in the real deployment the whole app sits behind nginx **basic-auth** (htpasswd), so the extension authenticates with `Authorization: Basic …` and `APP_API_TOKEN` is typically left empty.
 
 ## Architecture at a glance
 
@@ -74,7 +76,7 @@ Cron (simple-cron-scheduler)     │       ▼                                  
 src/
 ├── Command/                    # 5 CLI commands (index-pending [--reindex], ai-tag-pending [--retry-failed], ai-summarize-pending [--retry-failed], create-vault, generate-secrets)
 ├── Controller/
-│   ├── Api/                    # /api/v1/* — envelope {"response": ...}, matches Linkwarden extension
+│   ├── Api/                    # /api/v1/* — envelope {"response": ...} (legacy Linkwarden shape; API v2 planned)
 │   └── Web/                    # Twig UI controllers
 ├── Entity/                     # 6 entities: Dashboard, Vault, Collection, Tag, Link, ArchiveAsset
 ├── EventListener/              # EncryptLinkListener (Doctrine lifecycle) for vault
@@ -94,7 +96,15 @@ src/
 templates/                      # snake_case names, _prefix for partials
 migrations/                     # initial migration seeds Perso + Pro dashboards and builds FTS5 index
 tests/SmokeTest.php             # data-provider smoke test on every public URL + API endpoint
+extension/                      # Firefox (Android+desktop) sync extension (MV2, web-ext); own JS toolchain, excluded from PHPStan/cs-fixer/PHPUnit
 ```
+
+**Firefox extension** (`extension/`): syncs Symfony links into Firefox bookmarks
+via the API. ⚠️ The `browser.bookmarks` API **does not exist on Firefox for
+Android** (verified 2026-09) — native bookmark sync is **desktop-only**; the code
+feature-detects `browser.bookmarks` and degrades on Android. Reconciliation
+(`guidMap`, diff, last-write-wins) lives in `extension/lib/sync.js` and is kept
+for desktop. Plan: `docs/plan-api-v2-sync-bidirectionnel.md`.
 
 ## Conventions to follow (Symfony best practices, non-negotiable)
 
