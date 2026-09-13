@@ -16,6 +16,24 @@
   l'enveloppe `{"response": …}` et la forme Linkwarden de v1 pourront être
   **dépréciées puis retirées** une fois l'extension migrée.
 
+## Décisions (2026-09-13)
+
+- **Pull** : mode **revue** par défaut (liste cochable avant d'appliquer).
+- **Conflit** (modifié des deux côtés) : **last-write-wins** — la modification la
+  plus récente (via `updatedAt`) gagne.
+- **Cases à cocher** : **cochées par défaut**… **sauf** les **ajouts au push**
+  (voir ci-dessous), pour ne pas déverser tous les favoris perso dans Symfony.
+- **Swagger** : exposé **aussi en prod** (derrière le htpasswd), pas seulement en dev.
+- **Périmètre « géré » = le `guidMap`**, pas un dossier : est géré tout bookmark
+  dont le GUID Firefox est dans le map. Ça permet l'**import à la racine** de
+  Firefox sans jamais toucher aux favoris perso (jamais mappés).
+
+**Reste à confirmer** — comment le push détecte les **ajouts** à la racine (un
+bookmark non mappé = nouveau lien à envoyer *ou* favori perso à ne pas toucher) :
+- **A.** dossier dédié « à envoyer » (Outbox) scanné pour les nouveaux ;
+- **B.** liste tous les non-mappés mais **ajouts décochés par défaut** (recommandé) ;
+- **C.** ajout manuel (« Envoyer cette page » / menu contextuel), pas de scan.
+
 ## Objectifs
 
 1. **Pull (recevoir)** : propager aussi les **suppressions** Symfony → Firefox.
@@ -47,9 +65,9 @@
 le moins de code custom. FOSRestBundle imposerait de recoder la doc et le CRUD.
 
 **Empreinte / Pi (≤ 200 Mo)** : acceptable — ORM et Serializer sont déjà des
-dépendances. Mitigations si besoin : désactiver la doc Swagger en prod
-(`api_platform.enable_swagger: false` / `enable_swagger_ui: false`), et laisser
-API Platform en JSON simple (désactiver JSON-LD/Hydra si on ne s'en sert pas).
+dépendances. **Swagger reste activé en prod** (décidé — pratique derrière le
+htpasswd). Mitigation légère : laisser API Platform en **JSON simple**
+(désactiver JSON-LD/Hydra si on ne s'en sert pas) pour rester sobre.
 
 ### A.2 Périmètre v2
 
@@ -153,7 +171,8 @@ liste avant d'appliquer**, avec une case à cocher par ligne.
      → bookmark Firefox à supprimer (**scope géré uniquement**, jamais un favori
      perso hors scope).
 3. **Prévisualisation cochable** (voir B.4) : 3 groupes, une case par ligne
-   (cochées par défaut sauf les suppressions), bouton « Appliquer la sélection ».
+   **cochées par défaut** (les suppressions Firefox sont peu risquées : ce ne
+   sont que des favoris locaux, Symfony fait foi), bouton « Appliquer la sélection ».
 4. Appliquer la sélection dans Firefox, puis mettre à jour `guidMap` + snapshot.
 5. Sécurité : jamais de suppression d'un bookmark non mappé / hors scope.
 
@@ -201,8 +220,11 @@ liste avant d'appliquer**, avec une case à cocher par ligne.
 
            [ Tout cocher ] [ Tout décocher ]   [ Appliquer la sélection ]
   ```
-  - **Suppressions décochées par défaut** (action destructive) ; ajouts/màj
-    cochés par défaut (à confirmer avec l'utilisateur).
+  - **Cochées par défaut**, **sauf les ajouts au push** (décochés — sinon on
+    risque d'envoyer tous les favoris perso vers Symfony ; cf. « Reste à
+    confirmer » en tête de doc). Les suppressions **côté pull** (favoris locaux)
+    restent cochées ; les suppressions **côté push** (dans Symfony) aussi, mais
+    c'est plus sensible — à surveiller.
   - Le même composant sert dans les **deux sens** ; côté **pull** « Appliquer »
     écrit dans Firefox, côté **push** il appelle l'API v2.
   - Choix du **dashboard / collection cible** pour les ajouts (réutilise la config
@@ -211,11 +233,9 @@ liste avant d'appliquer**, avec une case à cocher par ligne.
 ### B.5 Conflits & cas limites
 
 - **Modifié des deux côtés** (même lien changé côté FF **et** côté SF depuis le
-  dernier sync) : stratégie à choisir —
-  - **last-write-wins** via `updatedAt` (le plus récent gagne), **ou**
-  - **Symfony fait autorité**, **ou**
-  - signaler le conflit dans l'UI et laisser choisir. → défaut proposé :
-    **signaler** dans la liste push (ligne « conflit ») + last-write-wins si non résolu.
+  dernier sync) : **last-write-wins** (décidé) — la version dont l'`updatedAt`
+  (ou l'horodatage FF `dateGroupModified`) est le plus récent l'emporte. On peut
+  tout de même **marquer la ligne « conflit »** dans la revue pour information.
 - **Vault** : exclu de la synchro (déjà).
 - **`skipProcessing` (« à trier »)** : exclu de l'export (déjà) → ni pull ni push.
 - **Bookmarks Firefox hors scope géré** : ignorés au push (ne pas aspirer toute
@@ -252,8 +272,7 @@ liste avant d'appliquer**, avec une case à cocher par ligne.
 
 ## Points à trancher avec l'utilisateur
 
-- **Pull** en mode **revue** par défaut (recommandé) ou **auto** (sans revue) ?
-- Stratégie de conflit par défaut (last-write-wins vs Symfony autorité vs manuel).
-- Cases « à supprimer » **décochées** par défaut ? (recommandé : oui).
-- Le push ne considère-t-il **que** le scope géré (recommandé) ou tout Firefox ?
-- Swagger exposé en **prod** (derrière htpasswd) ou **dev only** ?
+Les principaux choix sont **actés** (voir « Décisions » en tête). **Seul point
+ouvert** : la détection des **ajouts au push** à la racine — option **A** (dossier
+Outbox), **B** (liste complète, ajouts décochés — recommandé) ou **C** (ajout
+manuel). À confirmer avant la Phase 2b.
