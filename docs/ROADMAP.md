@@ -141,3 +141,31 @@ côté et l'**API `/api/v1/*`** (Bearer) de l'autre.
 - Côté Symfony (surtout déjà là) : exposer un **timestamp de modification** par
   lien dans l'API et, à terme, un **endpoint de delta** (« ce qui a changé depuis
   tel instant ») pour éviter de tout re-scanner à chaque passage.
+
+## 7. Cache des pages invalidé à chaque changement de contenu
+
+Mettre en place un **cache** (HTTP et/ou fragments Twig) pour accélérer les vues
+lourdes sur le Pi (listes de liens, recherche, tableau de bord), avec une
+**expiration déclenchée dès qu'un contenu change** plutôt qu'un simple TTL.
+
+- **Ce qui doit invalider le cache** : ajout / modification / suppression d'un
+  lien ou d'une collection, fin d'indexation (nouveau PDF / capture / texte
+  lisible), fin de **tagging IA**, fin de **résumé IA**. Autrement dit, chaque
+  transition de `status` / `aiStatus` / `summaryStatus` vers `done`, et chaque
+  écriture d'entité.
+- **Mécanisme** : une **clé de version** (ex. `content.version`, un entier ou un
+  timestamp stocké en base ou dans un petit cache) bumpée par un **listener
+  Doctrine** (`postPersist`/`postUpdate`/`postRemove` sur `Link`, `Collection`,
+  `Tag`, `ArchiveAsset`) et par les commandes cron à la fin d'un run qui a
+  produit du nouveau contenu. La clé entre dans la **cache key** des fragments →
+  toute mutation périme le cache sans purge explicite.
+  - Granularité possible : une version **par dashboard** (Perso / Pro) et par
+    collection, pour ne pas tout invalider à chaque ajout.
+- **Portée** : garder les pages **vault** hors cache (contenu déchiffré en
+  session), et exclure ou scoper par session tout ce qui dépend du dashboard
+  courant.
+- **Pistes techniques** : `Cache-Control`/`ETag` côté HTTP (l'ETag dérive de la
+  clé de version), le **HttpCache** de Symfony ou le cache de fragments Twig
+  (`{% cache %}` via `symfony/cache`), le tout sur un adaptateur léger
+  (filesystem ou APCu) — pas de service externe à installer, cohérent avec la
+  contrainte « pas de Docker, ≤ 200 Mo de RAM ».
