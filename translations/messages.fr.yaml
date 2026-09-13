@@ -60,6 +60,8 @@ dead:
     none: 'Aucun lien mort détecté. 🎉'
     dns_title: 'DNS expiré'
     dns_intro: 'Liens dont le domaine ne résout plus du tout (aucune IP — domaine expiré, supprimé ou parqué). Très probablement définitivement morts.'
+    dns_delete_all: 'Tout supprimer (%count%)'
+    dns_delete_all_confirm: 'Supprimer les %count% lien(s) au DNS expiré ? Cette action est irréversible.'
     unreachable_title: 'Injoignables'
     unreachable_intro: 'Liens dont la dernière vérification a échoué au niveau réseau (connexion refusée, timeout, TLS) alors que le domaine résout encore. Ce n''est pas forcément un 404 — vérifiez avant de supprimer.'
     domain_summary: '%count% liens pour %host%'

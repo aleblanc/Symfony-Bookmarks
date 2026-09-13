@@ -60,6 +60,8 @@ dead:
     none: 'No dead links found. 🎉'
     dns_title: 'DNS expired'
     dns_intro: 'Links whose domain no longer resolves at all (no IP — expired, removed or parked domain). Most likely dead for good.'
+    dns_delete_all: 'Delete all (%count%)'
+    dns_delete_all_confirm: 'Delete the %count% DNS-expired link(s)? This cannot be undone.'
     unreachable_title: 'Unreachable'
     unreachable_intro: 'Links whose last check failed at the network level (refused connection, timeout, TLS) while the domain still resolves. Not necessarily a 404 — check before deleting.'
     domain_summary: '%count% links for %host%'

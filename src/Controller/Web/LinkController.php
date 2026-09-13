@@ -205,6 +205,16 @@ final class LinkController extends AbstractController
      * Delete every unreachable link of the current dashboard belonging to one
      * dead domain (the "X links for host.tld" cleanup on the dead-links page).
      */
+    #[Route('/links/dns-expired/delete', name: 'links_dns_expired_delete', methods: ['POST'])]
+    public function deleteDnsExpired(Request $request): Response
+    {
+        if ($this->links->deleteDnsExpiredForDashboard($this->current->get()) > 0) {
+            $this->addFlash('success', 'link.bulk_deleted');
+        }
+
+        return $this->safeReturn($request);
+    }
+
     #[Route('/links/unreachable-domain/delete', name: 'links_unreachable_domain_delete', methods: ['POST'])]
     public function deleteUnreachableDomain(Request $request): Response
     {

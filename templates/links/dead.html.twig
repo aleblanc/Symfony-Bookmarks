@@ -17,6 +17,11 @@
         <section style="margin-top:28px;">
             <h2>🌐 {{ 'dead.dns_title'|trans }} <span class="muted">({{ dns_expired|length }})</span></h2>
             <p class="muted">{{ 'dead.dns_intro'|trans }}</p>
+            <form method="post" action="{{ path('links_dns_expired_delete') }}" style="margin-bottom:12px;"
+                  onsubmit="return confirm('{{ 'dead.dns_delete_all_confirm'|trans({'%count%': dns_expired|length}) }}');">
+                <input type="hidden" name="return_to" value="{{ app.request.basePath }}{{ app.request.pathInfo }}">
+                <button class="btn btn-sm btn-danger" type="submit">🗑️ {{ 'dead.dns_delete_all'|trans({'%count%': dns_expired|length}) }}</button>
+            </form>
             <div class="link-list">
                 {% for link in dns_expired %}{% include 'links/_card.html.twig' with {ajax_delete: true} %}{% endfor %}
             </div>

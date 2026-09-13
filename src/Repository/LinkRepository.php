@@ -118,6 +118,34 @@ final class LinkRepository extends ServiceEntityRepository
             ->getResult());
     }
 
+    /**
+     * Deletes every DNS-expired link of $dashboard (host no longer resolves).
+     * Returns the number removed. Uses em->remove per row so the ArchiveAsset
+     * cascade and any lifecycle listeners still fire.
+     */
+    public function deleteDnsExpiredForDashboard(Dashboard $dashboard): int
+    {
+        /** @var list<Link> $links */
+        $links = $this->createQueryBuilder('l')
+            ->join('l.collection', 'c')
+            ->andWhere('c.dashboard = :d')
+            ->andWhere('l.healthStatus = :dns')
+            ->setParameter('d', $dashboard)
+            ->setParameter('dns', Link::HEALTH_DNS)
+            ->getQuery()
+            ->getResult();
+
+        $em = $this->getEntityManager();
+        foreach ($links as $link) {
+            $em->remove($link);
+        }
+        if ([] !== $links) {
+            $em->flush();
+        }
+
+        return \count($links);
+    }
+
     /** @return list<Link> unreachable links (last check failed at transport level) for the dashboard */
     public function findUnreachableForDashboard(Dashboard $dashboard): array
     {
