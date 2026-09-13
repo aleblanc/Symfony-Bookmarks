@@ -1,0 +1,23 @@
+{%- apply spaceless -%}
+{
+    "name": "Symfony Bookmarks",
+    "short_name": {{ 'app.name'|trans|json_encode|raw }},
+    "description": "Self-hosted, single-user bookmark manager.",
+    "lang": "fr",
+    "dir": "ltr",
+    "start_url": {{ (app.request.basePath ~ '/')|json_encode|raw }},
+    "scope": {{ (app.request.basePath ~ '/')|json_encode|raw }},
+    "id": {{ (app.request.basePath ~ '/')|json_encode|raw }},
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#fbf7f0",
+    "theme_color": "#e11d48",
+    "icons": [
+        { "src": {{ asset('favicon.svg')|json_encode|raw }}, "type": "image/svg+xml", "sizes": "any" },
+        { "src": {{ asset('icon-192.png')|json_encode|raw }}, "type": "image/png", "sizes": "192x192", "purpose": "any" },
+        { "src": {{ asset('icon-512.png')|json_encode|raw }}, "type": "image/png", "sizes": "512x512", "purpose": "any" },
+        { "src": {{ asset('icon-maskable-192.png')|json_encode|raw }}, "type": "image/png", "sizes": "192x192", "purpose": "maskable" },
+        { "src": {{ asset('icon-maskable-512.png')|json_encode|raw }}, "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+    ]
+}
+{%- endapply -%}

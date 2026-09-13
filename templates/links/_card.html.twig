@@ -18,7 +18,7 @@
             {% if link.iconPath %}<img class="favicon" src="{{ app.request.basePath }}{{ link.iconPath }}" alt="">{% endif %}
             <span>{{ link.name ?: link.url }}</span>
         </a>
-        <div class="link-domain muted">{{ (link.url|split('/'))[2]|default(link.url) }}</div>
+        <a class="link-domain muted" href="{{ link.url }}" target="_blank" rel="noopener" data-click-id="{{ link.id }}">{{ (link.url|split('/'))[2]|default(link.url) }}</a>
         {% if link.tags is not empty %}
             <div class="link-tags">
                 {% for tag in link.tags %}<a href="{{ path('links_index', {tag: tag.id}) }}" class="tag">#{{ tag.name }}</a>{% endfor %}

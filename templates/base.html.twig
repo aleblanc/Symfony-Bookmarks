@@ -8,9 +8,10 @@
        root, escaping the reverse-proxy sub-path. asset() prepends the base path. #}
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32.png') }}">
-    {# PWA / "add to home screen" (Firefox, Chrome, iOS Safari). The manifest uses
-       relative paths so it resolves under the reverse-proxy sub-path too. #}
-    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    {# PWA / "add to home screen" (Firefox, Chrome, iOS Safari). The manifest is
+       rendered server-side (ManifestController) so asset() bakes the reverse-proxy
+       sub-path into every icon URL and into start_url/scope. #}
+    <link rel="manifest" href="{{ path('site_manifest') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <meta name="apple-mobile-web-app-title" content="{{ 'app.name'|trans }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -194,6 +195,25 @@
         .link-list { display: grid; grid-template-columns: 1fr; gap: 10px; }
         @media (min-width: 760px) { .link-list { grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 12px; } }
 
+        /* Phone: the vertical list becomes a horizontally-swipeable grid of pages,
+           3 compact links stacked per screen. Each column snaps, so one swipe = next
+           3 links. Cards show only title + domain (thumb/tags/foot hidden) so they
+           stay short. Dashboard .link-strip rows are a separate layout, untouched. */
+        @media (max-width: 759px) {
+            .link-list { grid-auto-flow: column; grid-template-rows: repeat(3, auto);
+                grid-auto-columns: 100%; overflow-x: auto; overflow-y: hidden;
+                scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain; padding-bottom: 10px;
+                scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+            .link-list::-webkit-scrollbar { height: 8px; }
+            .link-list::-webkit-scrollbar-track { background: transparent; }
+            .link-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+            .link-list .link-card { scroll-snap-align: start; }
+            .link-list .link-card .link-thumb,
+            .link-list .link-card .link-tags,
+            .link-list .link-card .link-foot { display: none; }
+        }
+
         /* Swipeable folder rows (dashboard): horizontal snap strip. The next card
            is left half-peeking so the swipe affordance is obvious on touch. */
         .link-strip { display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden;
@@ -229,7 +249,7 @@
         .link-title:hover { text-decoration: none; }
         .link-title .favicon { margin-top: 2px; }
         .link-title span { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-        .link-domain { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .link-domain { display: block; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .link-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; max-height: 46px; overflow: hidden; }
         .link-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px;
             flex-wrap: wrap; margin-top: auto; padding-top: 6px; }
