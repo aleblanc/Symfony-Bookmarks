@@ -118,14 +118,18 @@ const SfbSync = (() => {
     const wrap = cfg.wrap ? [ROOT_TITLE] : [];
     const multiDash = dashboards.length > 1;
     const out = [];
-    const walkCol = (node, parentPath) => {
-      const path = parentPath.concat(node.name || "Untitled");
-      for (const link of node.links || []) out.push({ link, folderPath: path });
-      for (const child of node.children || []) walkCol(child, path);
+    // folderPath = full target Firefox path (wrap + dashboard + collections);
+    // collectionPath = collection names only, for detecting folder moves.
+    const walkCol = (node, parentFull, parentColl) => {
+      const name = node.name || "Untitled";
+      const full = parentFull.concat(name);
+      const coll = parentColl.concat(name);
+      for (const link of node.links || []) out.push({ link, folderPath: full, collectionPath: coll });
+      for (const child of node.children || []) walkCol(child, full, coll);
     };
     for (const dash of dashboards) {
-      const dashPath = wrap.concat(multiDash ? [dash.name || "Dashboard"] : []);
-      for (const col of dash.collections || []) walkCol(col, dashPath);
+      const dashFull = wrap.concat(multiDash ? [dash.name || "Dashboard"] : []);
+      for (const col of dash.collections || []) walkCol(col, dashFull, []);
     }
     return out;
   }
@@ -148,11 +152,31 @@ const SfbSync = (() => {
     const byUrl = await indexExistingByUrl();
     const seen = new Set();
 
+    // Current Firefox collection path (containers + wrapper + dashboard stripped)
+    // of each bookmark, to detect Symfony-side folder moves.
+    const stripNames = new Set([ROOT_TITLE, ...((data && data.dashboards) || []).map((d) => d.name)]);
+    const toCollectionPath = (p) => {
+      const a = [...p];
+      while (a.length && stripNames.has(a[0])) a.shift();
+      return a;
+    };
+    const ffColByGuid = new Map();
+    const walkFfCols = (nodes, path) => {
+      for (const n of nodes) {
+        if (n.url) {
+          ffColByGuid.set(n.id, toCollectionPath(path).join("/"));
+        } else if (n.children) {
+          walkFfCols(n.children, CONTAINER_IDS.has(n.id) || !n.title ? path : path.concat(n.title));
+        }
+      }
+    };
+    walkFfCols(await browser.bookmarks.getTree(), []);
+
     const adds = [];
     const updates = [];
     const toLink = []; // already in Firefox by URL — silently map, not shown
 
-    for (const { link, folderPath } of flat) {
+    for (const { link, folderPath, collectionPath } of flat) {
       seen.add(Number(link.id));
       const title = (link.name && String(link.name).trim()) || link.url;
       const guid = map[link.id];
@@ -161,8 +185,14 @@ const SfbSync = (() => {
         if (node) {
           // Compare URLs normalised: Firefox stores a trailing slash it adds
           // itself, which would otherwise flag an endless bogus "update".
-          if (node.title !== title || normaliseUrl(node.url) !== normaliseUrl(link.url)) {
-            updates.push({ symfonyId: link.id, guid, title, url: link.url, oldTitle: node.title });
+          const titleUrlChanged = node.title !== title || normaliseUrl(node.url) !== normaliseUrl(link.url);
+          const symCol = (collectionPath || []).join("/");
+          const moved = (ffColByGuid.get(guid) ?? symCol) !== symCol; // folder changed in Symfony
+          if (titleUrlChanged || moved) {
+            updates.push({
+              symfonyId: link.id, guid, title, url: link.url, folderPath,
+              oldTitle: node.title, moved, fromPath: ffColByGuid.get(guid) || "", toPath: symCol,
+            });
           }
         } else {
           // mapped but the Firefox bookmark is gone → re-add
@@ -211,6 +241,10 @@ const SfbSync = (() => {
     }
     for (const u of selected.updates || []) {
       await browser.bookmarks.update(u.guid, { title: u.title, url: u.url });
+      if (u.moved) {
+        const folderId = await ensureFolderPath(rootId, u.folderPath || []);
+        await browser.bookmarks.move(u.guid, { parentId: folderId });
+      }
       updated++;
     }
     for (const d of selected.deletes || []) {
