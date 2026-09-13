@@ -24,7 +24,7 @@ $("sync").addEventListener("click", async () => {
     const res = await browser.runtime.sendMessage({ type: "sync-now" });
     if (res && res.ok) {
       const r = res.report;
-      msg("ok", `Done ✓ created ${r.created}, linked ${r.linked}, skipped ${r.skipped} (of ${r.total}).`);
+      msg("ok", `Done ✓ ${r.created} new, ${r.linked} linked, ${r.folders} folders.`);
     } else {
       msg("err", (res && res.error) || "Sync failed.");
     }

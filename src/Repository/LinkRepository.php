@@ -460,6 +460,21 @@ final class LinkRepository extends ServiceEntityRepository
     }
 
     /**
+     * Every link with its collection eager-loaded and tags/assets batch-hydrated
+     * — for the no-pagination /api/v1/tree export consumed by the sync extension.
+     *
+     * @return list<Link>
+     */
+    public function findAllForExport(): array
+    {
+        return $this->hydrateCards($this->createQueryBuilder('l')
+            ->join('l.collection', 'c')->addSelect('c')
+            ->orderBy('l.id', 'ASC')
+            ->getQuery()
+            ->getResult());
+    }
+
+    /**
      * @param int|null $limit null = no limit (show the whole collection)
      *
      * @return list<Link>

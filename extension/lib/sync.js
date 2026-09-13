@@ -1,20 +1,25 @@
 "use strict";
 
 /**
- * Phase-1 sync: one-way mirror, Symfony Bookmarks -> Firefox.
+ * Phase-1 sync: one-way import, Symfony Bookmarks -> Firefox.
+ *
+ * Consumes the single /api/v1/tree endpoint (no pagination) and mirrors the
+ * whole structure under one dedicated folder:
+ *
+ *   Symfony Bookmarks / <Dashboard> / <Collection> / <sub-collection> / links…
  *
  * Scope (deliberately conservative — see docs/ROADMAP.md item 6):
- *   - creates missing links under a single dedicated Firefox folder,
- *   - matches existing bookmarks by NORMALISED url so re-runs don't duplicate,
- *   - never deletes or moves anything (no propagation of deletions yet),
+ *   - creates missing folders and links only,
+ *   - deduplicates links by NORMALISED url (a url already bookmarked ANYWHERE
+ *     in Firefox is not recreated),
+ *   - never deletes or moves anything,
  *   - Symfony is the source of truth; Firefox-side edits are left untouched.
  *
- * Later phases (Firefox -> Symfony, deletions, real-time events, conflicts)
- * build on the guid<->linkId map persisted in storage.local.
+ * The symfonyLinkId -> firefoxBookmarkGuid map is persisted for later phases.
  */
 const SfbSync = (() => {
-  const FOLDER_TITLE = "Symfony Bookmarks";
-  const MAP_KEY = "guidMap"; // { [symfonyLinkId]: firefoxBookmarkGuid }
+  const ROOT_TITLE = "Symfony Bookmarks";
+  const MAP_KEY = "guidMap";
 
   /** Same normalisation as the app's duplicate detection: lowercase host,
    *  strip a leading www., drop a trailing slash. */
@@ -23,8 +28,7 @@ const SfbSync = (() => {
       const u = new URL(url);
       u.hostname = u.hostname.toLowerCase().replace(/^www\./, "");
       let s = u.toString();
-      // drop a single trailing slash on the path (but keep "https://host/")
-      s = s.replace(/\/(?=$)/, (m, off) => (u.pathname === "/" ? "/" : ""));
+      if (u.pathname !== "/") s = s.replace(/\/$/, "");
       return s;
     } catch {
       return String(url || "").trim().toLowerCase().replace(/\/+$/, "");
@@ -39,15 +43,18 @@ const SfbSync = (() => {
     await browser.storage.local.set({ [MAP_KEY]: m });
   }
 
-  /** Find or create the dedicated top-level folder (under the toolbar). */
-  async function ensureFolder() {
-    const found = await browser.bookmarks.search({ title: FOLDER_TITLE });
-    const folder = found.find((b) => !b.url); // a folder has no url
-    if (folder) return folder;
-    return browser.bookmarks.create({ title: FOLDER_TITLE });
+  /** Find (by title, among the given parent's children) or create a folder.
+   *  With no parentId we look at top-level folders matching the title. */
+  async function ensureFolder(parentId, title) {
+    const candidates = parentId
+      ? await browser.bookmarks.getChildren(parentId)
+      : await browser.bookmarks.search({ title });
+    const match = candidates.find((b) => !b.url && b.title === title);
+    if (match) return match;
+    return browser.bookmarks.create(parentId ? { parentId, title } : { title });
   }
 
-  /** Index every existing bookmark by normalised url -> node. */
+  /** Index every existing bookmark by normalised url -> node (global dedupe). */
   async function indexExistingByUrl() {
     const tree = await browser.bookmarks.getTree();
     const byUrl = new Map();
@@ -61,57 +68,81 @@ const SfbSync = (() => {
     return byUrl;
   }
 
-  /**
-   * Run one pull. Returns a small report for the popup.
-   * @param {(msg:string)=>void} [log]
-   */
-  async function pull(log = () => {}) {
-    log("Fetching links…");
-    const links = await SfbApi.allLinks();
-    log(`Got ${links.length} link(s). Reconciling…`);
+  /** Recurse a collection node: ensure its folder, import links, then children. */
+  async function importCollection(node, parentFolderId, ctx) {
+    const folder = await ensureFolder(parentFolderId, node.name || "Untitled");
+    ctx.folders++;
 
-    const folder = await ensureFolder();
-    const byUrl = await indexExistingByUrl();
-    const map = await getMap();
-
-    let created = 0;
-    let linked = 0;
-    let skipped = 0;
-
-    for (const link of links) {
+    for (const link of node.links || []) {
       if (!link.url) {
-        skipped++;
+        ctx.skipped++;
         continue;
       }
       const key = normaliseUrl(link.url);
-      const existing = byUrl.get(key);
+      const existing = ctx.byUrl.get(key);
       if (existing) {
-        // Already present in Firefox — just remember the mapping.
-        if (map[link.id] !== existing.id) {
-          map[link.id] = existing.id;
-          linked++;
+        if (ctx.map[link.id] !== existing.id) {
+          ctx.map[link.id] = existing.id;
+          ctx.linked++;
         }
         continue;
       }
-      const node = await browser.bookmarks.create({
+      const created = await browser.bookmarks.create({
         parentId: folder.id,
         title: (link.name && link.name.trim()) || link.url,
         url: link.url,
       });
-      map[link.id] = node.id;
-      byUrl.set(key, node);
-      created++;
+      ctx.map[link.id] = created.id;
+      ctx.byUrl.set(key, created);
+      ctx.created++;
     }
 
-    await setMap(map);
-    await browser.storage.local.set({ lastSync: new Date().toISOString() });
+    for (const child of node.children || []) {
+      await importCollection(child, folder.id, ctx);
+    }
+  }
 
-    const report = { total: links.length, created, linked, skipped };
-    log(`Done — created ${created}, linked ${linked}, skipped ${skipped}.`);
+  /**
+   * Run one import. Returns a small report for the popup.
+   * @param {(msg:string)=>void} [log]
+   */
+  async function pull(log = () => {}) {
+    log("Fetching tree…");
+    const data = await SfbApi.tree();
+    const dashboards = (data && data.dashboards) || [];
+
+    const root = await ensureFolder(null, ROOT_TITLE);
+    const ctx = {
+      byUrl: await indexExistingByUrl(),
+      map: await getMap(),
+      created: 0,
+      linked: 0,
+      skipped: 0,
+      folders: 0,
+    };
+
+    for (const dash of dashboards) {
+      const dashFolder = await ensureFolder(root.id, dash.name || "Dashboard");
+      ctx.folders++;
+      for (const col of dash.collections || []) {
+        await importCollection(col, dashFolder.id, ctx);
+      }
+    }
+
+    await setMap(ctx.map);
+    await browser.storage.local.set({ lastSync: new Date().toISOString(), lastError: null });
+
+    const report = {
+      created: ctx.created,
+      linked: ctx.linked,
+      skipped: ctx.skipped,
+      folders: ctx.folders,
+    };
+    log(`Done — ${report.created} new, ${report.linked} linked, ${report.folders} folders.`);
     return report;
   }
 
-  return { pull, normaliseUrl, FOLDER_TITLE };
+  return { pull, normaliseUrl, ROOT_TITLE };
 })();
 
 if (typeof module !== "undefined") module.exports = SfbSync;

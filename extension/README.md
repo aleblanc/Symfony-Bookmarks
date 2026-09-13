@@ -3,16 +3,18 @@
 One-way, on-device sync from your **Symfony Bookmarks** server into Firefox
 bookmarks. Built to run on **Firefox for Android** as well as desktop.
 
-> Status: **Phase 1** — mirror *Symfony → Firefox* only (creates missing links
-> in a dedicated folder, matches by normalised URL, never deletes or moves).
-> Later phases add the reverse direction, deletions and conflict handling.
-> See `docs/ROADMAP.md` item 6 in the main repo.
+> Status: **Phase 1** — mirror *Symfony → Firefox* only (creates missing folders
+> and links, matches by normalised URL, never deletes or moves). Later phases add
+> the reverse direction, deletions and conflict handling. See `docs/ROADMAP.md`
+> item 6 in the main repo.
 
 ## What it does
 
-- Pulls every link from `/api/v1/links` (Linkwarden-style envelope).
-- Creates any missing bookmark under a **“Symfony Bookmarks”** folder.
-- Deduplicates by normalised URL (lowercase host, no leading `www.`, no trailing `/`).
+- Pulls the whole tree in one request from **`/api/v1/tree`** (no pagination).
+- Mirrors the structure under a dedicated folder:
+  `Symfony Bookmarks / <Dashboard> / <Collection> / <sub-collection> / links…`.
+- Deduplicates by normalised URL (lowercase host, no leading `www.`, no trailing
+  `/`): a URL already bookmarked anywhere in Firefox is not recreated.
 - Remembers the `symfonyLinkId → firefoxBookmarkGuid` map in `storage.local`.
 - Syncs shortly after launch, every 30 min via `alarms`, and on demand
   (**Sync now** in the toolbar popup).

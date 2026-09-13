@@ -78,6 +78,14 @@ const SfbApi = (() => {
   }
 
   /**
+   * GET /api/v1/tree — the whole bookmark tree in one shot (no pagination):
+   * { dashboards: [ { id, name, collections: [ { …, links:[], children:[] } ] } ] }
+   */
+  function tree() {
+    return request("/api/v1/tree");
+  }
+
+  /**
    * Walk the cursor-paginated /api/v1/links endpoint until it runs dry.
    * The endpoint returns links with id < cursor (page size 20), so we advance
    * the cursor to the smallest id seen on each page.
@@ -108,7 +116,7 @@ const SfbApi = (() => {
     return Array.from(seen.values());
   }
 
-  return { getConfig, setConfig, normaliseBase, me, allLinks, request };
+  return { getConfig, setConfig, normaliseBase, me, tree, allLinks, request };
 })();
 
 if (typeof module !== "undefined") module.exports = SfbApi;
