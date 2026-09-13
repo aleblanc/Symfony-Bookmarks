@@ -11,6 +11,6 @@
         "sign": "web-ext sign --channel=unlisted"
     },
     "devDependencies": {
-        "web-ext": "^8"
+        "web-ext": "^10"
     }
 }
