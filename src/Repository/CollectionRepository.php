@@ -30,6 +30,22 @@ final class CollectionRepository extends ServiceEntityRepository
     }
 
     /**
+     * Collections exposed by API v2 (vault-encrypted ones excluded), ordered by
+     * dashboard then name.
+     *
+     * @return list<Collection>
+     */
+    public function findApiList(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.vault IS NULL')
+            ->orderBy('c.dashboard', 'ASC')
+            ->addOrderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * A root-level (no parent) collection of $dashboard by exact name, or null.
      * Used by the paste-a-list import to reuse an existing target folder before
      * creating a new one.
