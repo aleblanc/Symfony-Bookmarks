@@ -21,6 +21,30 @@ function fillDashboards(list, selected) {
   sel.value = selected && [...sel.options].some((o) => o.value === selected) ? selected : "all";
 }
 
+/** Fill the push-target <select>, keeping "(Default collection)" first. */
+function fillCollections(list, dashById, selected) {
+  const sel = $("pushCollection");
+  sel.length = 1; // keep the default option
+  for (const c of list) {
+    const opt = document.createElement("option");
+    opt.value = String(c.id);
+    const prefix = dashById[c.dashboardId] ? dashById[c.dashboardId] + " / " : "";
+    opt.textContent = prefix + c.name;
+    sel.appendChild(opt);
+  }
+  const want = selected != null ? String(selected) : "";
+  sel.value = [...sel.options].some((o) => o.value === want) ? want : "";
+}
+
+/** Load dashboards + collections from the server and populate both pickers. */
+async function loadRemotePickers(cfg) {
+  const [dl, cl] = await Promise.all([SfbApi.dashboards(), SfbApi.collections()]);
+  if (Array.isArray(dl)) fillDashboards(dl, cfg.dashboard);
+  const dashById = {};
+  (Array.isArray(dl) ? dl : []).forEach((d) => (dashById[d.id] = d.name));
+  if (Array.isArray(cl)) fillCollections(cl, dashById, cfg.pushCollectionId);
+}
+
 async function load() {
   const cfg = await SfbApi.getConfig();
   $("baseUrl").value = cfg.baseUrl || "";
@@ -28,13 +52,11 @@ async function load() {
   $("password").value = cfg.password || "";
   $("location").value = cfg.location || "menu________";
   $("wrap").checked = !!cfg.wrap;
-  // Try to populate dashboards if we already have a server configured.
   if (cfg.baseUrl) {
     try {
-      const list = await SfbApi.dashboards();
-      if (Array.isArray(list)) fillDashboards(list, cfg.dashboard);
+      await loadRemotePickers(cfg);
     } catch {
-      // ignore — the user can hit "Test connection" to (re)load them
+      // ignore — "Test connection" can (re)load them
       $("dashboard").value = cfg.dashboard || "all";
     }
   }
@@ -48,6 +70,7 @@ function readForm() {
     dashboard: $("dashboard").value || "all",
     location: $("location").value || "menu________",
     wrap: $("wrap").checked,
+    pushCollectionId: $("pushCollection").value ? Number($("pushCollection").value) : null,
   };
 }
 
@@ -79,11 +102,9 @@ $("test").addEventListener("click", async () => {
     await SfbApi.setConfig(cfg);
     show("ok", "Testing…");
     await SfbApi.me();
-    const list = await SfbApi.dashboards();
-    if (Array.isArray(list)) fillDashboards(list, cfg.dashboard);
-    // persist the (possibly re-validated) dashboard choice
-    await SfbApi.setConfig(readForm());
-    show("ok", `Connection OK ✓ — ${Array.isArray(list) ? list.length : 0} dashboard(s) loaded.`);
+    await loadRemotePickers(cfg);
+    await SfbApi.setConfig(readForm()); // persist the (re-validated) picker choices
+    show("ok", "Connection OK ✓ — dashboards and collections loaded.");
   } catch (e) {
     show("err", "Failed: " + String(e && e.message ? e.message : e));
   }

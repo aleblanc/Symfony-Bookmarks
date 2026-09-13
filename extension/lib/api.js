@@ -29,6 +29,7 @@ const SfbApi = (() => {
       dashboard: "all",
       location: "menu________",
       wrap: false,
+      pushCollectionId: null, // target Symfony collection for push adds (null = default)
       ...(cfg || {}),
     };
   }
@@ -107,6 +108,11 @@ const SfbApi = (() => {
     return request("/api/v1/dashboards");
   }
 
+  /** GET /api/v2/collections — [{ id, name, dashboardId, parentId, … }] for the push target picker. */
+  function collections() {
+    return request("/api/v2/collections");
+  }
+
   /** GET /api/v2/links — flat list with id/url/name/updatedAt (for push diff). */
   function listLinks() {
     return request("/api/v2/links");
@@ -163,7 +169,7 @@ const SfbApi = (() => {
   }
 
   return {
-    getConfig, setConfig, normaliseBase, me, tree, dashboards, listLinks,
+    getConfig, setConfig, normaliseBase, me, tree, dashboards, collections, listLinks,
     createLink, updateLink, deleteLink, allLinks, request,
   };
 })();

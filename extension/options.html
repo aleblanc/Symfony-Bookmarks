@@ -60,6 +60,12 @@
   </label>
   <p class="hint">Off = collections are created directly at the chosen root. When importing all dashboards, each keeps its own folder to avoid mixing.</p>
 
+  <label for="pushCollection">Send new links into (push target)</label>
+  <select id="pushCollection">
+    <option value="">(Default collection)</option>
+  </select>
+  <p class="hint">When you push new bookmarks to Symfony, they land in this collection. Loaded after a successful <em>Test connection</em>.</p>
+
   <div class="row">
     <button id="save" class="primary" type="button">Save</button>
     <button id="test" type="button">Test connection</button>
