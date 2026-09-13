@@ -18,6 +18,7 @@
 const SfbSync = (() => {
   const ROOT_TITLE = "Symfony Bookmarks";
   const MAP_KEY = "guidMap"; // { [symfonyLinkId]: firefoxBookmarkGuid }
+  const SNAP_KEY = "snapshot"; // { [symfonyLinkId]: {url, title, updatedAt} } at last sync
 
   /** The bookmarks API is missing on Firefox Android — feature-detect it. */
   function bookmarksAvailable() {
@@ -43,6 +44,28 @@ const SfbSync = (() => {
   }
   async function setMap(m) {
     await browser.storage.local.set({ [MAP_KEY]: m });
+  }
+
+  async function getSnap() {
+    const { [SNAP_KEY]: s } = await browser.storage.local.get(SNAP_KEY);
+    return s || {};
+  }
+
+  /**
+   * Rebuild the snapshot from the current Symfony state (for every mapped link).
+   * The snapshot is the shared baseline used to tell which side changed since the
+   * last sync (Firefox edit vs Symfony edit → conflict).
+   */
+  async function refreshSnapshot() {
+    const list = await SfbApi.listLinks();
+    const map = await getMap();
+    const snap = {};
+    for (const l of list) {
+      if (map[l.id] !== undefined) {
+        snap[l.id] = { url: l.url, title: (l.name && String(l.name).trim()) || l.url, updatedAt: l.updatedAt || null };
+      }
+    }
+    await browser.storage.local.set({ [SNAP_KEY]: snap });
   }
 
   /** Get a bookmark node by guid, or null if it no longer exists. */
@@ -199,31 +222,34 @@ const SfbSync = (() => {
     }
 
     await setMap(map);
+    await refreshSnapshot();
     await browser.storage.local.set({ lastSync: new Date().toISOString(), lastError: null });
 
     return { created, updated, deleted, linked };
   }
 
   /**
-   * Compute the push plan (Firefox -> Symfony). Phase 2b: additions only.
-   * An "add" is a Firefox bookmark that is NOT mapped and whose URL is absent
-   * from Symfony (any dashboard). Per decision (option B), these are listed but
-   * unticked by default so personal bookmarks aren't dumped into Symfony.
+   * Compute the push plan (Firefox -> Symfony): adds + updates + deletes.
+   * - add: an unmapped Firefox bookmark whose URL is absent from Symfony.
+   *   Per decision (option B) these are listed but unticked by default.
+   * - update: a mapped bookmark whose title/url changed on the Firefox side
+   *   (vs the snapshot) and still differs from Symfony. `conflict: true` when
+   *   Symfony also changed since the snapshot (updatedAt) → shown, unticked.
+   * - delete: a mapped link whose Firefox bookmark no longer exists → delete in
+   *   Symfony (destructive → unticked by default).
    * @returns {Promise<{adds:Array, updates:Array, deletes:Array, toLink:Array}>}
    */
   async function computePushPlan(_cfg) {
-    const data = await SfbApi.tree();
-    const dashboards = (data && data.dashboards) || [];
-    const symfonyUrls = new Set();
-    const walkCols = (nodes) => {
-      for (const c of nodes) {
-        for (const l of c.links || []) symfonyUrls.add(normaliseUrl(l.url));
-        walkCols(c.children || []);
-      }
-    };
-    for (const d of dashboards) walkCols(d.collections || []);
+    const list = await SfbApi.listLinks(); // v2: id, url, name, updatedAt…
+    const symById = new Map();
+    const symUrls = new Set();
+    for (const l of list) {
+      symById.set(Number(l.id), l);
+      symUrls.add(normaliseUrl(l.url));
+    }
 
     const map = await getMap();
+    const snap = await getSnap();
     const mappedGuids = new Set(Object.values(map));
 
     const tree = await browser.bookmarks.getTree();
@@ -231,7 +257,7 @@ const SfbSync = (() => {
     const walkFf = (nodes) => {
       for (const n of nodes) {
         if (n.url && /^(https?|ftps?):/i.test(n.url)) {
-          if (!mappedGuids.has(n.id) && !symfonyUrls.has(normaliseUrl(n.url))) {
+          if (!mappedGuids.has(n.id) && !symUrls.has(normaliseUrl(n.url))) {
             adds.push({ guid: n.id, title: n.title || n.url, url: n.url });
           }
         }
@@ -240,13 +266,44 @@ const SfbSync = (() => {
     };
     walkFf(tree);
 
-    return { adds, updates: [], deletes: [], toLink: [] };
+    const updates = [];
+    const deletes = [];
+    for (const [symIdStr, guid] of Object.entries(map)) {
+      const symId = Number(symIdStr);
+      const sym = symById.get(symId);
+      if (!sym) continue; // gone from Symfony → the pull side handles that
+      const node = await getNode(guid);
+      if (!node) {
+        deletes.push({ symfonyId: symId, guid, title: sym.name || sym.url, url: sym.url });
+        continue;
+      }
+      const s = snap[symId];
+      const symTitle = (sym.name && String(sym.name).trim()) || sym.url;
+      const ffChanged = s ? node.title !== s.title || node.url !== s.url : false;
+      const differsFromSym = node.title !== symTitle || node.url !== sym.url;
+      if (ffChanged && differsFromSym) {
+        const symChanged = !!(s && s.updatedAt && sym.updatedAt && sym.updatedAt > s.updatedAt);
+        updates.push({
+          symfonyId: symId,
+          guid,
+          title: node.title,
+          url: node.url,
+          oldTitle: symTitle,
+          conflict: symChanged,
+        });
+      }
+    }
+
+    return { adds, updates, deletes, toLink: [] };
   }
 
-  /** Apply a (filtered) push plan: create selected links in Symfony via the API. */
+  /** Apply a (filtered) push plan: create/update/delete links in Symfony. */
   async function applyPush(selected, cfg) {
     const map = await getMap();
     let created = 0;
+    let updated = 0;
+    let deleted = 0;
+
     for (const a of selected.adds || []) {
       const res = await SfbApi.createLink({
         url: a.url,
@@ -258,9 +315,20 @@ const SfbSync = (() => {
         created++;
       }
     }
+    for (const u of selected.updates || []) {
+      await SfbApi.updateLink(u.symfonyId, { name: u.title, url: u.url });
+      updated++;
+    }
+    for (const d of selected.deletes || []) {
+      await SfbApi.deleteLink(d.symfonyId);
+      delete map[d.symfonyId];
+      deleted++;
+    }
+
     await setMap(map);
+    await refreshSnapshot();
     await browser.storage.local.set({ lastSync: new Date().toISOString(), lastError: null });
-    return { created, updated: 0, deleted: 0, linked: 0 };
+    return { created, updated, deleted, linked: 0 };
   }
 
   /**

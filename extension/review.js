@@ -17,8 +17,9 @@ const UI = {
     heading: "⬆️ Send to Symfony Bookmarks",
     subtitle: "Firefox bookmarks not yet in Symfony. Tick the ones to send (all unticked by default).",
     delLabel: "🗑️ To delete in Symfony",
-    // push: additions unticked by default so personal bookmarks aren't dumped.
-    defaultChecked: (kind) => kind !== "adds",
+    // push: only updates ticked by default. Additions unticked (don't dump
+    // personal bookmarks); deletions unticked (destructive in Symfony).
+    defaultChecked: (kind) => kind === "updates",
   },
 };
 
@@ -39,13 +40,17 @@ function buildItem(kind, item, idx) {
   cb.id = `${kind}-${idx}`;
   cb.dataset.kind = kind;
   cb.dataset.idx = String(idx);
-  cb.checked = UI[DIR].defaultChecked(kind);
+  // Conflicts (both sides changed) start unticked so the user decides.
+  cb.checked = UI[DIR].defaultChecked(kind) && !item.conflict;
 
   const label = document.createElement("label");
   label.htmlFor = cb.id;
   label.append(div("it-title", item.title || item.url), div("it-url", item.url));
   if (kind === "updates" && item.oldTitle && item.oldTitle !== item.title) {
     label.append(div("it-note", "was: " + item.oldTitle));
+  }
+  if (item.conflict) {
+    label.append(div("it-note", "⚠ conflict — Symfony also changed since last sync"));
   }
 
   li.append(cb, label);

@@ -107,6 +107,11 @@ const SfbApi = (() => {
     return request("/api/v1/dashboards");
   }
 
+  /** GET /api/v2/links — flat list with id/url/name/updatedAt (for push diff). */
+  function listLinks() {
+    return request("/api/v2/links");
+  }
+
   /** POST /api/v2/links — create a link. Returns the created resource (with id). */
   function createLink({ url, name = null, description = null, collectionId = null }) {
     const body = { url };
@@ -158,7 +163,7 @@ const SfbApi = (() => {
   }
 
   return {
-    getConfig, setConfig, normaliseBase, me, tree, dashboards,
+    getConfig, setConfig, normaliseBase, me, tree, dashboards, listLinks,
     createLink, updateLink, deleteLink, allLinks, request,
   };
 })();
