@@ -76,4 +76,7 @@ class LinkResource
 
     #[Groups(['link:read'])]
     public ?string $createdAt = null;
+
+    #[Groups(['link:read'])]
+    public ?string $updatedAt = null;
 }

@@ -55,6 +55,7 @@ final class LinkProvider implements ProviderInterface
         $resource->health = $link->getHealthStatus();
         $resource->httpStatus = $link->getHttpStatus();
         $resource->createdAt = $link->getCreatedAt()->format(\DATE_ATOM);
+        $resource->updatedAt = $link->getUpdatedAt()?->format(\DATE_ATOM);
 
         return $resource;
     }

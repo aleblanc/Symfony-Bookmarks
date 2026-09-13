@@ -18,6 +18,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['summary_status'])]
 #[ORM\Index(columns: ['last_clicked_at'])]
 #[ORM\Index(columns: ['health_status'])]
+#[ORM\HasLifecycleCallbacks]
 class Link
 {
     public const STATUS_PENDING = 'pending';
@@ -107,6 +108,10 @@ class Link
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
+    /** Last modification (bumped by the PreUpdate hook) — used by API/sync delta & conflicts. */
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $updatedAt = null;
+
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $archivedAt = null;
 
@@ -133,6 +138,18 @@ class Link
         $this->tags = new ArrayCollection();
         $this->assets = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->createdAt;
+    }
+
+    #[ORM\PreUpdate]
+    public function touchUpdatedAt(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 
     public function getId(): ?int
