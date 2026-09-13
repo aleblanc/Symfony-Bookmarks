@@ -21,12 +21,16 @@ const canSync = typeof browser !== "undefined" && !!browser.bookmarks;
 if (!canSync) {
   $("unavailable").hidden = false;
   $("pull").disabled = true;
+  $("push").disabled = true;
 }
 
-$("pull").addEventListener("click", () => {
-  browser.tabs.create({ url: browser.runtime.getURL("review.html") });
+function openReview(dir) {
+  browser.tabs.create({ url: browser.runtime.getURL("review.html?dir=" + dir) });
   window.close();
-});
+}
+
+$("pull").addEventListener("click", () => openReview("pull"));
+$("push").addEventListener("click", () => openReview("push"));
 
 $("opts").addEventListener("click", (e) => {
   e.preventDefault();

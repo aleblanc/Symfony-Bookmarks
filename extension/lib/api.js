@@ -50,13 +50,16 @@ const SfbApi = (() => {
     return { Authorization: "Basic " + b64 };
   }
 
-  async function request(path, { method = "GET", body = null } = {}) {
+  async function request(path, { method = "GET", body = null, patch = false } = {}) {
     const cfg = await getConfig();
     const base = normaliseBase(cfg.baseUrl);
     if (!base) throw new Error("Server URL not configured");
 
     const headers = { Accept: "application/json", ...authHeader(cfg) };
-    if (body != null) headers["Content-Type"] = "application/json";
+    if (body != null) {
+      // API Platform requires the JSON Merge Patch content type for PATCH.
+      headers["Content-Type"] = patch ? "application/merge-patch+json" : "application/json";
+    }
 
     let res;
     try {
@@ -104,6 +107,25 @@ const SfbApi = (() => {
     return request("/api/v1/dashboards");
   }
 
+  /** POST /api/v2/links — create a link. Returns the created resource (with id). */
+  function createLink({ url, name = null, description = null, collectionId = null }) {
+    const body = { url };
+    if (name != null) body.name = name;
+    if (description != null) body.description = description;
+    if (collectionId != null) body.collectionId = collectionId;
+    return request("/api/v2/links", { method: "POST", body });
+  }
+
+  /** PATCH /api/v2/links/{id} — update (merge-patch). */
+  function updateLink(id, patch) {
+    return request(`/api/v2/links/${id}`, { method: "PATCH", body: patch, patch: true });
+  }
+
+  /** DELETE /api/v2/links/{id}. */
+  function deleteLink(id) {
+    return request(`/api/v2/links/${id}`, { method: "DELETE" });
+  }
+
   /**
    * Walk the cursor-paginated /api/v1/links endpoint until it runs dry.
    * The endpoint returns links with id < cursor (page size 20), so we advance
@@ -135,7 +157,10 @@ const SfbApi = (() => {
     return Array.from(seen.values());
   }
 
-  return { getConfig, setConfig, normaliseBase, me, tree, dashboards, allLinks, request };
+  return {
+    getConfig, setConfig, normaliseBase, me, tree, dashboards,
+    createLink, updateLink, deleteLink, allLinks, request,
+  };
 })();
 
 if (typeof module !== "undefined") module.exports = SfbApi;

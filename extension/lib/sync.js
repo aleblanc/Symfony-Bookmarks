@@ -205,6 +205,65 @@ const SfbSync = (() => {
   }
 
   /**
+   * Compute the push plan (Firefox -> Symfony). Phase 2b: additions only.
+   * An "add" is a Firefox bookmark that is NOT mapped and whose URL is absent
+   * from Symfony (any dashboard). Per decision (option B), these are listed but
+   * unticked by default so personal bookmarks aren't dumped into Symfony.
+   * @returns {Promise<{adds:Array, updates:Array, deletes:Array, toLink:Array}>}
+   */
+  async function computePushPlan(_cfg) {
+    const data = await SfbApi.tree();
+    const dashboards = (data && data.dashboards) || [];
+    const symfonyUrls = new Set();
+    const walkCols = (nodes) => {
+      for (const c of nodes) {
+        for (const l of c.links || []) symfonyUrls.add(normaliseUrl(l.url));
+        walkCols(c.children || []);
+      }
+    };
+    for (const d of dashboards) walkCols(d.collections || []);
+
+    const map = await getMap();
+    const mappedGuids = new Set(Object.values(map));
+
+    const tree = await browser.bookmarks.getTree();
+    const adds = [];
+    const walkFf = (nodes) => {
+      for (const n of nodes) {
+        if (n.url && /^(https?|ftps?):/i.test(n.url)) {
+          if (!mappedGuids.has(n.id) && !symfonyUrls.has(normaliseUrl(n.url))) {
+            adds.push({ guid: n.id, title: n.title || n.url, url: n.url });
+          }
+        }
+        if (n.children) walkFf(n.children);
+      }
+    };
+    walkFf(tree);
+
+    return { adds, updates: [], deletes: [], toLink: [] };
+  }
+
+  /** Apply a (filtered) push plan: create selected links in Symfony via the API. */
+  async function applyPush(selected, cfg) {
+    const map = await getMap();
+    let created = 0;
+    for (const a of selected.adds || []) {
+      const res = await SfbApi.createLink({
+        url: a.url,
+        name: a.title,
+        collectionId: cfg.pushCollectionId || null,
+      });
+      if (res && res.id) {
+        map[res.id] = a.guid; // symfonyId -> firefoxGuid
+        created++;
+      }
+    }
+    await setMap(map);
+    await browser.storage.local.set({ lastSync: new Date().toISOString(), lastError: null });
+    return { created, updated: 0, deleted: 0, linked: 0 };
+  }
+
+  /**
    * Non-interactive full pull (used by the background alarm / startup): compute
    * the plan and apply ALL of it. Throws if the bookmarks API is unavailable.
    */
@@ -226,6 +285,8 @@ const SfbSync = (() => {
     normaliseUrl,
     computePullPlan,
     applyPull,
+    computePushPlan,
+    applyPush,
     pull,
     ROOT_TITLE,
   };

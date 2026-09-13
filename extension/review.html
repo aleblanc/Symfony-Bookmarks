@@ -37,8 +37,8 @@
   </style>
 </head>
 <body>
-  <h1>⬇️ Receive from Symfony Bookmarks</h1>
-  <p class="sub">Review the changes to apply to your Firefox bookmarks. Untick anything you want to skip.</p>
+  <h1 id="heading">Review changes</h1>
+  <p class="sub" id="subtitle">Review the changes to apply. Untick anything you want to skip.</p>
 
   <div id="loading" class="sub">Computing changes…</div>
   <div id="unavailable" class="notice" hidden></div>
@@ -53,7 +53,7 @@
       <ul></ul>
     </div>
     <div class="group" data-group="deletes">
-      <h2>🗑️ To remove from Firefox <span class="count" data-count></span></h2>
+      <h2><span data-del-label>🗑️ To remove</span> <span class="count" data-count></span></h2>
       <ul></ul>
     </div>
 

@@ -2,6 +2,26 @@
 
 const $ = (sel) => document.querySelector(sel);
 
+// Direction: "pull" (Symfony -> Firefox, default) or "push" (Firefox -> Symfony).
+const DIR = new URLSearchParams(location.search).get("dir") === "push" ? "push" : "pull";
+
+const UI = {
+  pull: {
+    heading: "⬇️ Receive from Symfony Bookmarks",
+    subtitle: "Review the changes to apply to your Firefox bookmarks. Untick anything you want to skip.",
+    delLabel: "🗑️ To remove from Firefox",
+    // pull: everything ticked by default (deleting a local favourite is low-risk).
+    defaultChecked: () => true,
+  },
+  push: {
+    heading: "⬆️ Send to Symfony Bookmarks",
+    subtitle: "Firefox bookmarks not yet in Symfony. Tick the ones to send (all unticked by default).",
+    delLabel: "🗑️ To delete in Symfony",
+    // push: additions unticked by default so personal bookmarks aren't dumped.
+    defaultChecked: (kind) => kind !== "adds",
+  },
+};
+
 let cfg = null;
 let plan = null;
 
@@ -19,7 +39,7 @@ function buildItem(kind, item, idx) {
   cb.id = `${kind}-${idx}`;
   cb.dataset.kind = kind;
   cb.dataset.idx = String(idx);
-  cb.checked = true;
+  cb.checked = UI[DIR].defaultChecked(kind);
 
   const label = document.createElement("label");
   label.htmlFor = cb.id;
@@ -51,6 +71,11 @@ function renderGroup(kind) {
 async function init() {
   cfg = await SfbApi.getConfig();
 
+  document.title = UI[DIR].heading;
+  $("#heading").textContent = UI[DIR].heading;
+  $("#subtitle").textContent = UI[DIR].subtitle;
+  $("[data-del-label]").textContent = UI[DIR].delLabel;
+
   if (!SfbSync.bookmarksAvailable()) {
     $("#loading").hidden = true;
     const el = $("#unavailable");
@@ -69,7 +94,7 @@ async function init() {
   }
 
   try {
-    plan = await SfbSync.computePullPlan(cfg);
+    plan = DIR === "push" ? await SfbSync.computePushPlan(cfg) : await SfbSync.computePullPlan(cfg);
   } catch (e) {
     $("#loading").hidden = true;
     const el = $("#unavailable");
@@ -115,10 +140,13 @@ $("#apply").addEventListener("click", async () => {
   btn.disabled = true;
   summary("", "Applying…");
   try {
-    const report = await SfbSync.applyPull(collectSelection(), cfg);
+    const sel = collectSelection();
+    const report = DIR === "push"
+      ? await SfbSync.applyPush(sel, cfg)
+      : await SfbSync.applyPull(sel, cfg);
     summary("ok", `Done ✓ ${report.created} added, ${report.updated} updated, ${report.deleted} removed, ${report.linked} linked.`);
     // Recompute so the lists reflect the new state.
-    plan = await SfbSync.computePullPlan(cfg);
+    plan = DIR === "push" ? await SfbSync.computePushPlan(cfg) : await SfbSync.computePullPlan(cfg);
     renderGroup("adds");
     renderGroup("updates");
     renderGroup("deletes");
