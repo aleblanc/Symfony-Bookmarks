@@ -223,3 +223,26 @@ lourdes sur le Pi (listes de liens, recherche, tableau de bord), avec une
   (`{% cache %}` via `symfony/cache`), le tout sur un adaptateur léger
   (filesystem ou APCu) — pas de service externe à installer, cohérent avec la
   contrainte « pas de Docker, ≤ 200 Mo de RAM ».
+
+## 8. Vue « aesthetic » façon AestheticTab (affichage par dossier)
+
+Proposer une **vue visuelle** de type page d'accueil/nouvel onglet inspirée de
+[AestheticTab](https://aesthetictab.com/) — design soigné (fond, tuiles, typo) —
+pour parcourir ses marque-pages de façon agréable.
+
+- **Idée clé** : afficher les liens **regroupés par dossier / collection**
+  (une section ou un « volet » par collection, tuiles cliquables avec
+  favicon/aperçu), plutôt qu'une simple liste.
+- Réutilise les données déjà là : collections imbriquées + liens (via l'API
+  `/api/v2/tree` ou une route Twig dédiée), favicons et aperçus (`ArchiveAsset`)
+  déjà stockés.
+- **Où l'exposer** (au choix / cumulables) :
+  - une **route web** dans l'app (ex. `/board`) — vue Twig, sélecteur de
+    dashboard, repli par collection ;
+  - le **viewer de l'extension** (page « Mes favoris », cf. item 6) — même
+    design, alimenté par l'API, donc compatible **Android** ;
+  - éventuellement une **surcharge du nouvel onglet** Firefox via l'extension
+    (`chrome_url_overrides.newtab`) pour coller vraiment à l'expérience
+    AestheticTab.
+- À soigner : responsive (mobile/desktop), fond configurable, recherche rapide,
+  repli/dépli des collections, et rester léger (contrainte Pi).
