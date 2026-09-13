@@ -27,6 +27,20 @@ d'extension (popup, options) → on peut y offrir une **autre** valeur :
 → Le reste de ce plan (synchro native bidirectionnelle) cible donc **desktop** ;
 la couche **API v2** sert les deux (desktop sync + viewer Android).
 
+**La couche de réconciliation est CONSERVÉE** (`guidMap`, snapshot, diff,
+last-write-wins) : elle reste parfaitement pertinente pour desktop et ne doit pas
+être retirée à cause d'Android. Architecture visée pour ne rien gaspiller :
+
+- **Cœur partagé** (desktop + Android) : client API, config/options, `guidMap`,
+  snapshot, logique de diff/réconciliation.
+- **Adaptateur « bookmarks » desktop-only** : les seuls appels `browser.bookmarks`
+  (getTree/create/update/remove), **gardés derrière un feature-detect**
+  (`if (browser.bookmarks) …`).
+- **Dégradation Android** : si l'API bookmarks est absente, on **masque/désactive**
+  les boutons pull/push natifs (avec un message explicatif) et on propose le
+  **viewer** (page « Mes favoris » alimentée par l'API) — la réconciliation
+  reste chargée mais simplement non branchée sur les favoris natifs.
+
 ## Contexte
 
 - L'extension Firefox (`extension/`) fait aujourd'hui un **pull un sens**
