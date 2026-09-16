@@ -232,14 +232,19 @@
             .link-list .link-card .link-tags,  .link-strip .link-card .link-tags,
             .link-list .link-card .link-foot,  .link-strip .link-card .link-foot { display: none; }
             .link-list .link-card .link-eye, .link-strip .link-card .link-eye { display: inline-flex; align-self: center; flex: none; }
-            /* swipe affordance: a small animated arrow on each swipeable dashboard row */
-            section:has(> .link-strip) > h2 { display: flex; align-items: center; }
-            section:has(> .link-strip) > h2::after {
-                content: "→"; margin-left: auto; color: var(--muted); font-size: 15px;
+            /* Swipe affordance: a small animated arrow, vertically centred on the
+               3 cards (not the title), shown only when the strip has a 4th card
+               (i.e. more than one page → actually swipeable). */
+            .strip-wrap:has(> .link-strip > .link-card:nth-child(4))::after {
+                content: "→"; position: absolute; top: 50%; right: 2px; transform: translateY(-50%);
+                display: flex; align-items: center; justify-content: center; width: 26px; height: 26px;
+                border-radius: 999px; background: var(--card); box-shadow: var(--shadow);
+                color: var(--muted); font-size: 15px; pointer-events: none;
                 animation: sfb-swipe-hint 1.2s ease-in-out infinite; }
         }
-        @keyframes sfb-swipe-hint { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
-        @media (prefers-reduced-motion: reduce) { section:has(> .link-strip) > h2::after { animation: none; } }
+        .strip-wrap { position: relative; }
+        @keyframes sfb-swipe-hint { 0%, 100% { transform: translateY(-50%) translateX(0); } 50% { transform: translateY(-50%) translateX(4px); } }
+        @media (prefers-reduced-motion: reduce) { .strip-wrap::after { animation: none; } }
 
         .link-card { display: flex; gap: 12px; background: var(--card); border: 1px solid var(--border);
             border-radius: var(--radius); padding: 10px; box-shadow: var(--shadow); transition: box-shadow .12s, transform .12s; }
@@ -258,10 +263,14 @@
         .link-thumb .link-thumb-fav { width: 34px; height: 34px; border-radius: 7px; box-shadow: var(--shadow); }
 
         .link-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-        .link-title { display: flex; align-items: flex-start; gap: 6px; color: var(--fg); font-weight: 600; line-height: 1.35; }
+        .link-title { display: flex; align-items: flex-start; gap: 6px; color: var(--fg); font-weight: 600; line-height: 1.35; min-width: 0; }
         .link-title:hover { text-decoration: none; }
         .link-title .favicon { margin-top: 2px; }
-        .link-title span { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        /* min-width:0 + overflow-wrap let a long unbroken string (e.g. a URL used as
+           the title) shrink and break instead of blowing out the card width. */
+        .link-title span { min-width: 0; overflow: hidden; text-overflow: ellipsis;
+            overflow-wrap: anywhere; word-break: break-word;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
         .link-domain { display: block; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .link-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; max-height: 46px; overflow: hidden; }
         .link-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px;
