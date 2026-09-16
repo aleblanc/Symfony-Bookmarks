@@ -19,8 +19,8 @@
  */
 const SfbStore = (() => {
   const TREE_KEY = "treeCache"; // { data, fetchedAt, v }
-  const SCHEMA = 2; // bump when the cached link shape changes → invalidates old caches
-  // (v2 added favorite/clickCount/lastClickedAt for the home sections).
+  const SCHEMA = 3; // bump when the cached shape/ordering changes → invalidates old caches
+  // (v2 added favorite/clickCount/lastClickedAt; v3 needs the position-ordered tree).
   const TTL_MS = 24 * 60 * 60 * 1000; // stale after 24h — clicks are patched locally
   // in between, so the "recently/most clicked" sections stay fresh without a refetch.
 

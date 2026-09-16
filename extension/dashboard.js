@@ -137,9 +137,13 @@ function renderHome() {
       out.append(h);
     }
     for (const col of dash.collections || []) {
-      const links = SfbStore.subtreeLinks(col)
+      // Mirror the web dashboard's "by_collection": each ROOT folder, in position
+      // order, previewing its own recent DIRECT links (newest first). A root with no
+      // direct links is hidden (stripEl returns null) — exactly like the web.
+      const links = (col.links || [])
+        .slice()
         .sort((a, b) => (b.id || 0) - (a.id || 0))
-        .slice(0, 12);
+        .slice(0, 10);
       const strip = stripEl(folderIcon(col) + " " + col.name, links);
       if (strip) out.append(strip);
     }
