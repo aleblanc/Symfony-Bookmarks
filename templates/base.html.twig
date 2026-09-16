@@ -412,7 +412,7 @@
     <main class="main">
         {% for type, messages in app.flashes %}
             {% for message in messages %}
-                <div class="flash flash-{{ type }}">{{ (message starts with 'collection.') or (message starts with 'link.') ? message|trans : message }}</div>
+                <div class="flash flash-{{ type }}">{{ (message starts with 'collection.') or (message starts with 'link.') or (message starts with 'note.') ? message|trans : message }}</div>
             {% endfor %}
         {% endfor %}
         {% block body %}{% endblock %}

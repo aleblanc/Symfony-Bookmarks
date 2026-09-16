@@ -9,6 +9,7 @@ nav:
     collections: 'Collections'
     import: 'Importer'
     dead_links: 'Liens morts / doublons'
+    notes: 'Bloc-notes'
     open_menu: 'Ouvrir le menu'
     close_menu: 'Fermer le menu'
     collapse_menu: 'Réduire le menu'
@@ -240,3 +241,8 @@ vault:
 
 tag:
     title_plural: 'Étiquettes'
+
+note:
+    saved: 'Bloc-notes enregistré'
+    md_hint: 'Markdown simple : # titres, - listes, **gras**, *italique*, `code`, [lien](https://…).'
+    empty: 'Bloc-notes vide. Clique sur « Modifier » pour écrire.'

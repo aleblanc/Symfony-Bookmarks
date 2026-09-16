@@ -9,6 +9,7 @@ nav:
     collections: 'Collections'
     import: 'Import'
     dead_links: 'Dead links / duplicates'
+    notes: 'Notepad'
     open_menu: 'Open menu'
     close_menu: 'Close menu'
     collapse_menu: 'Collapse menu'
@@ -240,3 +241,8 @@ vault:
 
 tag:
     title_plural: 'Tags'
+
+note:
+    saved: 'Notepad saved'
+    md_hint: 'Simple Markdown: # headings, - lists, **bold**, *italic*, `code`, [link](https://…).'
+    empty: 'Empty notepad. Click “Edit” to write.'
