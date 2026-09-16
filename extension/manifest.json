@@ -10,6 +10,9 @@
             "data_collection_permissions": {
                 "required": ["none"]
             }
+        },
+        "gecko_android": {
+            "strict_min_version": "142.0"
         }
     },
     "icons": {
@@ -29,6 +32,12 @@
     "options_ui": {
         "page": "options.html",
         "open_in_tab": true
+    },
+    "chrome_url_overrides": {
+        "newtab": "dashboard.html"
+    },
+    "chrome_settings_overrides": {
+        "homepage": "dashboard.html"
     },
     "browser_action": {
         "default_title": "Symfony Bookmarks Sync",

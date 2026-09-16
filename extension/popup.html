@@ -24,18 +24,26 @@
 <body>
   <h1>Symfony Bookmarks Sync</h1>
 
-  <div id="unavailable" class="notice" hidden>
+  <button id="save" type="button" data-i18n="popup.save">➕ Save this page</button>
+  <button id="dashboard" class="secondary" type="button" data-i18n="popup.openDashboard">📚 Open dashboard</button>
+
+  <hr style="border:none;border-top:1px solid var(--line);margin:12px 0 10px">
+
+  <div id="unavailable" class="notice" hidden data-i18n="popup.unavailable">
     Native bookmark sync needs the bookmarks API, which Firefox for Android does
-    not provide. Use Firefox on desktop for sync.
+    not provide. Use Firefox on desktop for sync — Save &amp; dashboard work here.
   </div>
 
-  <button id="pull" type="button">⬇️ Receive (pull)</button>
-  <button id="push" class="secondary" type="button">⬆️ Send (push)</button>
+  <button id="pull" class="secondary" type="button" data-i18n="popup.pull">⬇️ Receive (pull)</button>
+  <button id="push" class="secondary" type="button" data-i18n="popup.push">⬆️ Send (push)</button>
 
   <p class="meta" id="last">—</p>
   <p id="msg"></p>
-  <p><a id="opts" href="#">Open settings</a></p>
+  <p><a id="opts" href="#" data-i18n="common.openSettings">Open settings</a></p>
 
+  <script src="lib/api.js"></script>
+  <script src="lib/i18n.js"></script>
+  <script src="lib/store.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

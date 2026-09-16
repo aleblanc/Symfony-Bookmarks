@@ -2,9 +2,9 @@
 
 const $ = (id) => document.getElementById(id);
 
-function show(kind, msg) {
-  const el = $("status");
-  el.className = kind;
+function show(kind, msg, id = "status") {
+  const el = $(id);
+  el.className = "status " + kind;
   el.textContent = msg;
 }
 
@@ -52,6 +52,7 @@ async function load() {
   $("password").value = cfg.password || "";
   $("location").value = cfg.location || "menu________";
   $("wrap").checked = !!cfg.wrap;
+  $("lang").value = cfg.lang || "";
   if (cfg.baseUrl) {
     try {
       await loadRemotePickers(cfg);
@@ -70,6 +71,7 @@ function readForm() {
     dashboard: $("dashboard").value || "all",
     location: $("location").value || "menu________",
     wrap: $("wrap").checked,
+    lang: $("lang").value || "",
     pushCollectionId: $("pushCollection").value ? Number($("pushCollection").value) : null,
   };
 }
@@ -78,17 +80,17 @@ function assertValidUrl(baseUrl) {
   try {
     new URL(baseUrl);
   } catch {
-    throw new Error("Invalid server URL.");
+    throw new Error(SfbI18n.t("opt.invalidUrl"));
   }
 }
 
 $("save").addEventListener("click", async () => {
   const cfg = readForm();
-  if (!cfg.baseUrl) return show("err", "Please enter the server URL.");
+  if (!cfg.baseUrl) return show("err", SfbI18n.t("opt.enterUrl"));
   try {
     assertValidUrl(cfg.baseUrl);
     await SfbApi.setConfig(cfg);
-    show("ok", "Saved.");
+    show("ok", SfbI18n.t("opt.saved"));
   } catch (e) {
     show("err", String(e && e.message ? e.message : e));
   }
@@ -96,7 +98,7 @@ $("save").addEventListener("click", async () => {
 
 $("savepull").addEventListener("click", async () => {
   const cfg = readForm();
-  if (!cfg.baseUrl) return show("err", "Please enter the server URL.");
+  if (!cfg.baseUrl) return show("err", SfbI18n.t("opt.enterUrl"));
   try {
     assertValidUrl(cfg.baseUrl);
     await SfbApi.setConfig(cfg);
@@ -109,18 +111,28 @@ $("savepull").addEventListener("click", async () => {
 
 $("test").addEventListener("click", async () => {
   const cfg = readForm();
-  if (!cfg.baseUrl) return show("err", "Please enter the server URL first.");
+  if (!cfg.baseUrl) return show("err", SfbI18n.t("opt.enterUrlFirst"), "teststatus");
   try {
     assertValidUrl(cfg.baseUrl);
     await SfbApi.setConfig(cfg);
-    show("ok", "Testing…");
+    show("ok", SfbI18n.t("opt.testing"), "teststatus");
     await SfbApi.me();
     await loadRemotePickers(cfg);
     await SfbApi.setConfig(readForm()); // persist the (re-validated) picker choices
-    show("ok", "Connection OK ✓ — dashboards and collections loaded.");
+    show("ok", SfbI18n.t("opt.connOk"), "teststatus");
   } catch (e) {
-    show("err", "Failed: " + String(e && e.message ? e.message : e));
+    show("err", SfbI18n.t("opt.testFailed", { err: String(e && e.message ? e.message : e) }), "teststatus");
   }
 });
 
-load();
+// Live language switch: re-localize the page immediately on change.
+$("lang").addEventListener("change", () => {
+  SfbI18n.setLang($("lang").value || "");
+  SfbI18n.apply();
+});
+
+(async () => {
+  await SfbI18n.init();
+  SfbI18n.apply();
+  await load();
+})();

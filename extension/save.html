@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Save bookmark</title>
+  <style>
+    :root { --fg:#241a12; --muted:#7c6a58; --line:#e7ddcf; --card:#fff;
+      --bg:#fbf7f0; --accent:#e11d48; --ok:#059669; }
+    @media (prefers-color-scheme: dark) {
+      :root { --fg:#efe7db; --muted:#a99a86; --line:#3a2f25; --card:#241c14;
+        --bg:#1a140e; --accent:#fb7185; --ok:#34d399; }
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      color:var(--fg); background:var(--bg); padding:16px; max-width:560px; margin:0 auto; }
+    h1 { font-size:17px; margin:0 0 14px; }
+    label { display:block; font-size:12.5px; color:var(--muted); margin:12px 0 4px; font-weight:600; }
+    input, select, textarea { width:100%; padding:11px 12px; font:inherit; border:1px solid var(--line);
+      border-radius:10px; background:var(--card); color:var(--fg); }
+    input:focus, select:focus, textarea:focus { outline:2px solid var(--accent); border-color:var(--accent); }
+    textarea { resize:vertical; min-height:52px; }
+    .actions { display:flex; gap:10px; margin-top:18px; }
+    button { flex:1; padding:12px; border-radius:10px; border:1px solid var(--accent);
+      background:var(--accent); color:#fff; font:inherit; font-weight:700; cursor:pointer; }
+    button.secondary { background:var(--card); color:var(--fg); border-color:var(--line); }
+    button:disabled { opacity:.5; cursor:default; }
+    #msg { margin-top:12px; font-size:13px; white-space:pre-wrap; }
+    #msg.ok { color:var(--ok); } #msg.err { color:var(--accent); }
+  </style>
+</head>
+<body>
+  <h1 data-i18n="save.heading">➕ Save bookmark</h1>
+  <form id="form">
+    <label for="url" data-i18n="save.url">URL</label>
+    <input id="url" type="url" required placeholder="https://…">
+
+    <label for="name" data-i18n="save.name">Title</label>
+    <input id="name" type="text" data-i18n-ph="save.optional" placeholder="(optional)">
+
+    <label for="folder" data-i18n="save.folder">Folder</label>
+    <select id="folder"></select>
+
+    <label for="desc" data-i18n="save.note">Note</label>
+    <textarea id="desc" data-i18n-ph="save.optional" placeholder="(optional)"></textarea>
+
+    <div class="actions">
+      <button id="cancel" class="secondary" type="button" data-i18n="save.close">Close</button>
+      <button id="submit" type="submit" data-i18n="save.save">Save</button>
+    </div>
+  </form>
+  <p id="msg"></p>
+
+  <script src="lib/api.js"></script>
+  <script src="lib/i18n.js"></script>
+  <script src="lib/store.js"></script>
+  <script src="save.js"></script>
+</body>
+</html>

@@ -12,73 +12,83 @@
     h1 { font-size:20px; margin:0 0 4px; }
     p.sub { color:var(--muted); margin:0 0 20px; }
     label { display:block; font-weight:600; margin:16px 0 6px; }
-    input { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px;
+    input, select { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px;
       font:inherit; background:#fff; }
     .hint { color:var(--muted); font-size:12.5px; margin:6px 0 0; }
     .row { display:flex; gap:10px; margin-top:22px; flex-wrap:wrap; }
     button { padding:10px 16px; border-radius:8px; border:1px solid var(--line); background:#fff;
       font:inherit; font-weight:600; cursor:pointer; }
     button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
-    #status { margin-top:18px; padding:11px 13px; border-radius:8px; font-size:13.5px;
+    .status { margin-top:18px; padding:11px 13px; border-radius:8px; font-size:13.5px;
       display:none; white-space:pre-wrap; }
-    #status.ok { display:block; background:#ecfdf5; color:var(--ok); }
-    #status.err { display:block; background:#fff1f3; color:var(--accent); }
+    .status.ok { display:block; background:#ecfdf5; color:var(--ok); }
+    .status.err { display:block; background:#fff1f3; color:var(--accent); }
+    #teststatus { margin-top:10px; }
   </style>
 </head>
 <body>
   <h1>Symfony Bookmarks Sync</h1>
-  <p class="sub">Point the extension at your server. Everything is stored locally in the browser.</p>
+  <p class="sub" data-i18n="opt.subtitle">Point the extension at your server. Everything is stored locally in the browser.</p>
 
-  <label for="baseUrl">Server URL</label>
+  <label for="baseUrl" data-i18n="opt.serverUrl">Server URL</label>
   <input id="baseUrl" type="url" inputmode="url" autocomplete="off"
          placeholder="https://192.168.1.50/bookmarks">
-  <p class="hint">Include the sub-path if the app runs under one (e.g. <code>/bookmarks</code>). No trailing slash needed.</p>
+  <p class="hint" data-i18n="opt.serverUrlHint">Include the sub-path if the app runs under one (e.g. /bookmarks). No trailing slash needed.</p>
 
-  <label for="username">Basic-auth user</label>
+  <label for="username" data-i18n="opt.user">Basic-auth user</label>
   <input id="username" type="text" autocomplete="username" placeholder="(htpasswd user)">
 
-  <label for="password">Basic-auth password</label>
+  <label for="password" data-i18n="opt.password">Basic-auth password</label>
   <input id="password" type="password" autocomplete="current-password" placeholder="(htpasswd password)">
-  <p class="hint">Sent as an <code>Authorization: Basic</code> header on every request — no password prompt. Stored unencrypted in the browser profile.</p>
+  <p class="hint" data-i18n="opt.passwordHint">Sent as an Authorization: Basic header on every request — no password prompt. Stored unencrypted in the browser profile.</p>
 
   <div class="row">
-    <button id="test" type="button">Test connection</button>
+    <button id="test" type="button" data-i18n="opt.test">Test connection</button>
   </div>
-  <p class="hint">Test first — it loads the dashboards and collections into the pickers below.</p>
+  <div id="teststatus" class="status"></div>
+  <p class="hint" data-i18n="opt.testHint">Test first — it loads the dashboards and collections into the pickers below.</p>
 
-  <label for="dashboard">Dashboard to import</label>
+  <label for="dashboard" data-i18n="opt.dashboard">Dashboard to import</label>
   <select id="dashboard">
-    <option value="all">All dashboards</option>
+    <option value="all" data-i18n="opt.dashboardAll">All dashboards</option>
   </select>
-  <p class="hint">Choose one dashboard, or import them all. Refreshed from the server after a successful <em>Test connection</em>.</p>
+  <p class="hint" data-i18n="opt.dashboardHint">Choose one dashboard, or import them all. Refreshed after a successful Test connection.</p>
 
-  <label for="location">Import into</label>
+  <label for="location" data-i18n="opt.importInto">Import into</label>
   <select id="location">
-    <option value="menu________">Bookmarks Menu</option>
-    <option value="toolbar_____">Bookmarks Toolbar</option>
-    <option value="unfiled_____">Other Bookmarks</option>
+    <option value="menu________" data-i18n="opt.menu">Bookmarks Menu</option>
+    <option value="toolbar_____" data-i18n="opt.toolbar">Bookmarks Toolbar</option>
+    <option value="unfiled_____" data-i18n="opt.other">Other Bookmarks</option>
   </select>
 
   <label style="display:flex;align-items:center;gap:8px;font-weight:600;margin-top:16px;">
     <input id="wrap" type="checkbox" style="width:auto;">
-    Wrap everything in a “Symfony Bookmarks” folder
+    <span data-i18n="opt.wrap">Wrap everything in a “Symfony Bookmarks” folder</span>
   </label>
-  <p class="hint">Off = collections are created directly at the chosen root. When importing all dashboards, each keeps its own folder to avoid mixing.</p>
+  <p class="hint" data-i18n="opt.wrapHint">Off = collections are created directly at the chosen root. When importing all dashboards, each keeps its own folder to avoid mixing.</p>
 
-  <label for="pushCollection">Fallback collection for root links (push)</label>
+  <label for="pushCollection" data-i18n="opt.pushFallback">Fallback collection for root links (push)</label>
   <select id="pushCollection">
-    <option value="">(Default collection)</option>
+    <option value="" data-i18n="opt.pushDefault">(Default collection)</option>
   </select>
-  <p class="hint">On push, each link goes into the Symfony collection matching its Firefox folder (created if needed). This fallback is used only for links sitting at the Firefox root (no folder). Loaded after a successful <em>Test connection</em>.</p>
+  <p class="hint" data-i18n="opt.pushFallbackHint">On push, each link goes into the Symfony collection matching its Firefox folder. This fallback is used only for links sitting at the Firefox root.</p>
+
+  <label for="lang" data-i18n="opt.language">Language</label>
+  <select id="lang">
+    <option value="" data-i18n="opt.langAuto">Automatic</option>
+    <option value="en">English</option>
+    <option value="fr">Français</option>
+  </select>
 
   <div class="row">
-    <button id="save" class="primary" type="button">Save</button>
-    <button id="savepull" type="button">Save &amp; pull</button>
+    <button id="save" class="primary" type="button" data-i18n="opt.save">Save</button>
+    <button id="savepull" type="button" data-i18n="opt.savePull">Save &amp; pull</button>
   </div>
 
-  <div id="status"></div>
+  <div id="status" class="status"></div>
 
   <script src="lib/api.js"></script>
+  <script src="lib/i18n.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

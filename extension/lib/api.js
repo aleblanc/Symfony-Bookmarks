@@ -29,6 +29,7 @@ const SfbApi = (() => {
       dashboard: "all",
       location: "menu________",
       wrap: false,
+      lang: "", // "" = auto-detect, "en" / "fr" force a UI language
       pushCollectionId: null, // target Symfony collection for push adds (null = default)
       ...(cfg || {}),
     };
@@ -51,7 +52,7 @@ const SfbApi = (() => {
     return { Authorization: "Basic " + b64 };
   }
 
-  async function request(path, { method = "GET", body = null, patch = false } = {}) {
+  async function request(path, { method = "GET", body = null, patch = false, keepalive = false } = {}) {
     const cfg = await getConfig();
     const base = normaliseBase(cfg.baseUrl);
     if (!base) throw new Error("Server URL not configured");
@@ -68,6 +69,8 @@ const SfbApi = (() => {
         method,
         headers,
         credentials: "include",
+        // keepalive lets a click-ping outlive the page navigating away.
+        keepalive,
         body: body != null ? JSON.stringify(body) : undefined,
       });
     } catch (e) {
@@ -151,6 +154,14 @@ const SfbApi = (() => {
   }
 
   /**
+   * POST /api/v1/links/{id}/click — bump clickCount + lastClickedAt server-side.
+   * Fire-and-forget: keepalive keeps it alive when the dashboard navigates away.
+   */
+  function registerClick(id) {
+    return request(`/api/v1/links/${id}/click`, { method: "POST", keepalive: true });
+  }
+
+  /**
    * Walk the cursor-paginated /api/v1/links endpoint until it runs dry.
    * The endpoint returns links with id < cursor (page size 20), so we advance
    * the cursor to the smallest id seen on each page.
@@ -183,7 +194,7 @@ const SfbApi = (() => {
 
   return {
     getConfig, setConfig, normaliseBase, me, tree, dashboards, collections, createCollection, deleteCollection, listLinks,
-    createLink, updateLink, deleteLink, allLinks, request,
+    createLink, updateLink, deleteLink, registerClick, allLinks, request,
   };
 })();
 
