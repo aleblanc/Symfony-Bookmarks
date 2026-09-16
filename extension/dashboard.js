@@ -18,6 +18,7 @@ let TREE = null; // raw cached tree data { dashboards: [...] }
 let FLAT_ALL = []; // every link, all dashboards — for search
 let FLAT_HOME = []; // links of the selected dashboard(s) — for the home sections
 let CONFIG = null;
+let NAV_FOLDER = null; // drill-down: collection id currently open, null = home
 
 const fmtDate = (ms) => new Date(ms).toLocaleString();
 
@@ -72,16 +73,29 @@ function cardEl(link) {
   return a;
 }
 
-function stripEl(title, links) {
+// A strip section. If folderId is given, the title is clickable → opens that folder.
+function stripEl(title, links, folderId) {
   if (!links.length) return null;
   const sec = document.createElement("section");
   sec.className = "section";
   const h = document.createElement("h2");
-  h.textContent = title;
-  const c = document.createElement("span");
-  c.className = "scount";
-  c.textContent = String(links.length);
-  h.append(c);
+  const label = document.createElement("span");
+  label.textContent = title;
+  h.append(label);
+  if (folderId != null) {
+    h.classList.add("clickable");
+    h.title = SfbI18n.t("dash.openFolder");
+    const chev = document.createElement("span");
+    chev.className = "chev";
+    chev.textContent = "›";
+    h.append(chev);
+    h.addEventListener("click", () => navTo(folderId));
+  } else {
+    const c = document.createElement("span");
+    c.className = "scount";
+    c.textContent = String(links.length);
+    h.append(c);
+  }
   const strip = document.createElement("div");
   strip.className = "strip";
   for (const l of links) strip.append(cardEl(l));
@@ -89,8 +103,10 @@ function stripEl(title, links) {
   return sec;
 }
 
-// full-width row link, used for search results
+// full-width row link (search results + folder view), with clickable tag chips.
 function linkEl(link) {
+  const row = document.createElement("div");
+  row.className = "linkrow";
   const a = document.createElement("a");
   a.className = "link";
   a.href = link.url;
@@ -104,7 +120,21 @@ function linkEl(link) {
     : hostOf(link.url);
   a.append(name, sub);
   trackClick(a, link.id);
-  return a;
+  row.append(a);
+  if (Array.isArray(link.tags) && link.tags.length) {
+    const tg = document.createElement("div");
+    tg.className = "tags";
+    for (const tag of link.tags) {
+      const chip = document.createElement("button");
+      chip.className = "tag";
+      chip.type = "button";
+      chip.textContent = "#" + tag;
+      chip.addEventListener("click", () => searchTag(tag));
+      tg.append(chip);
+    }
+    row.append(tg);
+  }
+  return row;
 }
 
 function dashboardsForConfig() {
@@ -144,7 +174,8 @@ function renderHome() {
         .slice()
         .sort((a, b) => (b.id || 0) - (a.id || 0))
         .slice(0, 10);
-      const strip = stripEl(folderIcon(col) + " " + col.name, links);
+      // clickable title → open the folder (its own strip is a preview of 10)
+      const strip = stripEl(folderIcon(col) + " " + col.name, links, col.id);
       if (strip) out.append(strip);
     }
   }
@@ -181,9 +212,147 @@ function renderResults(results) {
 }
 
 function applyQuery(q) {
-  // Search spans ALL dashboards; the home view respects the selected dashboard.
-  if (q.trim()) renderResults(SfbStore.searchLinks(FLAT_ALL, q));
+  // Search spans ALL dashboards; folder view / home respect the selected dashboard.
+  const query = q.trim();
+  if (query) {
+    if (query.startsWith("#")) {
+      const tag = query.slice(1).toLowerCase();
+      const results = tag
+        ? FLAT_ALL.filter((l) => (l.tags || []).some((t) => String(t).toLowerCase().includes(tag)))
+        : FLAT_ALL;
+      renderResults(results);
+    } else {
+      renderResults(SfbStore.searchLinks(FLAT_ALL, query));
+    }
+    return;
+  }
+  if (NAV_FOLDER != null) renderFolder(NAV_FOLDER);
   else renderHome();
+}
+
+// Jump to a tag search from a clicked chip.
+function searchTag(tag) {
+  $("#q").value = "#" + tag;
+  applyQuery("#" + tag);
+  window.scrollTo(0, 0);
+}
+
+// Open a folder (drill-down), or go home with null. Clears any active search.
+function navTo(id) {
+  NAV_FOLDER = id;
+  if ($("#q").value) $("#q").value = "";
+  applyQuery("");
+  window.scrollTo(0, 0);
+}
+
+// The chain of collection nodes from a root down to `id` (within the shown
+// dashboards), or null if not found.
+function locateFolder(id) {
+  let found = null;
+  const walk = (cols, trail) => {
+    for (const c of cols || []) {
+      const here = trail.concat([c]);
+      if (Number(c.id) === Number(id)) {
+        found = here;
+        return true;
+      }
+      if (c.children && c.children.length && walk(c.children, here)) return true;
+    }
+    return false;
+  };
+  for (const dash of dashboardsForConfig()) {
+    if (walk(dash.collections || [], [])) break;
+  }
+  return found;
+}
+
+function breadcrumbEl(trail) {
+  const nav = document.createElement("nav");
+  nav.className = "crumbs";
+  const home = document.createElement("button");
+  home.className = "crumb";
+  home.type = "button";
+  home.textContent = "🏠 " + SfbI18n.t("dash.home");
+  home.addEventListener("click", () => navTo(null));
+  nav.append(home);
+  trail.forEach((c, i) => {
+    const sep = document.createElement("span");
+    sep.className = "sep";
+    sep.textContent = "›";
+    nav.append(sep);
+    const b = document.createElement("button");
+    b.className = "crumb";
+    b.type = "button";
+    b.textContent = c.name;
+    if (i < trail.length - 1) b.addEventListener("click", () => navTo(c.id));
+    else b.disabled = true;
+    nav.append(b);
+  });
+  return nav;
+}
+
+function folderRowEl(col) {
+  const b = document.createElement("button");
+  b.className = "folderrow";
+  b.type = "button";
+  const label = document.createElement("span");
+  label.textContent = folderIcon(col) + " " + col.name;
+  const count = document.createElement("span");
+  count.className = "fcount";
+  count.textContent = String(SfbStore.subtreeLinks(col).length);
+  b.append(label, count);
+  b.addEventListener("click", () => navTo(col.id));
+  return b;
+}
+
+function sectionWithHeader(titleText, count) {
+  const sec = document.createElement("section");
+  sec.className = "section";
+  const h = document.createElement("h2");
+  h.textContent = titleText;
+  if (count != null) {
+    const c = document.createElement("span");
+    c.className = "scount";
+    c.textContent = String(count);
+    h.append(c);
+  }
+  sec.append(h);
+  return sec;
+}
+
+function renderFolder(id) {
+  const out = $("#out");
+  out.textContent = "";
+  const trail = locateFolder(id);
+  if (!trail) {
+    NAV_FOLDER = null;
+    renderHome();
+    return;
+  }
+  const col = trail[trail.length - 1];
+  out.append(breadcrumbEl(trail));
+
+  const kids = col.children || [];
+  if (kids.length) {
+    const sec = sectionWithHeader(SfbI18n.t("dash.subfolders"), kids.length);
+    const list = document.createElement("div");
+    list.className = "folderlist";
+    for (const child of kids) list.append(folderRowEl(child));
+    sec.append(list);
+    out.append(sec);
+  }
+
+  const links = (col.links || []).slice().sort((a, b) => (b.id || 0) - (a.id || 0));
+  const sec2 = sectionWithHeader(SfbI18n.t("dash.folderLinks"), links.length);
+  if (links.length) {
+    for (const l of links) sec2.append(linkEl(l));
+  } else {
+    const e = document.createElement("p");
+    e.className = "empty";
+    e.textContent = SfbI18n.t("dash.empty");
+    sec2.append(e);
+  }
+  out.append(sec2);
 }
 
 function ingest(rec, { fromNetwork = false } = {}) {

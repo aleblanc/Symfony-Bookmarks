@@ -46,10 +46,10 @@
     .dash { font-size:13px; text-transform:uppercase; letter-spacing:.04em;
       color:var(--muted); margin:16px 8px 2px; font-weight:700; }
     .kids { padding-left:10px; }
-    a.link { display:block; text-decoration:none; color:var(--fg);
-      padding:9px 12px; border-top:1px solid var(--line); }
-    a.link:first-child { border-top:0; }
-    a.link:active { background:var(--accent-weak); }
+    .linkrow { padding:9px 12px; border-top:1px solid var(--line); }
+    .linkrow:first-child { border-top:0; }
+    .linkrow:active { background:var(--accent-weak); }
+    a.link { display:block; text-decoration:none; color:var(--fg); }
     a.link .name { display:block; font-weight:500; }
     a.link .sub { display:block; color:var(--muted); font-size:12px;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -71,6 +71,25 @@
       display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
     .card .chost { color:var(--muted); font-size:11.5px; white-space:nowrap;
       overflow:hidden; text-overflow:ellipsis; }
+    .section h2.clickable { cursor:pointer; }
+    .section h2.clickable:active { color:var(--accent); }
+    .section h2 .chev { margin-left:auto; color:var(--muted); font-weight:400; }
+    /* folder drill-down */
+    .crumbs { display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin:6px 4px 12px; }
+    .crumb { border:0; background:none; color:var(--accent); font:inherit; font-weight:600;
+      cursor:pointer; padding:4px 2px; }
+    .crumb:disabled { color:var(--fg); cursor:default; }
+    .crumbs .sep { color:var(--muted); }
+    .folderlist { display:flex; flex-direction:column; gap:6px; margin:2px 4px; }
+    .folderrow { display:flex; align-items:center; gap:8px; width:100%; text-align:left;
+      padding:12px 14px; border:1px solid var(--line); border-radius:11px; background:var(--card);
+      color:var(--fg); font:inherit; font-weight:600; cursor:pointer; }
+    .folderrow:active { background:var(--accent-weak); }
+    .folderrow .fcount { margin-left:auto; color:var(--muted); font-weight:400; font-size:12px; }
+    /* tag chips */
+    .tags { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+    .tag { font-size:11px; padding:1px 7px; border-radius:999px; border:1px solid var(--line);
+      background:var(--accent-weak); color:var(--accent); cursor:pointer; }
     .empty { color:var(--muted); text-align:center; padding:40px 16px; }
     .setup { max-width:420px; margin:60px auto; text-align:center; padding:0 16px; }
     .setup button { margin-top:14px; padding:11px 16px; border-radius:10px;
