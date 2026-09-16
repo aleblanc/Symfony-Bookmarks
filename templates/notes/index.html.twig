@@ -3,18 +3,47 @@
 {% block body %}
     <header class="top">
         <h1>🗒️ {{ 'nav.notes'|trans }}</h1>
+        <button type="button" id="note-edit-btn" class="btn">✏️ {{ 'common.edit'|trans }}</button>
     </header>
 
     <style>
+        .note-view { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 16px 18px; box-shadow: var(--shadow); }
+        .note-view pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere;
+            font: inherit; line-height: 1.6; }
         .note-edit textarea { width: 100%; min-height: 65vh;
             font: 14px/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace; resize: vertical; }
         .note-edit .row { display: flex; gap: 10px; margin-top: 12px; }
     </style>
 
-    <form class="note-edit" method="post" action="{{ path('notes_save') }}">
-        <textarea name="content" class="input" autofocus>{{ raw }}</textarea>
+    <div id="note-view" class="note-view">
+        {% if raw|trim is empty %}
+            <p class="muted">{{ 'note.empty'|trans }}</p>
+        {% else %}
+            <pre>{{ raw }}</pre>
+        {% endif %}
+    </div>
+
+    <form id="note-edit" class="note-edit" method="post" action="{{ path('notes_save') }}" hidden>
+        <textarea name="content" class="input">{{ raw }}</textarea>
         <div class="row">
             <button class="btn btn-primary" type="submit">💾 {{ 'common.save'|trans }}</button>
+            <button type="button" id="note-cancel" class="btn">{{ 'common.cancel'|trans }}</button>
         </div>
     </form>
+
+    <script>
+        (function () {
+            var view = document.getElementById('note-view');
+            var form = document.getElementById('note-edit');
+            var editBtn = document.getElementById('note-edit-btn');
+            var cancel = document.getElementById('note-cancel');
+            var ta = form.querySelector('textarea');
+            function edit() { view.hidden = true; editBtn.hidden = true; form.hidden = false; ta.focus(); }
+            function display() { view.hidden = false; editBtn.hidden = false; form.hidden = true; }
+            editBtn.addEventListener('click', edit);
+            cancel.addEventListener('click', display);
+            if (ta.value.trim() === '') { edit(); } // empty note → start editing
+        })();
+    </script>
 {% endblock %}
