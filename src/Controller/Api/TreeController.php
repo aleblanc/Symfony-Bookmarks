@@ -40,7 +40,9 @@ final class TreeController extends AbstractApiController
         // "À trier" (skipProcessing) collections — and their whole subtree — are
         // excluded from the export: they hold links the user hasn't triaged yet,
         // which should not be mirrored into Firefox.
-        $collections = $this->collections->findAll();
+        // Display order (position, then name) so the export mirrors the Web dashboard's
+        // folder ordering — otherwise the extension shows folders in a different order.
+        $collections = $this->collections->findAllInDisplayOrder();
         $nodes = [];
         foreach ($collections as $collection) {
             if ($this->isExcluded($collection)) {

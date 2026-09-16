@@ -55,6 +55,22 @@ final class CollectionRepository extends ServiceEntityRepository
         return $this->findOneBy(['name' => $name, 'parent' => null, 'dashboard' => $dashboard]);
     }
 
+    /**
+     * Every collection, in each dashboard's display order (position then name) —
+     * so the /api/v1/tree export mirrors the Web dashboard's folder ordering.
+     *
+     * @return list<Collection>
+     */
+    public function findAllInDisplayOrder(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->orderBy('c.dashboard', 'ASC')
+            ->addOrderBy('c.position', 'ASC')
+            ->addOrderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     /** @return list<Collection> */
     public function findForDashboard(Dashboard $dashboard): array
     {
