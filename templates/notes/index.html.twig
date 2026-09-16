@@ -3,43 +3,18 @@
 {% block body %}
     <header class="top">
         <h1>🗒️ {{ 'nav.notes'|trans }}</h1>
-        {% if not edit %}
-            <a href="{{ path('notes', {edit: 1}) }}" class="btn">✏️ {{ 'common.edit'|trans }}</a>
-        {% endif %}
     </header>
 
     <style>
-        .note-view { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-            padding: 18px 20px; box-shadow: var(--shadow); line-height: 1.6; }
-        .note-view h1 { font-size: 20px; margin: 14px 0 8px; }
-        .note-view h2 { font-size: 16px; margin: 14px 0 6px; }
-        .note-view h3 { font-size: 14px; margin: 12px 0 6px; }
-        .note-view p { margin: 8px 0; }
-        .note-view ul { margin: 8px 0 8px 20px; }
-        .note-view blockquote { margin: 8px 0; padding: 4px 12px; border-left: 3px solid var(--border); color: var(--muted); }
-        .note-view code { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 12.5px; }
-        .note-view :first-child { margin-top: 0; }
-        .note-edit textarea { width: 100%; min-height: 60vh; font: 13.5px/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace; resize: vertical; }
+        .note-edit textarea { width: 100%; min-height: 65vh;
+            font: 14px/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace; resize: vertical; }
         .note-edit .row { display: flex; gap: 10px; margin-top: 12px; }
-        .note-hint { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
     </style>
 
-    {% if edit %}
-        <form class="note-edit" method="post" action="{{ path('notes_save') }}">
-            <textarea name="content" class="input" placeholder="# Mon bloc-notes&#10;&#10;- une idée&#10;- un lien : [exemple](https://example.org)&#10;&#10;**gras**, *italique*, `code`">{{ raw }}</textarea>
-            <p class="note-hint">{{ 'note.md_hint'|trans }}</p>
-            <div class="row">
-                <button class="btn btn-primary" type="submit">💾 {{ 'common.save'|trans }}</button>
-                <a href="{{ path('notes') }}" class="btn">{{ 'common.cancel'|trans }}</a>
-            </div>
-        </form>
-    {% else %}
-        <div class="note-view">
-            {% if html is empty %}
-                <p class="muted">{{ 'note.empty'|trans }}</p>
-            {% else %}
-                {{ html|raw }}
-            {% endif %}
+    <form class="note-edit" method="post" action="{{ path('notes_save') }}">
+        <textarea name="content" class="input" autofocus>{{ raw }}</textarea>
+        <div class="row">
+            <button class="btn btn-primary" type="submit">💾 {{ 'common.save'|trans }}</button>
         </div>
-    {% endif %}
+    </form>
 {% endblock %}
