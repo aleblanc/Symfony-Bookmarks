@@ -210,27 +210,36 @@
         .link-strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
         .link-strip::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
-        /* Phone: both the vertical list AND the dashboard strips become a horizontally
-           swipeable grid of pages — 3 compact links stacked per screen, one swipe = next
-           3. Cards show only title + domain (thumb/tags/foot hidden) so they stay short.
-           Placed after the .link-strip base rules so it overrides its display:flex. */
+        /* Phone: ONLY the dashboard strips become a horizontally swipeable grid of
+           pages — 3 compact links per screen, one swipe = next 3. Regular link lists
+           (search, a collection, dead links…) just stack vertically: 100 links = 100
+           rows, one below the other. Placed after .link-strip base rules to override
+           its display:flex. */
         @media (max-width: 759px) {
-            .link-list, .link-strip {
+            .link-strip {
                 display: grid; grid-auto-flow: column; grid-template-columns: none;
                 grid-template-rows: repeat(3, auto);
                 grid-auto-columns: 100%; gap: 8px; overflow-x: auto; overflow-y: hidden;
                 scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
                 overscroll-behavior-x: contain; padding-bottom: 10px;
                 scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-            .link-list::-webkit-scrollbar, .link-strip::-webkit-scrollbar { height: 8px; }
-            .link-list::-webkit-scrollbar-track, .link-strip::-webkit-scrollbar-track { background: transparent; }
-            .link-list::-webkit-scrollbar-thumb, .link-strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
-            .link-list .link-card, .link-strip .link-card { scroll-snap-align: start; }
+            .link-strip::-webkit-scrollbar { height: 8px; }
+            .link-strip::-webkit-scrollbar-track { background: transparent; }
+            .link-strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+            .link-strip .link-card { scroll-snap-align: start; }
+            /* compact cards on phone, for both the strips and the vertical lists */
             .link-list .link-card .link-thumb, .link-strip .link-card .link-thumb,
             .link-list .link-card .link-tags,  .link-strip .link-card .link-tags,
             .link-list .link-card .link-foot,  .link-strip .link-card .link-foot { display: none; }
             .link-list .link-card .link-eye, .link-strip .link-card .link-eye { display: inline-flex; align-self: center; flex: none; }
+            /* swipe affordance: a small animated arrow on each swipeable dashboard row */
+            section:has(> .link-strip) > h2 { display: flex; align-items: center; }
+            section:has(> .link-strip) > h2::after {
+                content: "→"; margin-left: auto; color: var(--muted); font-size: 15px;
+                animation: sfb-swipe-hint 1.2s ease-in-out infinite; }
         }
+        @keyframes sfb-swipe-hint { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+        @media (prefers-reduced-motion: reduce) { section:has(> .link-strip) > h2::after { animation: none; } }
 
         .link-card { display: flex; gap: 12px; background: var(--card); border: 1px solid var(--border);
             border-radius: var(--radius); padding: 10px; box-shadow: var(--shadow); transition: box-shadow .12s, transform .12s; }
