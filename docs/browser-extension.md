@@ -1,10 +1,36 @@
 # Browser extension setup
 
-Install the [official Linkwarden extension](https://github.com/linkwarden/browser-extension) in Firefox / Chrome / Edge. Then:
+## Symfony Bookmarks Sync (Firefox)
+
+The dedicated **[Symfony Bookmarks Sync](https://addons.mozilla.org/fr/firefox/addon/symfony-bookmarks-sync/)**
+add-on syncs your links two ways between the server and Firefox bookmarks. Install it
+from AMO, then:
 
 1. Open the extension options.
-2. **Instance URL**: `http://<your-instance>/` (e.g. `http://raspberrypi.local:8000`).
-3. **API token**: paste the value of `APP_API_TOKEN` from your `.env.local`.
-4. Click "Sign in" — the extension calls `GET /api/v1/users/me`; you should see the collection dropdown populate.
+2. **Server URL**: `http://<your-instance>/` (e.g. `http://raspberrypi.local:8000`).
+3. **Basic-auth user / password**: the htpasswd credentials that protect the app
+   (the extension sends `Authorization: Basic …` on every request).
+4. Pick a **dashboard** and where to import (Bookmarks Menu / Toolbar / Other), then
+   **Save & pull** to review the first sync.
 
-New links you add via the extension will land in the app instantly and get archived on the next cron tick.
+New links you add via the extension land in the app instantly and get archived on the
+next cron tick. See `extension/README.md` for the full sync model.
+
+## Firefox for Android
+
+The extension also installs on **Firefox for Android** for configuration and the
+connection test. Note that native bookmark sync is **desktop-only** — the
+`browser.bookmarks` API doesn't exist on Android, so the sync buttons are disabled
+there (an API-backed viewer is planned).
+
+![Symfony Bookmarks Sync on Firefox for Android](screenshot-extension-android-1.png)
+
+![Symfony Bookmarks Sync — options on Android](screenshot-extension-android-2.png)
+
+## Legacy: Linkwarden extension
+
+The [official Linkwarden extension](https://github.com/linkwarden/browser-extension)
+still works against the v1 API. Open its options, set **Instance URL** and the
+**API token** (`APP_API_TOKEN` from your `.env.local`), then "Sign in" — it calls
+`GET /api/v1/users/me` and the collection dropdown should populate. Linkwarden
+compatibility is legacy and no longer a goal.

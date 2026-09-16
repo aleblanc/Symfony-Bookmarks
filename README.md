@@ -37,6 +37,7 @@ Goals:
 
 ## Features
 
+- **[Symfony Bookmarks Sync](https://addons.mozilla.org/fr/firefox/addon/symfony-bookmarks-sync/)** — dedicated Firefox add-on for two-way, reviewable sync between the server and your Firefox bookmarks (desktop; config/connection test also on Android).
 - Linkwarden-compatible REST API at `/api/v1/*` (envelope `{"response": ...}`, `Authorization: Bearer <token>`).
 - SQLite storage with **FTS5** full-text search on links.
 - Two dashboards (Perso / Pro) — every list / search is scoped to the active dashboard.
@@ -316,7 +317,7 @@ Links land as `status=pending` so the archival cron will pick them up.
 ## More docs
 
 - [Architecture](docs/architecture.md) — data flow and the no-broker cron design.
-- [Browser extension setup](docs/browser-extension.md) — connecting the Linkwarden extension.
+- [Browser extension setup](docs/browser-extension.md) — the [Symfony Bookmarks Sync](https://addons.mozilla.org/fr/firefox/addon/symfony-bookmarks-sync/) Firefox add-on (desktop + Android).
 - [LM Studio setup](docs/lmstudio.md) — remote AI server config; **context length** required for the folder organizer.
 - [Encrypted vault](docs/encrypted-vault.md) — per-collection at-rest encryption.
 - [Development](docs/development.md) — dev server, workers, tests and quality gates.
