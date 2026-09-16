@@ -30,7 +30,6 @@
         <li><a href="{{ path('links_dead') }}"><span class="ico">💀</span> {{ 'nav.dead_links'|trans }}
             {% set dead = dead_links_count() %}{% if dead > 0 %}<span class="count count-danger">{{ dead }}</span>{% endif %}
         </a></li>
-        <li><a href="{{ path('notes') }}"><span class="ico">🗒️</span> {{ 'nav.notes'|trans }}</a></li>
     </ul>
 
     {% import '_partials/_folder_icon.html.twig' as fi %}
@@ -82,6 +81,10 @@
             <a class="nav-more" href="{{ path('tags_index') }}">{{ 'sidebar.all_tags'|trans }} →</a>
         {% endif %}
     </details>
+
+    <ul class="nav">
+        <li><a href="{{ path('notes') }}"><span class="ico">🗒️</span> {{ 'nav.notes'|trans }}</a></li>
+    </ul>
 
     <h2>{{ 'sidebar.features'|trans }}</h2>
     {% set feat = archive_features() %}
