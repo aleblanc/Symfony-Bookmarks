@@ -344,6 +344,14 @@ Links land as `status=pending` so the archival cron will pick them up.
 
 ![AI folder organizer — link assignment](docs/screenshot-ai-organizer-2.png)
 
+**[Symfony Bookmarks Sync](https://addons.mozilla.org/fr/firefox/addon/symfony-bookmarks-sync/) — Firefox add-on** — two-way sync between the server and your Firefox bookmarks, here on Firefox for Android:
+
+<p align="center">
+  <img src="docs/screenshot-extension-android-1.png" height="420" alt="Symfony Bookmarks Sync on Firefox for Android">
+  &nbsp;&nbsp;
+  <img src="docs/screenshot-extension-android-2.png" height="420" alt="Symfony Bookmarks Sync — options on Android">
+</p>
+
 ---
 
 ## License
