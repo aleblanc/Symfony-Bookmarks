@@ -4,7 +4,7 @@
 
 # Symfony Bookmarks
 
-A lightweight, self-hosted, single-user bookmark manager built in **PHP 8.5 / Symfony** + **SQLite**, designed to run on a Raspberry Pi 4 (~200 MB RAM) and stay **compatible with the official Linkwarden browser extensions** for Firefox and Chrome.
+A lightweight, self-hosted, single-user bookmark manager built in **PHP 8.5 / Symfony** + **SQLite**, designed to run on a Raspberry Pi 4 (~200 MB RAM), with its own **[Symfony Bookmarks Sync](https://addons.mozilla.org/fr/firefox/addon/symfony-bookmarks-sync/)** Firefox add-on for two-way bookmark sync.
 
 Goals:
 - Replace the full Linkwarden stack (Next.js + PostgreSQL + Chromium workers, ~1.5–3 GB RAM) with a lean PHP-only stack.
@@ -115,19 +115,9 @@ php bin/console doctrine:migrations:migrate --no-interaction
 
 This creates `var/data_prod.db` (or `var/data_dev.db` in dev), the FTS5 index, and seeds the two dashboards **Perso** and **Pro**.
 
-### 5. Generate an API token (for the browser extension)
+### 5. Run it
 
-```bash
-php bin/console app:generate-secrets
-```
-
-Copy the printed line into `.env.local`:
-
-```
-APP_API_TOKEN=<the-token>
-```
-
-You're done. In dev you can now:
+In dev:
 
 ```bash
 php -S 127.0.0.1:8000 -t public
@@ -136,6 +126,11 @@ symfony server:start
 ```
 
 Open http://localhost:8000.
+
+> In production the app sits behind nginx **basic-auth** (htpasswd) and the Firefox
+> extension authenticates with those credentials, so no API token is needed. If you
+> instead expose the API without basic-auth, generate a Bearer token with
+> `php bin/console app:generate-secrets` and set `APP_API_TOKEN=<the-token>` in `.env.local`.
 
 ---
 

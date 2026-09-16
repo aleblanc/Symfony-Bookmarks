@@ -26,11 +26,3 @@ there (an API-backed viewer is planned).
 ![Symfony Bookmarks Sync on Firefox for Android](screenshot-extension-android-1.png)
 
 ![Symfony Bookmarks Sync — options on Android](screenshot-extension-android-2.png)
-
-## Legacy: Linkwarden extension
-
-The [official Linkwarden extension](https://github.com/linkwarden/browser-extension)
-still works against the v1 API. Open its options, set **Instance URL** and the
-**API token** (`APP_API_TOKEN` from your `.env.local`), then "Sign in" — it calls
-`GET /api/v1/users/me` and the collection dropdown should populate. Linkwarden
-compatibility is legacy and no longer a goal.

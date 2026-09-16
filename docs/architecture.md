@@ -1,7 +1,7 @@
 # Architecture
 
 ```
-Browser extension (Linkwarden) ──┐
+Firefox extension (Sync)      ──┐
                                  │  Bearer token
 Web UI (Twig)  ──────────────────┼──► /api/v1/* (Linkwarden envelope)  ──► SQLite + FTS5
                                  │       │                                   │
