@@ -7,16 +7,16 @@ const DIR = new URLSearchParams(location.search).get("dir") === "push" ? "push" 
 
 const UI = {
   pull: {
-    heading: "⬇️ Receive from Symfony Bookmarks",
-    subtitle: "Review the changes to apply to your Firefox bookmarks. Untick anything you want to skip.",
-    delLabel: "🗑️ To remove from Firefox",
+    headingKey: "review.pullHeading",
+    subtitleKey: "review.pullSubtitle",
+    delKey: "review.pullDelLabel",
     // pull: everything ticked by default (deleting a local favourite is low-risk).
     defaultChecked: () => true,
   },
   push: {
-    heading: "⬆️ Send to Symfony Bookmarks",
-    subtitle: "Firefox bookmarks not yet in Symfony. Each lands in the collection matching its folder (created if needed). Tick the ones to send (unticked by default).",
-    delLabel: "🗑️ To delete in Symfony",
+    headingKey: "review.pushHeading",
+    subtitleKey: "review.pushSubtitle",
+    delKey: "review.pushDelLabel",
     // push: only updates ticked by default. Additions unticked (don't dump
     // personal bookmarks); deletions unticked (destructive in Symfony).
     defaultChecked: (kind) => kind === "updates",
@@ -47,17 +47,25 @@ function buildItem(kind, item, idx) {
   label.htmlFor = cb.id;
   label.append(div("it-title", item.title || item.url), div("it-url", item.url));
   if (Array.isArray(item.folderPath) && item.folderPath.length) {
-    const prefix = DIR === "push" ? "📁 in Firefox: " : "📁 into: ";
+    const prefix = SfbI18n.t(DIR === "push" ? "review.intoPush" : "review.intoPull");
     label.append(div("it-folder", prefix + item.folderPath.join(" / ")));
   }
   if (kind === "updates" && item.oldTitle && item.oldTitle !== item.title) {
-    label.append(div("it-note", "was: " + item.oldTitle));
+    label.append(div("it-note", SfbI18n.t("review.was") + item.oldTitle));
   }
   if (kind === "updates" && item.moved) {
-    label.append(div("it-note", "moved: " + (item.fromPath || "(root)") + " → " + (item.toPath || "(root)")));
+    label.append(
+      div(
+        "it-note",
+        SfbI18n.t("review.moved", {
+          from: item.fromPath || SfbI18n.t("review.root"),
+          to: item.toPath || SfbI18n.t("review.root"),
+        })
+      )
+    );
   }
   if (item.conflict) {
-    label.append(div("it-note", "⚠ conflict — Symfony also changed since last sync"));
+    label.append(div("it-note", SfbI18n.t("review.conflict")));
   }
 
   li.append(cb, label);
@@ -73,7 +81,7 @@ function renderGroup(kind) {
   if (!items.length) {
     const li = document.createElement("li");
     li.className = "empty";
-    li.textContent = "Nothing.";
+    li.textContent = SfbI18n.t("review.nothing");
     ul.append(li);
     return;
   }
@@ -82,11 +90,14 @@ function renderGroup(kind) {
 
 async function init() {
   cfg = await SfbApi.getConfig();
+  SfbI18n.setLang(cfg.lang || "");
+  SfbI18n.apply();
 
-  document.title = UI[DIR].heading;
-  $("#heading").textContent = UI[DIR].heading;
-  $("#subtitle").textContent = UI[DIR].subtitle;
-  $("[data-del-label]").textContent = UI[DIR].delLabel;
+  const heading = SfbI18n.t(UI[DIR].headingKey);
+  document.title = heading;
+  $("#heading").textContent = heading;
+  $("#subtitle").textContent = SfbI18n.t(UI[DIR].subtitleKey);
+  $("[data-del-label]").textContent = SfbI18n.t(UI[DIR].delKey);
 
   // On push, show the fallback used for links sitting at the Firefox root.
   if (DIR === "push" && cfg.baseUrl) {
@@ -96,8 +107,8 @@ async function init() {
         ? (Array.isArray(cols) ? cols.find((c) => c.id === cfg.pushCollectionId) : null)
         : null;
       $("#subtitle").textContent += target
-        ? ` Root links → “${target.name}”.`
-        : " Root links → default collection.";
+        ? SfbI18n.t("review.rootLinksTarget", { name: target.name })
+        : SfbI18n.t("review.rootLinksDefault");
     } catch {
       /* leave the base subtitle */
     }
@@ -107,16 +118,14 @@ async function init() {
     $("#loading").hidden = true;
     const el = $("#unavailable");
     el.hidden = false;
-    el.textContent =
-      "Firefox for Android does not provide the bookmarks API, so native sync " +
-      "isn't available here. Use Firefox on desktop for bookmark sync.";
+    el.textContent = SfbI18n.t("review.unavailableAndroid");
     return;
   }
   if (!cfg.baseUrl) {
     $("#loading").hidden = true;
     const el = $("#unavailable");
     el.hidden = false;
-    el.textContent = "No server configured yet — open the extension options first.";
+    el.textContent = SfbI18n.t("review.noServer");
     return;
   }
 
@@ -126,7 +135,7 @@ async function init() {
     $("#loading").hidden = true;
     const el = $("#unavailable");
     el.hidden = false;
-    el.textContent = "Failed to compute changes: " + (e && e.message ? e.message : e);
+    el.textContent = SfbI18n.t("review.computeFailed", { err: e && e.message ? e.message : e });
     return;
   }
 
@@ -165,22 +174,24 @@ $("#none").addEventListener("click", () => setAll(false));
 $("#apply").addEventListener("click", async () => {
   const btn = $("#apply");
   btn.disabled = true;
-  summary("", "Applying…");
+  summary("", SfbI18n.t("review.applying"));
   try {
     const sel = collectSelection();
     const report = DIR === "push"
       ? await SfbSync.applyPush(sel, cfg)
       : await SfbSync.applyPull(sel, cfg);
     const removedEmpty = (report.collectionsRemoved || 0) + (report.foldersRemoved || 0);
-    const extra = removedEmpty ? `, ${removedEmpty} empty folder(s) removed` : "";
-    summary("ok", `Done ✓ ${report.created} added, ${report.updated} updated, ${report.deleted} removed${extra}.`);
+    const extra = removedEmpty ? SfbI18n.t("review.emptyRemoved", { n: removedEmpty }) : "";
+    summary("ok", SfbI18n.t("review.done", {
+      created: report.created, updated: report.updated, deleted: report.deleted, extra,
+    }));
     // Recompute so the lists reflect the new state.
     plan = DIR === "push" ? await SfbSync.computePushPlan(cfg) : await SfbSync.computePullPlan(cfg);
     renderGroup("adds");
     renderGroup("updates");
     renderGroup("deletes");
   } catch (e) {
-    summary("err", "Failed: " + (e && e.message ? e.message : e));
+    summary("err", SfbI18n.t("review.failed", { err: e && e.message ? e.message : e }));
   } finally {
     btn.disabled = false;
   }

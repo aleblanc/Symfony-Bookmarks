@@ -41,16 +41,16 @@
   <h1 id="heading">Review changes</h1>
   <p class="sub" id="subtitle">Review the changes to apply. Untick anything you want to skip.</p>
 
-  <div id="loading" class="sub">Computing changes…</div>
+  <div id="loading" class="sub" data-i18n="review.computing">Computing changes…</div>
   <div id="unavailable" class="notice" hidden></div>
 
   <div id="plan" hidden>
     <div class="group" data-group="adds">
-      <h2>➕ To add <span class="count" data-count></span></h2>
+      <h2>➕ <span data-i18n="review.toAdd">To add</span> <span class="count" data-count></span></h2>
       <ul></ul>
     </div>
     <div class="group" data-group="updates">
-      <h2>✏️ To update <span class="count" data-count></span></h2>
+      <h2>✏️ <span data-i18n="review.toUpdate">To update</span> <span class="count" data-count></span></h2>
       <ul></ul>
     </div>
     <div class="group" data-group="deletes">
@@ -59,14 +59,15 @@
     </div>
 
     <div class="bar">
-      <button id="all" type="button">Tick all</button>
-      <button id="none" type="button">Untick all</button>
-      <button id="apply" class="primary" type="button">Apply selection</button>
+      <button id="all" type="button" data-i18n="review.tickAll">Tick all</button>
+      <button id="none" type="button" data-i18n="review.untickAll">Untick all</button>
+      <button id="apply" class="primary" type="button" data-i18n="review.apply">Apply selection</button>
     </div>
     <div id="summary"></div>
   </div>
 
   <script src="lib/api.js"></script>
+  <script src="lib/i18n.js"></script>
   <script src="lib/sync.js"></script>
   <script src="review.js"></script>
 </body>
