@@ -126,6 +126,11 @@ final class TreeController extends AbstractApiController
             'description' => $link->getDescription(),
             'tags' => $tags,
             'createdAt' => $link->getCreatedAt()->format(\DATE_ATOM),
+            // Popularity data so clients (the Firefox extension home) can build the
+            // "favourites / recently-clicked / most-clicked / newest" sections offline.
+            'favorite' => $link->isFavorite(),
+            'clickCount' => $link->getClickCount(),
+            'lastClickedAt' => $link->getLastClickedAt()?->format(\DATE_ATOM),
         ];
     }
 }

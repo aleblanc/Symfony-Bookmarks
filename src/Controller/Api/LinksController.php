@@ -138,6 +138,17 @@ final class LinksController extends AbstractApiController
         return $this->ok(['deleted' => true]);
     }
 
+    #[Route('/api/v1/links/{id}/click', name: 'api_links_click', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function click(int $id): JsonResponse
+    {
+        // Fire-and-forget popularity ping from a client (Firefox extension). Mirrors
+        // the Web UI's POST /links/{id}/click: a raw UPDATE that bumps clickCount and
+        // lastClickedAt without loading the entity (so it skips the encryption listener).
+        $this->links->registerClick($id);
+
+        return $this->ok(['clicked' => true]);
+    }
+
     #[Route('/api/v1/archives/{id}', name: 'api_archives_retrigger', methods: ['POST'])]
     public function reArchive(int $id): JsonResponse
     {
