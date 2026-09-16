@@ -46,6 +46,20 @@ const SfbSync = (() => {
     await browser.storage.local.set({ [MAP_KEY]: m });
   }
 
+  /**
+   * Set map[symfonyId]=guid while keeping the map a bijection: evict any OTHER
+   * Symfony id that pointed at the same Firefox bookmark. Two links sharing one
+   * guid is exactly what makes the pull propose the same "update" forever
+   * (each pull, whichever link doesn't match the bookmark tries to overwrite it).
+   */
+  function assignMapping(map, symfonyId, guid) {
+    const key = String(symfonyId);
+    for (const k of Object.keys(map)) {
+      if (k !== key && map[k] === guid) delete map[k];
+    }
+    map[key] = guid;
+  }
+
   async function getSnap() {
     const { [SNAP_KEY]: s } = await browser.storage.local.get(SNAP_KEY);
     return s || {};
@@ -76,6 +90,41 @@ const SfbSync = (() => {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Heal guidMap corruption before diffing: enforce "one Firefox bookmark ↔ one
+   * Symfony link". For every guid claimed by more than one link, keep the link
+   * whose URL still matches the bookmark and drop the rest — dropped links then
+   * re-link by URL or re-add cleanly on this same pull. A guid whose bookmark
+   * vanished, or that matches none of its claimants, keeps nothing.
+   * @param {Map<number,string>} urlById normalised URL by Symfony link id (all dashboards)
+   * @returns {Promise<number>} number of stale entries removed
+   */
+  async function repairGuidMap(urlById) {
+    const map = await getMap();
+    const byGuid = new Map();
+    for (const [sid, g] of Object.entries(map)) {
+      if (!byGuid.has(g)) byGuid.set(g, []);
+      byGuid.get(g).push(sid);
+    }
+    let removed = 0;
+    for (const [guid, ids] of byGuid) {
+      if (ids.length < 2) continue;
+      const node = await getNode(guid);
+      const nodeUrl = node ? normaliseUrl(node.url) : null;
+      const keeper = nodeUrl
+        ? ids.find((sid) => urlById.get(Number(sid)) === nodeUrl)
+        : undefined;
+      for (const sid of ids) {
+        if (sid !== keeper) {
+          delete map[sid];
+          removed++;
+        }
+      }
+    }
+    if (removed) await setMap(map);
+    return removed;
   }
 
   /** Find (by title among a parent's children) or create a folder. */
@@ -142,13 +191,30 @@ const SfbSync = (() => {
    */
   async function computePullPlan(cfg) {
     const data = await SfbApi.tree();
-    let dashboards = (data && data.dashboards) || [];
+    const allDashboards = (data && data.dashboards) || [];
+
+    // Repair any guidMap corruption (a Firefox bookmark claimed by >1 Symfony link)
+    // BEFORE diffing — otherwise the shared bookmark triggers an endless flip-flop
+    // of "update" proposals. Uses URLs from EVERY dashboard, not just the selected
+    // one, so a duplicate spanning dashboards is still resolved.
+    const urlById = new Map();
+    const collectUrls = (cols) => {
+      for (const c of cols || []) {
+        for (const l of c.links || []) urlById.set(Number(l.id), normaliseUrl(l.url));
+        collectUrls(c.children);
+      }
+    };
+    for (const d of allDashboards) collectUrls(d.collections || []);
+    await repairGuidMap(urlById);
+
+    let dashboards = allDashboards;
     if (cfg.dashboard && cfg.dashboard !== "all") {
       dashboards = dashboards.filter((d) => String(d.id) === String(cfg.dashboard));
     }
 
     const flat = flattenTree(dashboards, cfg);
     const map = await getMap();
+    const mappedGuids = new Set(Object.values(map));
     const byUrl = await indexExistingByUrl();
     const seen = new Set();
 
@@ -198,8 +264,13 @@ const SfbSync = (() => {
         }
       } else {
         const existing = byUrl.get(normaliseUrl(link.url));
-        if (existing) toLink.push({ symfonyId: link.id, guid: existing.id });
-        else adds.push({ symfonyId: link.id, title, url: link.url, folderPath });
+        if (existing && !mappedGuids.has(existing.id)) {
+          // link this bookmark ONLY if no other Symfony link already owns it,
+          // otherwise we'd recreate the two-links-one-guid corruption.
+          toLink.push({ symfonyId: link.id, guid: existing.id });
+        } else if (!existing) {
+          adds.push({ symfonyId: link.id, title, url: link.url, folderPath });
+        }
       }
     }
 
@@ -228,13 +299,13 @@ const SfbSync = (() => {
     let linked = 0;
 
     for (const t of selected.toLink || []) {
-      map[t.symfonyId] = t.guid;
+      assignMapping(map, t.symfonyId, t.guid);
       linked++;
     }
     for (const a of selected.adds || []) {
       const folderId = await ensureFolderPath(rootId, a.folderPath || []);
       const node = await browser.bookmarks.create({ parentId: folderId, title: a.title, url: a.url });
-      map[a.symfonyId] = node.id;
+      assignMapping(map, a.symfonyId, node.id);
       created++;
     }
     for (const u of selected.updates || []) {
@@ -526,7 +597,7 @@ const SfbSync = (() => {
         : cfg.pushCollectionId || null;
       const res = await SfbApi.createLink({ url: a.url, name: a.title, collectionId });
       if (res && res.id) {
-        map[res.id] = a.guid; // symfonyId -> firefoxGuid
+        assignMapping(map, res.id, a.guid); // symfonyId -> firefoxGuid (bijection)
         created++;
       }
     }
@@ -586,6 +657,8 @@ const SfbSync = (() => {
   return {
     bookmarksAvailable,
     normaliseUrl,
+    assignMapping,
+    repairGuidMap,
     computePullPlan,
     applyPull,
     computePushPlan,
