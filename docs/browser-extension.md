@@ -23,6 +23,22 @@ connection test. Note that native bookmark sync is **desktop-only** — the
 `browser.bookmarks` API doesn't exist on Android, so the sync buttons are disabled
 there (an API-backed viewer is planned).
 
-![Symfony Bookmarks Sync on Firefox for Android](screenshot-extension-android-1.png)
+## Screenshots
 
-![Symfony Bookmarks Sync — options on Android](screenshot-extension-android-2.png)
+**Toolbar popup** — save the current page, open the dashboard, or trigger a
+Receive (pull) / Send (push):
+
+![Toolbar popup](screenshot-extension-popup.png)
+
+**Dashboard** — browse your collections as folders:
+
+![Extension dashboard](screenshot-extension-dashboard.png)
+
+**Tag search** — filter your links by `#tag`:
+
+![Tag search](screenshot-extension-search.png)
+
+**Receive (pull) review** — check what to apply to your Firefox bookmarks before
+writing anything:
+
+![Receive review](screenshot-extension-review.png)
