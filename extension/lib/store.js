@@ -44,6 +44,12 @@ const SfbStore = (() => {
   /** Fetch a fresh tree from the API and persist it. */
   async function refresh() {
     const data = await SfbApi.tree(); // { dashboards: [...] }
+    // Guard against a transient bad-but-200 response (empty body, proxy error page,
+    // non-JSON decoded to {}) clobbering a good cache with nothing. Throwing keeps the
+    // existing cache and lets the caller show an offline hint instead of an empty page.
+    if (!data || !Array.isArray(data.dashboards)) {
+      throw new Error("Invalid tree response (no dashboards)");
+    }
     return setCached(data);
   }
 

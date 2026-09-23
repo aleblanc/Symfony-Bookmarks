@@ -167,13 +167,14 @@ function renderHome() {
       out.append(h);
     }
     for (const col of dash.collections || []) {
-      // Mirror the web dashboard's "by_collection": each ROOT folder, in position
-      // order, previewing its own recent DIRECT links (newest first). A root with no
-      // direct links is hidden (stripEl returns null) — exactly like the web.
-      const links = (col.links || [])
-        .slice()
-        .sort((a, b) => (b.id || 0) - (a.id || 0))
-        .slice(0, 10);
+      // Each ROOT folder, in position order, previewing its recent links (newest
+      // first). Prefer DIRECT links; if the folder has none but its subfolders do,
+      // preview the whole subtree so folders that only contain subfolders still show.
+      const byIdDesc = (a, b) => (b.id || 0) - (a.id || 0);
+      let links = (col.links || []).slice().sort(byIdDesc).slice(0, 10);
+      if (!links.length) {
+        links = SfbStore.subtreeLinks(col).sort(byIdDesc).slice(0, 10);
+      }
       // clickable title → open the folder (its own strip is a preview of 10)
       const strip = stripEl(folderIcon(col) + " " + col.name, links, col.id);
       if (strip) out.append(strip);
@@ -407,6 +408,10 @@ $("#q").addEventListener("keydown", (e) => {
   e.preventDefault();
   const q = e.target.value.trim();
   if (!q) return;
+  if (/^https?:\/\//i.test(q)) {
+    location.href = q;
+    return;
+  }
   const results = SfbStore.searchLinks(FLAT_ALL, q);
   if (results.length) {
     const first = results[0];
@@ -435,6 +440,19 @@ $("#refresh").addEventListener("click", async () => {
     banner(SfbI18n.t("dash.offline", { err: e.message || e }));
   }
 });
+
+// Native bookmark sync (pull/push) opens the diff-review page. It's desktop-only —
+// Firefox Android has no bookmarks API — so hide the shortcuts where they can't work.
+function openReview(dir) {
+  browser.tabs.create({ url: browser.runtime.getURL("review.html?dir=" + dir) });
+}
+if (typeof browser !== "undefined" && browser.bookmarks) {
+  $("#pull").addEventListener("click", () => openReview("pull"));
+  $("#push").addEventListener("click", () => openReview("push"));
+} else {
+  $("#pull").hidden = true;
+  $("#push").hidden = true;
+}
 
 async function init() {
   CONFIG = await SfbApi.getConfig();
