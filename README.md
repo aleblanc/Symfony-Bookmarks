@@ -356,6 +356,12 @@ Links land as `status=pending` so the archival cron will pick them up.
 
 ![Extension tag search](docs/screenshot-extension-search.png)
 
+**Android app** — a custom Firefox for Android build with the extension pre-installed (plus uBlock Origin), and the collections dashboard set as the home / new-tab page:
+
+<p align="center">
+  <img src="docs/screenshot-android-app.jpg" height="480" alt="Symfony Bookmarks dashboard as the home page on Firefox for Android">
+</p>
+
 ---
 
 ## License
