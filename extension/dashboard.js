@@ -454,6 +454,44 @@ if (typeof browser !== "undefined" && browser.bookmarks) {
   $("#push").hidden = true;
 }
 
+// Compare dotted version strings: >0 if a newer than b, <0 if older, 0 if equal.
+function cmpVersions(a, b) {
+  const pa = String(a).split("."), pb = String(b).split(".");
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (parseInt(pa[i] || "0", 10)) - (parseInt(pb[i] || "0", 10));
+    if (d) return d > 0 ? 1 : -1;
+  }
+  return 0;
+}
+
+// Sideloaded APKs don't auto-update. Best-effort: once a day, compare the installed
+// Firefox version to the latest GitHub release and, if newer, show a download banner.
+async function checkForUpdate() {
+  try {
+    // Android-only: on desktop the add-on updates itself via AMO and the APK is irrelevant.
+    const platform = await browser.runtime.getPlatformInfo();
+    if (!platform || platform.os !== "android") return;
+    const { lastUpdateCheck } = await browser.storage.local.get("lastUpdateCheck");
+    if (lastUpdateCheck && Date.now() - lastUpdateCheck < 24 * 60 * 60 * 1000) return;
+    const info = await browser.runtime.getBrowserInfo();
+    const rel = await fetch(
+      "https://api.github.com/repos/aleblanc/firefox-bookmarks/releases/latest",
+      { headers: { Accept: "application/vnd.github+json" } },
+    ).then((r) => (r.ok ? r.json() : null));
+    await browser.storage.local.set({ lastUpdateCheck: Date.now() });
+    if (!rel || !rel.tag_name || !info || !info.version) return;
+    const latest = rel.tag_name.replace(/^v/, "");
+    if (cmpVersions(latest, info.version) <= 0) return;
+    const apk = (rel.assets || []).find((a) => a.name && a.name.endsWith(".apk"));
+    const el = $("#update");
+    el.href = apk ? apk.browser_download_url : rel.html_url;
+    el.textContent = "⬆️ Mise à jour disponible : " + latest + " (installée : " + info.version + ") — télécharger";
+    el.hidden = false;
+  } catch (e) {
+    /* best-effort: ignore update-check failures */
+  }
+}
+
 async function init() {
   CONFIG = await SfbApi.getConfig();
   SfbI18n.setLang(CONFIG.lang || "");
@@ -469,6 +507,8 @@ async function init() {
   });
   if (cached) ingest(cached);
   else banner(SfbI18n.t("dash.loading"));
+
+  checkForUpdate();
 }
 
 init();
