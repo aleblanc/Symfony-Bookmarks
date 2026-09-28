@@ -42,7 +42,8 @@ class LinkResource
     public ?int $id = null;
 
     #[Assert\NotBlank]
-    #[Assert\Url(protocols: ['http', 'https', 'ftp', 'ftps'])]
+    // requireTld: false so bare-IP / LAN hosts (e.g. http://192.168.1.50, http://nas) are allowed — this is a self-hosted LAN tool.
+    #[Assert\Url(protocols: ['http', 'https', 'ftp', 'ftps'], requireTld: false)]
     #[Assert\Length(max: 2048)]
     #[Groups(['link:read', 'link:write'])]
     public string $url = '';
