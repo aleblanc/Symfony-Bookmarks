@@ -37,6 +37,15 @@ final class DashboardController extends AbstractController
         $byCollection = [];
         foreach ($this->collections->findRootsForDashboard($dashboard) as $collection) {
             $recent = $this->links->findRecentForCollection($collection, self::PER_FOLDER_LIMIT);
+            if ([] === $recent) {
+                // No direct links, but subfolders might have some — preview the whole
+                // subtree so folders that only contain subfolders still show (matches
+                // the Firefox dashboard behaviour).
+                $recent = $this->links->findRecentForCollections(
+                    $this->collections->findDescendants($collection),
+                    self::PER_FOLDER_LIMIT,
+                );
+            }
             if ([] !== $recent) {
                 $byCollection[] = ['collection' => $collection, 'links' => $recent];
             }

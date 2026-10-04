@@ -67,4 +67,13 @@
        full page (all actions live there). Shown only < 760px via .link-eye CSS. #}
     <a class="icon-btn link-eye" href="{{ path('links_show', {id: link.id}) }}"
        title="{{ 'common.details'|trans }}" aria-label="{{ 'common.details'|trans }}">👁️</a>
+    {% if ajax_delete|default(false) %}
+        {# Dead-links page: .link-foot (holding the delete button) is hidden on mobile,
+           so surface a direct delete next to the details shortcut. Shown only < 760px
+           via .link-del-mobile CSS; the AJAX handler picks it up by [data-ajax-delete]. #}
+        <form class="inline link-del-mobile" method="post" action="{{ path('links_delete', {id: link.id}) }}" data-ajax-delete>
+            <input type="hidden" name="return_to" value="{{ app.request.basePath }}{{ app.request.pathInfo }}{% if app.request.queryString %}?{{ app.request.queryString }}{% endif %}">
+            <button class="icon-btn icon-btn--danger" type="submit" title="{{ 'common.delete'|trans }}" aria-label="{{ 'common.delete'|trans }}">🗑️</button>
+        </form>
+    {% endif %}
 </article>

@@ -530,6 +530,29 @@ final class LinkRepository extends ServiceEntityRepository
     }
 
     /**
+     * Most recently added links across a set of collections (newest first).
+     * Used to preview a folder's whole subtree when it has no direct links.
+     *
+     * @param list<Collection> $collections
+     *
+     * @return list<Link>
+     */
+    public function findRecentForCollections(array $collections, int $limit = 4): array
+    {
+        if ([] === $collections) {
+            return [];
+        }
+
+        return $this->hydrateCards($this->createQueryBuilder('l')
+            ->andWhere('l.collection IN (:cols)')
+            ->setParameter('cols', $collections)
+            ->orderBy('l.id', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult());
+    }
+
+    /**
      * Links exposed by the API v2 collection endpoint: vault-encrypted and
      * "à trier" (skipProcessing) collections are excluded. Newest first.
      *

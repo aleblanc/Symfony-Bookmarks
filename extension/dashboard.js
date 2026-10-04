@@ -18,6 +18,7 @@ let TREE = null; // raw cached tree data { dashboards: [...] }
 let FLAT_ALL = []; // every link, all dashboards — for search
 let FLAT_HOME = []; // links of the selected dashboard(s) — for the home sections
 let CONFIG = null;
+let ICON_BASE = ""; // server base (normalised) to prefix each link's app-root favicon path
 let NAV_FOLDER = null; // drill-down: collection id currently open, null = home
 
 const fmtDate = (ms) => new Date(ms).toLocaleString();
@@ -58,17 +59,35 @@ function trackClick(a, id) {
   });
 }
 
+// A 16px favicon <img> for a link, or null when it has none / no server base. It
+// self-removes on load error so a broken icon never leaves a blank gap.
+function favImgEl(link) {
+  if (!link.iconPath || !ICON_BASE) return null;
+  const img = document.createElement("img");
+  img.className = "fav";
+  img.src = ICON_BASE + link.iconPath;
+  img.alt = "";
+  img.loading = "lazy";
+  img.addEventListener("error", () => img.remove());
+  return img;
+}
+
 function cardEl(link) {
   const a = document.createElement("a");
   a.className = "card";
   a.href = link.url;
+  const head = document.createElement("span");
+  head.className = "chead";
+  const fav = favImgEl(link);
+  if (fav) head.append(fav);
   const name = document.createElement("span");
   name.className = "cname";
   name.textContent = link.name || link.url;
+  head.append(name);
   const host = document.createElement("span");
   host.className = "chost";
   host.textContent = hostOf(link.url);
-  a.append(name, host);
+  a.append(head, host);
   trackClick(a, link.id);
   return a;
 }
@@ -118,7 +137,16 @@ function linkEl(link) {
   sub.textContent = link.folderPath
     ? hostOf(link.url) + " · " + link.folderPath
     : hostOf(link.url);
-  a.append(name, sub);
+  const fav = favImgEl(link);
+  if (fav) {
+    a.classList.add("hasfav");
+    const txt = document.createElement("span");
+    txt.className = "ltext";
+    txt.append(name, sub);
+    a.append(fav, txt);
+  } else {
+    a.append(name, sub);
+  }
   trackClick(a, link.id);
   row.append(a);
   if (Array.isArray(link.tags) && link.tags.length) {
@@ -464,8 +492,33 @@ function cmpVersions(a, b) {
   return 0;
 }
 
+// The installed APK version, as stamped into the extension at build time by the
+// firefox-bookmarks CI (firelex-patch/apply.sh writes build-version.txt from the same
+// browser/config/version.txt the release is tagged with). We deliberately do NOT use
+// getBrowserInfo().version here: that returns the prebuilt GeckoView version, which lags
+// version.txt by a patch in artifact mode, making the banner false-positive every day AND
+// miss real updates. Falling back to getBrowserInfo() only when the stamp is absent (e.g.
+// the extension running on a stock Firefox, outside the custom APK).
+async function installedApkVersion() {
+  try {
+    const r = await fetch(browser.runtime.getURL("build-version.txt"));
+    if (r.ok) {
+      const v = (await r.text()).trim();
+      if (v) return v;
+    }
+  } catch (e) {
+    /* no stamp bundled -> fall through to getBrowserInfo */
+  }
+  try {
+    const info = await browser.runtime.getBrowserInfo();
+    return info && info.version ? info.version : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 // Sideloaded APKs don't auto-update. Best-effort: once a day, compare the installed
-// Firefox version to the latest GitHub release and, if newer, show a download banner.
+// APK version to the latest GitHub release and, if newer, show a download banner.
 async function checkForUpdate() {
   try {
     // Android-only: on desktop the add-on updates itself via AMO and the APK is irrelevant.
@@ -473,19 +526,19 @@ async function checkForUpdate() {
     if (!platform || platform.os !== "android") return;
     const { lastUpdateCheck } = await browser.storage.local.get("lastUpdateCheck");
     if (lastUpdateCheck && Date.now() - lastUpdateCheck < 24 * 60 * 60 * 1000) return;
-    const info = await browser.runtime.getBrowserInfo();
+    const installed = await installedApkVersion();
     const rel = await fetch(
       "https://api.github.com/repos/aleblanc/firefox-bookmarks/releases/latest",
       { headers: { Accept: "application/vnd.github+json" } },
     ).then((r) => (r.ok ? r.json() : null));
     await browser.storage.local.set({ lastUpdateCheck: Date.now() });
-    if (!rel || !rel.tag_name || !info || !info.version) return;
+    if (!rel || !rel.tag_name || !installed) return;
     const latest = rel.tag_name.replace(/^v/, "");
-    if (cmpVersions(latest, info.version) <= 0) return;
+    if (cmpVersions(latest, installed) <= 0) return;
     const apk = (rel.assets || []).find((a) => a.name && a.name.endsWith(".apk"));
     const el = $("#update");
     el.href = apk ? apk.browser_download_url : rel.html_url;
-    el.textContent = "⬆️ Mise à jour disponible : " + latest + " (installée : " + info.version + ") — télécharger";
+    el.textContent = "⬆️ Mise à jour disponible : " + latest + " (installée : " + installed + ") — télécharger";
     el.hidden = false;
   } catch (e) {
     /* best-effort: ignore update-check failures */
@@ -494,6 +547,7 @@ async function checkForUpdate() {
 
 async function init() {
   CONFIG = await SfbApi.getConfig();
+  ICON_BASE = SfbApi.normaliseBase(CONFIG.baseUrl || "");
   SfbI18n.setLang(CONFIG.lang || "");
   SfbI18n.apply();
   if (!CONFIG.baseUrl) {

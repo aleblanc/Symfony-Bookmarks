@@ -127,6 +127,9 @@ final class TreeController extends AbstractApiController
             'url' => $link->getUrl(),
             'description' => $link->getDescription(),
             'tags' => $tags,
+            // App-root-relative favicon path (e.g. /assets/favicons/<md5>.ico); clients
+            // prefix their configured server base to get an absolute URL. Null if none.
+            'iconPath' => $link->getIconPath(),
             'createdAt' => $link->getCreatedAt()->format(\DATE_ATOM),
             // Popularity data so clients (the Firefox extension home) can build the
             // "favourites / recently-clicked / most-clicked / newest" sections offline.

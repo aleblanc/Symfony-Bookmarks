@@ -15,12 +15,13 @@
  * Tree shape (see src/Controller/Api/TreeController.php):
  *   { dashboards: [ { id, name, color, collections: [ collection ] } ] }
  *   collection: { id, name, description, color, icon, parentId, links[], children[] }
- *   link:       { id, name, url, description, tags[], createdAt }
+ *   link:       { id, name, url, description, tags[], iconPath, createdAt }
  */
 const SfbStore = (() => {
   const TREE_KEY = "treeCache"; // { data, fetchedAt, v }
-  const SCHEMA = 3; // bump when the cached shape/ordering changes → invalidates old caches
-  // (v2 added favorite/clickCount/lastClickedAt; v3 needs the position-ordered tree).
+  const SCHEMA = 4; // bump when the cached shape/ordering changes → invalidates old caches
+  // (v2 added favorite/clickCount/lastClickedAt; v3 needs the position-ordered tree;
+  //  v4 added per-link iconPath for favicons).
   const TTL_MS = 24 * 60 * 60 * 1000; // stale after 24h — clicks are patched locally
   // in between, so the "recently/most clicked" sections stay fresh without a refetch.
 
