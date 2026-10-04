@@ -99,12 +99,40 @@ tests/SmokeTest.php             # data-provider smoke test on every public URL +
 extension/                      # Firefox (Android+desktop) sync extension (MV2, web-ext); own JS toolchain, excluded from PHPStan/cs-fixer/PHPUnit
 ```
 
-**Firefox extension** (`extension/`): syncs Symfony links into Firefox bookmarks
-via the API. ⚠️ The `browser.bookmarks` API **does not exist on Firefox for
-Android** (verified 2026-09) — native bookmark sync is **desktop-only**; the code
-feature-detects `browser.bookmarks` and degrades on Android. Reconciliation
-(`guidMap`, diff, last-write-wins) lives in `extension/lib/sync.js` and is kept
-for desktop. Plan: `docs/plan-api-v2-sync-bidirectionnel.md`.
+**Firefox extension** (`extension/`) — MV2, built with `web-ext` (plain unminified
+JS/HTML/CSS, **no build step**; own toolchain, excluded from PHPStan/cs-fixer/PHPUnit).
+Published on AMO as "Symfony Bookmarks Sync". Two roles:
+
+1. **Desktop native sync**: two-way sync between the Symfony server and the browser's
+   **native** bookmarks. ⚠️ The `browser.bookmarks` API **does not exist on Firefox for
+   Android** (verified 2026-09) → native sync is **desktop-only**; the code feature-detects
+   `browser.bookmarks` and degrades on Android. Reconciliation (`guidMap`, diff,
+   last-write-wins) is in `lib/sync.js`; the pull/push review UI is `review.html`.
+2. **The dashboard** (`dashboard.html` / `dashboard.js`) = the home/new-tab page. It reads
+   its OWN store from the API (`GET /api/v1/tree`, cached 24h in `storage.local`,
+   stale-while-revalidate in `lib/store.js`) → needs **no** bookmarks API, works on Android.
+   This dashboard is the home page of the **custom Android build** — see the separate
+   **`firefox-bookmarks`** repo (a custom Fenix APK bundling this extension + uBlock Origin,
+   with this dashboard forced as the home).
+
+Recent dashboard behavior (v1.2.0):
+- Search Enter: an `http(s)://` input navigates directly (else first bookmark match, else Google).
+- Home lists root folders that have links **anywhere in their subtree** (not only direct links).
+- No blank page on cache expiry: `store.js refresh()` validates the response (`dashboards`
+  present) before caching, so a bad/empty HTTP 200 can't clobber a good cache.
+- Pull/Push buttons on the dashboard toolbar (open `review.html`) — **desktop-only**, hidden on
+  Android (native sync needs `browser.bookmarks`).
+- **Android-only update banner** (`getPlatformInfo().os === "android"`): once/day, compares the
+  installed APK version to the latest `aleblanc/firefox-bookmarks` GitHub release; links to the APK.
+  The installed version is read from `build-version.txt`, stamped into the extension at APK build
+  time by `firefox-bookmarks/firelex-patch/apply.sh` (same source as the release tag). It does NOT
+  use `getBrowserInfo()` — that reports the GeckoView version, which lags `version.txt` in artifact
+  mode and made the banner false-positive daily / miss real updates. `getBrowserInfo()` is only a
+  fallback when the stamp is absent (stock Firefox). `installedApkVersion()` in `dashboard.js`.
+
+Versioning: bump `manifest.json` only for an **AMO** resubmission (AMO requires a strictly
+higher version). An Android-only change (bundled into the APK, not desktop-visible) doesn't need
+an AMO release. API v2 sync plan: `docs/plan-api-v2-sync-bidirectionnel.md`.
 
 ## Conventions to follow (Symfony best practices, non-negotiable)
 
