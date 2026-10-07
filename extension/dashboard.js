@@ -464,6 +464,7 @@ $("#refresh").addEventListener("click", async () => {
   try {
     const rec = await SfbStore.refresh();
     ingest(rec, { fromNetwork: true });
+    checkForUpdate(true); // manual refresh forces an immediate update check (bypasses the 24h throttle)
   } catch (e) {
     banner(SfbI18n.t("dash.offline", { err: e.message || e }));
   }
@@ -519,13 +520,14 @@ async function installedApkVersion() {
 
 // Sideloaded APKs don't auto-update. Best-effort: once a day, compare the installed
 // APK version to the latest GitHub release and, if newer, show a download banner.
-async function checkForUpdate() {
+async function checkForUpdate(force = false) {
   try {
     // Android-only: on desktop the add-on updates itself via AMO and the APK is irrelevant.
     const platform = await browser.runtime.getPlatformInfo();
     if (!platform || platform.os !== "android") return;
+    // Throttled to once a day on auto-load; the refresh button passes force=true to check now.
     const { lastUpdateCheck } = await browser.storage.local.get("lastUpdateCheck");
-    if (lastUpdateCheck && Date.now() - lastUpdateCheck < 24 * 60 * 60 * 1000) return;
+    if (!force && lastUpdateCheck && Date.now() - lastUpdateCheck < 24 * 60 * 60 * 1000) return;
     const installed = await installedApkVersion();
     const rel = await fetch(
       "https://api.github.com/repos/aleblanc/firefox-bookmarks/releases/latest",
